@@ -7,6 +7,10 @@ import testFragmentShader from './shaders/fragment.frag?raw'
 //gui
 const gui = new GUI();
 
+//texture loader
+const textureLoader = new THREE.TextureLoader();
+const flagTexture = textureLoader.load("/images/flag/india-flag.png");
+
 //sizes
 const sizes = {
     width: window.innerWidth,
@@ -18,7 +22,7 @@ const scene = new THREE.Scene();
 
 //camera setup
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.set(1, 1, 1)
+camera.position.set(0.5, 1, 1)
 scene.add(camera)
 
 //renderer setup
@@ -53,27 +57,24 @@ const material = new THREE.ShaderMaterial({
     fragmentShader: testFragmentShader,
      transparent: true,
      uniforms : {
-        wavelengthX : {value : 30},
-        wavelengthY : {value : 30},
-        vCtrl1: {value: 0.05},
-        vCtrl2: {value: 0.018},
-        vCtrl3: {value: 0.034},
-        uTime : {value: 0}
+        uFrequency : {value : new THREE.Vector2(10,5)},
+       
+        
+        uTime : {value: 0},
+        uColor: {value: new THREE.Color('orange')},
+        uTexture : {value : flagTexture}
      }
 });
 // console.log(material);
 
-gui.add(material.uniforms.wavelengthX, "value").max(50).min(0).step(1).name("wave length X");
-gui.add(material.uniforms.wavelengthY, "value").max(50).min(0).step(1).name("wave length Y");
-gui.add(material.uniforms.vCtrl1, "value").max(1).min(0).step(0.001).name("wave height");
-gui.add(material.uniforms.vCtrl2, "value").max(0.05).min(0).step(0.0001).name("wave variation x");
-gui.add(material.uniforms.vCtrl3, "value").max(0.05).min(0).step(0.0001).name("wave variation y");
+gui.add(material.uniforms.uFrequency.value, "x").max(50).min(0).step(1).name("Frequency X");
+gui.add(material.uniforms.uFrequency.value, "y").max(50).min(0).step(1).name("Frequency Y");
 
 
 
 // Mesh
 const mesh = new THREE.Mesh(geometry, material);
-mesh.rotation.x = - Math.PI * 0.5;
+mesh.scale.y = 2 / 3;
 scene.add(mesh);
 
 //controls setup

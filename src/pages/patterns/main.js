@@ -47,6 +47,7 @@ const material = new THREE.ShaderMaterial({
         uCtrl2 : {value : 0.8},
         uCtrl3 : {value : 0.2},
         uCtrl4 : {value : 5},
+        uCtrl5 : {value : 30},
      
      }
 });
@@ -55,6 +56,7 @@ gui.add(material.uniforms.uCtrl1, "value").min(0).max(1).step(0.01).name("ctrl1"
 gui.add(material.uniforms.uCtrl2, "value").min(0).max(1).step(0.01).name("ctrl2");
 gui.add(material.uniforms.uCtrl3, "value").min(0).max(1).step(0.01).name("ctrl3");
 gui.add(material.uniforms.uCtrl4, "value").min(0).max(10).step(0.1).name("ctrl4");
+gui.add(material.uniforms.uCtrl5, "value").min(0).max(200).step(1).name("ctrl5");
 
 // Mesh
 const mesh = new THREE.Mesh(geometry, material);

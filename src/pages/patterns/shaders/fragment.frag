@@ -97,7 +97,7 @@ void main(){
     // gl_FragColor = vec4(vec3(strength), 1.0);   
 
      //pattern 30
-    // float strength = 0.15 / (distance(vec2(vUv.x, (vUv.y - uCtrl1) * uCtrl4 + uCtrl1), vec2(0.5)));
+    // float strength = 0.15 / (distance(vec2(vUv.x, (vUv.y - 0.5) * 5.0 + 0.5), vec2(0.5)));
     // gl_FragColor = vec4(vec3(strength), 1.0);   
 
     //pattern 31
@@ -133,20 +133,26 @@ void main(){
 
 
     //pattern 40
+    //learn atan using graph => https://www.desmos.com/calculator/fjaz7sv20l
+    // desmos formula => A=A_{rctan2}\left(p,q\right)
     // float angle = atan(vUv.x, vUv.y);
     // float strength = angle;
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
 
     //pattern 41
+    //learn atan using graph => https://www.desmos.com/calculator/fjaz7sv20l
+    // desmos formula => A=\frac{A_{rctan2}\left(p,q\right)}{3.14\ \cdot2}+0.5\ 
     // float angle = atan(vUv.x - 0.5, vUv.y - 0.5) / (PI * 2.0) + 0.5;
     // float strength = angle;
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 43
-    float angle = atan(vUv.x - 0.5, vUv.y - 0.5) / (PI * 2.0) + 0.5;
-    float strength = mod(angle * uCtrl5, 1.0);
-    gl_FragColor = vec4(vec3(strength), 1.0);
+     //learn atan using graph => https://www.desmos.com/calculator/fjaz7sv20l
+    // desmos formula => A=\operatorname{mod}\left(\left(\frac{A_{rctan2}\left(p,q\right)}{3.14\ \cdot2}+0.5\ \right)\cdot\ 10,\ 1\right)
+    // float angle = atan(vUv.x - 0.5, vUv.y - 0.5) / (PI * 2.0)  ;
+    // float strength = mod(angle * uCtrl5, 1.0);
+    // gl_FragColor = vec4(vec3(strength), 1.0);
 
 
 

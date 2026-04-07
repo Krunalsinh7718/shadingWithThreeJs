@@ -10,57 +10,53 @@ uniform float uCtrl5;
 
 
 varying vec2 vUv;
+#include ./includes/functions.glsl
 
-//return value like random
-float random(vec2 st){
-    return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
-}
 
-vec2 rotate(vec2 uv, float rotation, vec2 mid){
-    return vec2(
-      cos(rotation) * (uv.x - mid.x) + sin(rotation) * (uv.y - mid.y) + mid.x,
-      cos(rotation) * (uv.y - mid.y) - sin(rotation) * (uv.x - mid.x) + mid.y
-    );
-}
+
+
 
 
 void main(){
 
      vec2 uv = vUv;
+
+     vec3 blackColor = vec3(0.0);
+     vec3 uvColor = vec3(uv, 1.0);
+
+    //pattern 9
+    // float strength = stripe(uv, 10.0, 0.5);
+    // gl_FragColor = vec4(vec3(strength), 1.0);
    
     //pattern 14
     // float strength = step(uCtrl1, mod(uv.x * 10.0, 1.0) * step(uCtrl2, mod(uv.y * 10.0, 1.0)));
     // strength += step(uCtrl2, mod(uv.x * 10.0, 1.0) * step(uCtrl1, mod(uv.y * 10.0, 1.0)));
 
-    // float boxX = step(uCtrl1, mod(uv.x * 10.0, 1.0)) *  step(uCtrl2, mod(uv.y * 10.0, 1.0));
-    // float boxY = step(uCtrl2, mod(uv.x * 10.0, 1.0)) *  step(uCtrl1, mod(uv.y * 10.0, 1.0));
-    // float strength = boxX + boxY;
-
+    // float strength = cornerPattern(uCtrl4, uv);
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
 
     //pattern 15
     // uv.x +=  uTime * 0.06;
     // uv.y +=  uTime * 0.06;
-    // float boxX = step(uCtrl1, mod(uv.x * 10.0 - uCtrl3, 1.0)) *  step(uCtrl2, mod(uv.y * 10.0, 1.0));
-    // float boxY = step(uCtrl2, mod(uv.x * 10.0, 1.0)) *  step(uCtrl1, mod(uv.y * 10.0 - uCtrl3, 1.0));
-    // float strength = boxX + boxY;
+    // float strength = plusPattern(uCtrl4, uv);
 
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 16
     // float strength = min(abs(uv.x - uCtrl1), abs(uv.y - uCtrl1)) ;
     // float strength = max(abs(uv.x - uCtrl1), abs(uv.y - uCtrl1)) ;
+    // float strength =  min(abs(uv.y - 0.5),abs(uv.x - 0.5) );
+
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 17
-    // float strength = step(0.2, max(abs(uv.x - uCtrl1), abs(uv.y - uCtrl1))) ;
-    // strength *= 1.0 - step(0.25, max(abs(uv.x - uCtrl1), abs(uv.y - uCtrl1)));
+    // float strength = borderBox(uCtrl3, uv, uCtrl1, uCtrl2);
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
 
     //pattern 18
-    // float strength = floor(vUv.x * uCtrl4) * 0.1 * floor(vUv.y * uCtrl4) * 0.1;
+    // float strength = shades(uCtrl4, uv);
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
      //pattern 23
@@ -68,48 +64,28 @@ void main(){
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
      //pattern 24
-    // vec2 gridUv = vec2(floor(vUv.x * uCtrl4) * 0.1 , floor(vUv.y * uCtrl4) * 0.1);
-    // float strength = random(gridUv);
+    // float strength = randomShades(uCtrl4, uv, uCtrl1);
     // gl_FragColor = vec4(vec3(strength), 1.0);
-
-
-    //pattern 25
-    // vec2 gridUv = vec2(floor(vUv.x * uCtrl4) / uCtrl4 , floor( (vUv.y + vUv.x * 0.5) * uCtrl4) / uCtrl4);
-    // float strength = random(gridUv);
-    // gl_FragColor = vec4(vec3(strength), 1.0);
-
 
     //pattern 26
     // uv -= 0.5;
     // float strength = length(uv );
-
     // float strength = distance(vUv, vec2(0.5));
-
     // gl_FragColor = vec4(vec3(strength), 1.0);   
-
 
      //pattern 28
     // float strength = 1.0 - distance(vUv, vec2(0.5));
     // gl_FragColor = vec4(vec3(strength), 1.0);   
 
      //pattern 29
-    // float strength =  0.015 / distance(uv, vec2(0.5)) ;
-    // gl_FragColor = vec4(vec3(strength), 1.0);   
-
-     //pattern 30
-    // float strength = 0.15 / (distance(vec2(vUv.x, (vUv.y - 0.5) * 5.0 + 0.5), vec2(0.5)));
+    // float strength =  starDot(0.15, uv, vec2(0.5), 5.0, 1.0);
     // gl_FragColor = vec4(vec3(strength), 1.0);   
 
     //pattern 31
-    // float strength = 0.15 / (distance(vec2(vUv.x, (vUv.y - 0.5) * 5.0 + 0.5), vec2(0.5)));
-    // strength *= 0.15 / (distance(vec2(vUv.y, (vUv.x - 0.5) * 5.0 + 0.5), vec2(0.5)));
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+    // vec2 rotatedUv = rotate(vUv, PI * uCtrl1, vec2(0.5));
+    // float strength =  starShape(0.15, rotatedUv, vec2(0.5), uCtrl4, 1.0);
+    // gl_FragColor = vec4(vec3(strength), 1.0);   
 
-    //pattern 32
-    // vec2 rotatedUv = rotate(vUv, PI * 0.25, vec2(0.5));
-    // float strength = 0.15 / (distance(vec2(rotatedUv.x, (rotatedUv.y - 0.5) * 5.0 + 0.5), vec2(0.5)));
-    // strength *= 0.15 / (distance(vec2(rotatedUv.y, (rotatedUv.x - 0.5) * 5.0 + 0.5), vec2(0.5)));
-    // gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 33
     // float strength =  abs(distance(vUv, vec2(0.5)) - 0.25 );
@@ -117,19 +93,18 @@ void main(){
 
     //pattern 35
     // float strength =  step(0.02, abs(distance(vUv, vec2(0.5)) - 0.25 ));
+    // float strength =  1.0 - borderCircle(0.01, 0.3, vec2(0.5), uv) ;
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
-    //pattern 36
-    // float strength =  1.0 - step(0.02, abs(distance(vUv, vec2(0.5)) - 0.25 ));
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+   
 
     //pattern 37
-    // vec2 wavedUv = vec2(
-    //     vUv.x + sin(vUv.y * uCtrl5) * 0.1,
-    //     vUv.y + sin(vUv.x * uCtrl5) * 0.1
-    // );
-    // float strength = 1.0 - step(0.01, abs(distance(wavedUv, vec2(0.5)) - uCtrl1));
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+    vec2 wavedUv = vec2(
+        vUv.x + sin(vUv.y * uCtrl5) * 0.1,
+        vUv.y + sin(vUv.x * uCtrl5) * 0.1
+    );
+    float strength = 1.0 - step(0.01, abs(distance(wavedUv, vec2(0.5)) - uCtrl1));
+    gl_FragColor = vec4(vec3(strength), 1.0);
 
 
     //pattern 40
@@ -154,6 +129,30 @@ void main(){
     // float strength = mod(angle * uCtrl5, 1.0);
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
+
+    //pattern 45
+    // float angle = atan(vUv.x - 0.5, vUv.y - 0.5) / (PI * 2.0)  ;
+    // float radius = 0.25 + sin(angle * 100.0)* 0.02;
+    // float strength = 1.0 - step(0.01,abs(distance(vUv, vec2(0.5)) - radius));
+    // gl_FragColor = vec4(vec3(strength), 1.0);
+
+    //pattern 47
+    // float strength = step(0.0, cnoise(vUv * 10.0));
+    // gl_FragColor = vec4(vec3(strength), 1.0);
+
+    //pattern 48
+    // float strength = 1.0 - abs(cnoise((vUv ) * 10.0));
+    // gl_FragColor = vec4(vec3(strength), 1.0);
+
+    //pattern 49
+    // float strength = sin(cnoise(vUv * 10.0) * uCtrl5);
+    // gl_FragColor = vec4(vec3(strength), 1.0);
+
+    //pattern 50
+    // float strength = step(0.9, sin(cnoise(vUv * 10.0) * uCtrl5));
+    // strength = clamp(strength, 0.0, 1.0);
+    // vec3 mixedColor = mix(blackColor, uvColor, strength);
+    // gl_FragColor = vec4(mixedColor, 1.0);
 
 
 

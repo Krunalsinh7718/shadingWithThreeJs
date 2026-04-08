@@ -99,12 +99,12 @@ void main(){
    
 
     //pattern 37
-    vec2 wavedUv = vec2(
-        vUv.x + sin(vUv.y * uCtrl5) * 0.1,
-        vUv.y + sin(vUv.x * uCtrl5) * 0.1
-    );
-    float strength = 1.0 - step(0.01, abs(distance(wavedUv, vec2(0.5)) - uCtrl1));
-    gl_FragColor = vec4(vec3(strength), 1.0);
+    // vec2 wavedUv = vec2(
+    //     vUv.x + sin(vUv.y * uCtrl5) * 0.1,
+    //     vUv.y + sin(vUv.x * uCtrl5) * 0.1
+    // );
+    // float strength = 1.0 - borderCircle(0.01, 0.3, vec2(0.5), wavedUv);
+    // gl_FragColor = vec4(vec3(strength), 1.0);
 
 
     //pattern 40
@@ -118,22 +118,19 @@ void main(){
     //pattern 41
     //learn atan using graph => https://www.desmos.com/calculator/fjaz7sv20l
     // desmos formula => A=\frac{A_{rctan2}\left(p,q\right)}{3.14\ \cdot2}+0.5\ 
-    // float angle = atan(vUv.x - 0.5, vUv.y - 0.5) / (PI * 2.0) + 0.5;
-    // float strength = angle;
+    // float angle = angleCircle(vec2(0.5), uCtrl5, uv);
+    // float strength = angle ;
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
-    //pattern 43
-     //learn atan using graph => https://www.desmos.com/calculator/fjaz7sv20l
-    // desmos formula => A=\operatorname{mod}\left(\left(\frac{A_{rctan2}\left(p,q\right)}{3.14\ \cdot2}+0.5\ \right)\cdot\ 10,\ 1\right)
-    // float angle = atan(vUv.x - 0.5, vUv.y - 0.5) / (PI * 2.0)  ;
-    // float strength = mod(angle * uCtrl5, 1.0);
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+    
 
 
     //pattern 45
-    // float angle = atan(vUv.x - 0.5, vUv.y - 0.5) / (PI * 2.0)  ;
-    // float radius = 0.25 + sin(angle * 100.0)* 0.02;
-    // float strength = 1.0 - step(0.01,abs(distance(vUv, vec2(0.5)) - radius));
+    // float angle = angleCircle(vec2(0.5), 1.0, uv);
+    // float radius = 0.25 + sin(angle * 100.0) * 0.02;
+
+    // float circle = wavedCircle(0.01, uCtrl1, vec2(0.5), uv,  100.0, 0.02 );
+    // float strength = 1.0 -  circle;
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 47
@@ -141,7 +138,7 @@ void main(){
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 48
-    // float strength = 1.0 - abs(cnoise((vUv ) * 10.0));
+    // float strength = 1.0 - abs(cnoise(uv * 10.0));
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 49

@@ -1,3 +1,5 @@
+#define PI 3.1415926535897932384626433832795
+
 float stripe(vec2 data, float stripCount, float stripeSze){
     float strength = step(stripeSze, mod(data.y * stripCount, 1.0));
     return strength;
@@ -101,6 +103,18 @@ float starShape(float intensity, vec2 uv, vec2 centerPoint, float sqX, float sqY
 
 float borderCircle(float borderSize, float circleSize, vec2 circlePos, vec2 uv){
     return step(borderSize,abs(distance(uv, circlePos) - circleSize));
+}
+
+float angleCircle(vec2 centerPoint, float stripesCount, vec2 uv){
+    float angle = atan(uv.x - centerPoint.x, uv.y - centerPoint.y) / (PI * 2.0) + 0.5;
+    return mod(angle * stripesCount, 1.0);
+}
+
+float wavedCircle(float borderSize, float circleSize, vec2 circlePos, vec2 uv, float waveCount, float waveHeight){
+    float angle = angleCircle(circlePos, 1.0, uv);
+    float radius = circleSize + sin(angle * waveCount) * waveHeight;
+    float circle = borderCircle( borderSize,  radius,  circlePos,  uv);
+    return circle;
 }
 
 //float strength = 0.15 / (distance(vec2(vUv.x, (vUv.y - 0.5) * 1.0 + 0.5 ), vec2(0.5)));

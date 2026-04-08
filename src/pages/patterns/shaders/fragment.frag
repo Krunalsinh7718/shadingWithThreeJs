@@ -8,14 +8,8 @@ uniform float uCtrl3;
 uniform float uCtrl4;
 uniform float uCtrl5;
 
-
 varying vec2 vUv;
-#include ./includes/functions.glsl
-
-
-
-
-
+#include ../../includes/functions.glsl
 
 void main(){
 
@@ -40,7 +34,6 @@ void main(){
     // uv.x +=  uTime * 0.06;
     // uv.y +=  uTime * 0.06;
     // float strength = plusPattern(uCtrl4, uv);
-
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 16
@@ -84,7 +77,8 @@ void main(){
     //pattern 31
     // vec2 rotatedUv = rotate(vUv, PI * uCtrl1, vec2(0.5));
     // float strength =  starShape(0.15, rotatedUv, vec2(0.5), uCtrl4, 1.0);
-    // gl_FragColor = vec4(vec3(strength), 1.0);   
+    // vec3 mixedColor = mix(blackColor, uvColor, strength);
+    // gl_FragColor = vec4(mixedColor, 1.0);   
 
 
     //pattern 33
@@ -96,8 +90,6 @@ void main(){
     // float strength =  1.0 - borderCircle(0.01, 0.3, vec2(0.5), uv) ;
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
-   
-
     //pattern 37
     // vec2 wavedUv = vec2(
     //     vUv.x + sin(vUv.y * uCtrl5) * 0.1,
@@ -106,7 +98,6 @@ void main(){
     // float strength = 1.0 - borderCircle(0.01, 0.3, vec2(0.5), wavedUv);
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
-
     //pattern 40
     //learn atan using graph => https://www.desmos.com/calculator/fjaz7sv20l
     // desmos formula => A=A_{rctan2}\left(p,q\right)
@@ -114,16 +105,12 @@ void main(){
     // float strength = angle;
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
-
     //pattern 41
     //learn atan using graph => https://www.desmos.com/calculator/fjaz7sv20l
     // desmos formula => A=\frac{A_{rctan2}\left(p,q\right)}{3.14\ \cdot2}+0.5\ 
     // float angle = angleCircle(vec2(0.5), uCtrl5, uv);
     // float strength = angle ;
     // gl_FragColor = vec4(vec3(strength), 1.0);
-
-    
-
 
     //pattern 45
     // float angle = angleCircle(vec2(0.5), 1.0, uv);
@@ -146,12 +133,10 @@ void main(){
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 50
-    // float strength = step(0.9, sin(cnoise(vUv * 10.0) * uCtrl5));
-    // strength = clamp(strength, 0.0, 1.0);
-    // vec3 mixedColor = mix(blackColor, uvColor, strength);
-    // gl_FragColor = vec4(mixedColor, 1.0);
-
-
+    float strength = step(0.9, sin(cnoise(vUv * 10.0) * uCtrl5));
+    strength = clamp(strength, 0.0, 1.0);
+    vec3 mixedColor = mix(blackColor, uvColor, strength);
+    gl_FragColor = vec4(mixedColor, 1.0);
 
     #include <colorspace_fragment>
 }

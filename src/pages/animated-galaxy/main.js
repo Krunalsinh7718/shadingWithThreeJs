@@ -7,9 +7,6 @@ import testFragmentShader from './shaders/fragment.frag'
 //gui
 const gui = new GUI({width: 340});
 
-
-
-
 //sizes
 const sizes = {
     width: window.innerWidth,
@@ -36,8 +33,10 @@ parameters.count = 2000;
 parameters.pointSize = 0.01;
 parameters.radius = 5;
 parameters.branches = 3;
-parameters.randomness = 0.5
-parameters.randomnessPower = 3
+parameters.randomness = 0.5;
+parameters.randomnessPower = 3;
+parameters.innerColor = "red";
+parameters.outerColor = "blue";
 
 let pointGeometry = null;
 let pointMaterial = null;
@@ -66,9 +65,11 @@ const generateGalaxy = () => {
         pointsPositionArr[i3 + 1] = randomY;
         pointsPositionArr[i3 + 2] = Math.sin(branchAngle) * radius + randomZ;
 
-        pointsColorArr[i3    ] = 0.1;
+        pointsColorArr[i3    ] = 0.1 * radius;
         pointsColorArr[i3 + 1] = 1.0;
-        pointsColorArr[i3 + 2] = 0.5;
+        pointsColorArr[i3 + 2] = 0.5 * radius;
+
+
         
     }
 
@@ -100,7 +101,6 @@ const clock = new THREE.Clock();
 function animate() {
 
     const elapsedTime = clock.getElapsedTime();
-
  
     //update controls
     controls.update();

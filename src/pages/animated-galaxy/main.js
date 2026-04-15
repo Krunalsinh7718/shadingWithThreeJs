@@ -33,7 +33,7 @@ parameters.count = 2000;
 parameters.pointSize = 0.01;
 parameters.radius = 5;
 parameters.branches = 3;
-parameters.randomness = 0.5;
+parameters.randomness = 0.2;
 parameters.randomnessPower = 3;
 parameters.innerColor = "red";
 parameters.outerColor = "blue";
@@ -113,6 +113,13 @@ const generateGalaxy = () => {
     scene.add(points);
 }
 generateGalaxy();
+
+gui.add(pointMaterial.uniforms.uSize, 'value').min(10).max(50).onChange(e => {
+    // console.log(e);
+
+    pointMaterial.uniforms.uSize.value = e * renderer.getPixelRatio();
+    
+})
 
 
 //controls setup

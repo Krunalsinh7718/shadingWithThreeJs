@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import GUI from 'lil-gui'
-import testVertexShader from './shaders/vertex.vert'
-import testFragmentShader from './shaders/fragment.frag'
+import appVertexShader from './shaders/vertex.vert'
+import appFragmentShader from './shaders/fragment.frag'
 
 //gui
 const gui = new GUI({width: 340});
@@ -51,6 +51,8 @@ const generateGalaxy = () => {
 
     const pointsPositionArr = new Float32Array(parameters.count * 3);
     const pointsColorArr = new Float32Array(parameters.count * 3);
+    const randomness = new Float32Array(parameters.count * 3);
+    const scales = new Float32Array(parameters.count * 1);
 
     for (let i = 0; i < parameters.count; i++) {
         const i3 = i * 3;
@@ -61,13 +63,20 @@ const generateGalaxy = () => {
         const randomY = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() > 0.5 ? 1 : -1) * radius * parameters.randomness;
         const randomZ = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() > 0.5 ? 1 : -1) * radius * parameters.randomness;
 
-        pointsPositionArr[i3    ] = Math.cos(branchAngle) * radius + randomX;
+        pointsPositionArr[i3    ] = Math.cos(branchAngle) * radius;
         pointsPositionArr[i3 + 1] = randomY;
-        pointsPositionArr[i3 + 2] = Math.sin(branchAngle) * radius + randomZ;
+        pointsPositionArr[i3 + 2] = Math.sin(branchAngle) * radius;
+
+
+        randomness[i3    ] = randomX;
+        randomness[i3 + 1] = randomY;
+        randomness[i3 + 2] = randomZ;
 
         pointsColorArr[i3    ] = 0.1 * radius;
         pointsColorArr[i3 + 1] = 1.0;
         pointsColorArr[i3 + 2] = 0.5 * radius;
+
+        scales[i] = Math.random();
 
 
         
@@ -76,12 +85,28 @@ const generateGalaxy = () => {
     pointGeometry = new THREE.BufferGeometry();
     pointGeometry.setAttribute('position', new THREE.BufferAttribute(pointsPositionArr, 3));
     pointGeometry.setAttribute('color', new THREE.BufferAttribute(pointsColorArr, 3));
-    pointMaterial = new THREE.PointsMaterial({
-        size : parameters.pointSize,
-        sizeAttenuation: true,
+    pointGeometry.setAttribute('randomness', new THREE.BufferAttribute(randomness, 3));
+    pointGeometry.setAttribute('scales', new THREE.BufferAttribute(scales, 1));
+    // pointMaterial = new THREE.PointsMaterial({
+    //     size : parameters.pointSize,
+    //     sizeAttenuation: true,
+    //     depthWrite: false,
+    //     blending: THREE.AdditiveBlending,
+    //     vertexColors: true
+    // })
+    pointMaterial = new THREE.ShaderMaterial({
         depthWrite: false,
         blending: THREE.AdditiveBlending,
-        vertexColors: true
+        vertexColors: true,
+        vertexShader: appVertexShader,
+        fragmentShader: appFragmentShader,
+        transparent: true,
+        uniforms : {
+            uSize : {value : 30 * renderer.getPixelRatio() },
+            uTime : {value: 0 }
+        }
+        
+        
     })
 
     points = new THREE.Points(pointGeometry, pointMaterial);
@@ -101,6 +126,9 @@ const clock = new THREE.Clock();
 function animate() {
 
     const elapsedTime = clock.getElapsedTime();
+
+    //update uniform
+    pointMaterial.uniforms.uTime.value = elapsedTime;
  
     //update controls
     controls.update();

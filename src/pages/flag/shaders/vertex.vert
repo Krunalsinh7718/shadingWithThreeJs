@@ -13,12 +13,12 @@ uniform float uTime;
 
 void main(){
     vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+    
     // modelPosition.z += aRandom * 0.1;
     modelPosition.z += sin(modelPosition.x * uFrequency.x + uTime) * 0.1 ;
     modelPosition.z += cos(modelPosition.y * uFrequency.y + uTime) * 0.1 ;
 
     //elevation
-
     float elevation = sin(modelPosition.x * uFrequency.x + uTime) * 0.1;
     elevation += cos(modelPosition.y * uFrequency.y + uTime) * 0.1;
 

@@ -26,12 +26,24 @@ const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 
 camera.position.set(1, 1, 1)
 scene.add(camera)
 
+//light
+const light = new THREE.AmbientLight("#fff", 10);
+scene.add(light);
+
 //renderer setup
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(sizes.width, sizes.height)
 renderer.setAnimationLoop(animate);
 document.body.appendChild(renderer.domElement);
 
+//load model
+gltfLoader.load("/models/car/scene.gltf", e => {
+    const car = e.scenes[0];
+    car.scale.set(0.3,0.3,0.3);
+    console.log(car);
+    
+    scene.add(car);
+})
 
 
 //controls setup

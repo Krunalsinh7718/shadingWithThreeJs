@@ -5,6 +5,8 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import testVertexShader from './shaders/vertex.vert'
 import testFragmentShader from './shaders/fragment.frag'
 
+import {applyMaterialByMeshName, applyMaterialByMaterialName, logSceneStructure} from "../../common-utility/common-functions.js";
+
 //gui
 const gui = new GUI({width: 340});
 
@@ -27,7 +29,7 @@ camera.position.set(1, 1, 1)
 scene.add(camera)
 
 //light
-const light = new THREE.AmbientLight("#fff", 10);
+const light = new THREE.AmbientLight("#fff", 5);
 scene.add(light);
 
 //renderer setup
@@ -37,12 +39,12 @@ renderer.setAnimationLoop(animate);
 document.body.appendChild(renderer.domElement);
 
 //load model
-gltfLoader.load("/models/car/scene.gltf", e => {
-    const car = e.scenes[0];
-    car.scale.set(0.3,0.3,0.3);
-    console.log(car);
-    
-    scene.add(car);
+gltfLoader.load("/models/apple/scene.gltf", e => {
+    const model = e.scene;
+    logSceneStructure(model);
+    model.scale.set(0.01,0.01,0.01);
+    // console.log(e);
+    scene.add(model);
 })
 
 

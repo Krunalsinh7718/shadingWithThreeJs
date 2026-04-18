@@ -1,3 +1,14 @@
+//get meshes by name
+function getMeshesByName(root, name) {
+  const meshes = [];
+  root.traverse((child) => {
+    if (child.isMesh && child.name.toLowerCase().includes(name.toLowerCase())) {
+      meshes.push(child);
+    }
+  });
+  return meshes;
+}
+
 //Apply material by mesh name
 function applyMaterialByMeshName(root, name, material) {
   root.traverse((child) => {
@@ -36,4 +47,4 @@ function logSceneStructure(root) {
 }
 
 
-export {applyMaterialByMeshName, applyMaterialByMaterialName, logSceneStructure}
+export {getMeshesByName, applyMaterialByMeshName, applyMaterialByMaterialName, logSceneStructure}

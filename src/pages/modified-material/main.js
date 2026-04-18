@@ -47,8 +47,8 @@ scene.add(spotLight)
 // spotLight.target.position.x = 0
 // scene.add(spotLight.target)
 
-const spotLightHelper = new THREE.SpotLightHelper(spotLight)
-scene.add(spotLightHelper)
+// const spotLightHelper = new THREE.SpotLightHelper(spotLight)
+// scene.add(spotLightHelper)
 
 //renderer setup
 const renderer = new THREE.WebGLRenderer();
@@ -99,14 +99,14 @@ material.onBeforeCompile = (shader) => {
         `
         #include <begin_vertex>
 
-        // float angle = (sin(position.y + uTime)) * 50.0;
-        // mat2 rotateMatrix = get2dRotateMatrix(angle);
-        //transformed.xz = rotateMatrix * transformed.xz;
+        float angle = (sin(position.y + uTime)) * 1.0;
+        mat2 rotateMatrix = get2dRotateMatrix(angle);
+        transformed.xz = rotateMatrix * transformed.xz;
 
-        transformed.xz = vec2(
-            transformed.x +  (sin(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4) , 
-            transformed.z +  (cos(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4)
-        );
+        // transformed.xz = vec2(
+        //     transformed.x +  (sin(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4) , 
+        //     transformed.z +  (cos(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4)
+        // );
 
         
     `   
@@ -129,14 +129,14 @@ depthMaterial.onBeforeCompile = (shader) => {
         `
             #include <beginnormal_vertex>
 
-            // float angle = (sin(position.y + uTime)) * 50.0;
-            // mat2 rotateMatrix = get2dRotateMatrix(angle);
-            //objectNormal.xz = rotateMatrix * objectNormal.xz;
+            float angle = (sin(position.y + uTime)) * 1.0;
+            mat2 rotateMatrix = get2dRotateMatrix(angle);
+            objectNormal.xz = rotateMatrix * objectNormal.xz;
 
-            objectNormal.xz = vec2(
-                objectNormal.x +  (sin(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4) , 
-                objectNormal.z +  (cos(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4)
-            );
+            // objectNormal.xz = vec2(
+            //     objectNormal.x +  (sin(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4) , 
+            //     objectNormal.z +  (cos(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4)
+            // );
         `
     )
     shader.vertexShader = shader.vertexShader.replace(
@@ -144,10 +144,14 @@ depthMaterial.onBeforeCompile = (shader) => {
         `
         #include <begin_vertex>
 
-        transformed.xz = vec2(
-        transformed.x + sin(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4,
-        transformed.z + cos(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4
-        );
+        float angle = (sin(position.y + uTime)) * 1.0;
+        mat2 rotateMatrix = get2dRotateMatrix(angle);
+        transformed.xz = rotateMatrix * transformed.xz;
+
+        // transformed.xz = vec2(
+        //     transformed.x + sin(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4,
+        //     transformed.z + cos(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4
+        // );
         `
     )
   
@@ -169,6 +173,11 @@ gltfLoader.load("/models/cactus/cactus2.glb", e => {
     model.scale.set(0.01, 0.01, 0.01);
     // console.log(e);
     scene.add(model);
+
+    const meshes1 = getMeshesByName(model, "Cylinder004");
+    meshes1.forEach(e => {e.castShadow = true;})
+    
+
 })
 
 

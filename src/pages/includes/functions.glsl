@@ -69,8 +69,8 @@ float plusPattern(float patternSize, vec2 uv){
 
 
 float cornerPattern(float patternSize, vec2 uv){
-    float boxX = step(uCtrl1, mod(uv.x * patternSize, 1.0)) *  step(uCtrl2, mod(uv.y * patternSize, 1.0));
-    float boxY = step(uCtrl2, mod(uv.x * patternSize, 1.0)) *  step(uCtrl1, mod(uv.y * patternSize, 1.0));
+    float boxX = step(0.4, mod(uv.x * patternSize, 1.0)) *  step(0.8, mod(uv.y * patternSize, 1.0));
+    float boxY = step(0.8, mod(uv.x * patternSize, 1.0)) *  step(0.4, mod(uv.y * patternSize, 1.0));
     float strength = boxX + boxY;
     return strength;
 }
@@ -88,7 +88,7 @@ float shades(float shadeSize, vec2 uv){
 float randomShades(float shadeSize, vec2 uv, float rotation){
     // vec2 gridUv = vec2(floor(uv.x * shadeSize) * 0.1 , floor(uv.y * shadeSize) * 0.1);
 
-    vec2 gridUv = vec2(floor(uv.x * uCtrl4) / uCtrl4 , floor( (uv.y + uv.x * rotation) * uCtrl4) / uCtrl4);
+    vec2 gridUv = vec2(floor(uv.x * 5.0) / 5.0 , floor( (uv.y + uv.x * rotation) * 5.0) / 5.0);
     float strength = random(gridUv);
     return strength;
 }
@@ -117,6 +117,10 @@ float wavedCircle(float borderSize, float circleSize, vec2 circlePos, vec2 uv, f
     return circle;
 }
 
-//float strength = 0.15 / (distance(vec2(vUv.x, (vUv.y - 0.5) * 1.0 + 0.5 ), vec2(0.5)));
-
-//floor(vUv.x * uCtrl4) * 0.1 * floor(vUv.y * uCtrl4) * 0.1
+vec2 rotate2D(vec2 value, float angle)
+{
+    float s = sin(angle);
+    float c = cos(angle);
+    mat2 m = mat2(c, s, -s, c);
+    return m * value;
+}

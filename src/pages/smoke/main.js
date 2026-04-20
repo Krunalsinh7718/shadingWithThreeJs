@@ -35,12 +35,13 @@ renderer.setAnimationLoop(animate);
 document.body.appendChild(renderer.domElement);
 
 //model
-
+let modal = null;
 gltfLoader.load("/models/table-coffee-mug/bakedModel.glb", gltf => {
-    console.log( gltf.scene.getObjectByName('baked'));
-     gltf.scene.getObjectByName('baked').material.map.anisotropy = 8;
+    // console.log( gltf.scene.getObjectByName('baked'));
+    modal = gltf.scene;
+     modal.getObjectByName('baked').material.map.anisotropy = 8;
    
-    scene.add(gltf.scene);
+    scene.add(modal);
     
 })
 
@@ -85,9 +86,9 @@ gui.addColor(parameters, 'smokeColor').name("Smoke Color").onChange(color => {
 })
 
 // Mesh
-const mesh = new THREE.Mesh(geometry, material);
-mesh.position.y = 1.83;
-scene.add(mesh);
+const smoke = new THREE.Mesh(geometry, material);
+smoke.position.y = 1.83;
+scene.add(smoke);
 
 //controls setup
 const controls = new OrbitControls(camera, renderer.domElement);

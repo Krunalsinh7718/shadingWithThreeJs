@@ -92,6 +92,8 @@ function animate() {
     //update uniform
     material.uniforms.uTime.value = elapsedTime;
 
+    // mesh.position.x += elapsedTime * 0.0001;
+
     //update controls
     controls.update();
 

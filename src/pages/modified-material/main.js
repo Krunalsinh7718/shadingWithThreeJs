@@ -157,8 +157,9 @@ depthMaterial.onBeforeCompile = (shader) => {
   
 }
 //load model
+let model = null;
 gltfLoader.load("/models/cactus/cactus2.glb", e => {
-    const model = e.scene;
+    model = e.scene;
     logSceneStructure(model);
 
     // applyMaterialByMeshName("apple_low_obj_Material_#35_0")
@@ -194,6 +195,10 @@ function animate() {
     const elapsedTime = clock.getElapsedTime();
 
      customUniforms.uTime.value = elapsedTime;
+
+    //  if(model){
+    //      model.position.x += elapsedTime * 0.0001;
+    //  }
 
     //update controls
     controls.update();

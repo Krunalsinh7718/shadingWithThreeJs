@@ -1,4 +1,5 @@
 varying vec3 vModelPosition;
+varying vec3 vNormal;
 
 void main(){
 
@@ -9,6 +10,7 @@ void main(){
     gl_Position = projectedPosition;
 
     vModelPosition = modelPosition.xyz;
+    vNormal = normal;
 }
 
 

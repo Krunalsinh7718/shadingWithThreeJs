@@ -26,7 +26,7 @@ void main(){
     gl_Position = projectedPosition;
 
     vModelPosition = modelPosition.xyz;
-    vNormal = modelNormal.xyz;
+    vNormal = normal;
 }
 
 

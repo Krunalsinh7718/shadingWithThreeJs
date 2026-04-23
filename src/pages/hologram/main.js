@@ -10,7 +10,7 @@ import { getMeshesByName, applyMaterialByMeshName, applyMaterialByMaterialName, 
 //gui
 const gui = new GUI();
 const parameters = {};
-parameters.smokeColor = 'rgb(255,141,10)';
+parameters.hologramColor = 'rgb(255,141,10)';
 
 //loaders
 const textureLoader = new THREE.TextureLoader();
@@ -43,13 +43,22 @@ const material = new THREE.ShaderMaterial({
     vertexShader: testVertexShader,
     fragmentShader: testFragmentShader,
     uniforms: {
-        uTime : new THREE.Uniform(0)
+        uTime : new THREE.Uniform(0),
+        uColor: new THREE.Uniform(new THREE.Color(parameters.hologramColor))
     },
     transparent: true,
-    // side: THREE.DoubleSide,
-    // depthWrite: false,
-    // blending: THREE.AdditiveBlending,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
 });
+
+gui.addColor(parameters, "hologramColor").onChange(e => {
+    console.log(e);
+    material.uniforms.uColor.value.set(e)
+    
+})
+
+
 
 //model
 let model = null;

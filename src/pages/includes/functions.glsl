@@ -124,3 +124,7 @@ vec2 rotate2D(vec2 value, float angle)
     mat2 m = mat2(c, s, -s, c);
     return m * value;
 }
+
+float random2D(vec2 value){
+    return fract(sin(dot(value.xy, vec2(12.9898,78.233))) * 43758.5453123);
+}

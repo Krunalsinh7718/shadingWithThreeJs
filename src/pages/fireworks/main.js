@@ -42,6 +42,7 @@ const textures = [
 const createFireworks = (count, position, size, texture, radius, color) => {
     const particlePosArray = new Float32Array(count * 3);
     const particleRandomSizes = new Float32Array(count);
+    const timeMultiplier = new Float32Array(count);
 
 
     for (let i = 0; i < count; i++) {
@@ -59,10 +60,13 @@ const createFireworks = (count, position, size, texture, radius, color) => {
         particlePosArray[i3 + 2] = particlePosition.z;
 
         particleRandomSizes[i] = Math.random();
+
+        timeMultiplier[i] = 1 + Math.random();
     }
     const geomarty = new THREE.BufferGeometry();
     geomarty.setAttribute('position', new THREE.Float32BufferAttribute(particlePosArray, 3));
     geomarty.setAttribute('aSize', new THREE.Float32BufferAttribute(particleRandomSizes, 1));
+    geomarty.setAttribute('aTimeMultiplier', new THREE.Float32BufferAttribute(timeMultiplier, 1));
 
     //material
     texture.flipY = false;
@@ -158,13 +162,29 @@ window.addEventListener('resize', () => {
 });
 
 //generate firework on click
-window.addEventListener('click', e => {
-    createFireworks(
-        100,                    //count
-        new THREE.Vector3(),    //position
-        0.5,                    //size
-        textures[7],            //texture
-        1,                      //radius
-        new THREE.Color("blue") //color
+
+function createRandomFireworks(){
+    const counts = Math.random() * 1000 + 400;
+    const position = new THREE.Vector3(
+        (Math.random() - 0.5) * 2,
+        Math.random(),
+        (Math.random() - 0.5) * 2,
     );
+    const size = Math.random() * 0.1 + 0.1;
+    const texture = textures[Math.floor(Math.random() * 7)];
+    const radius = Math.random() + 0.9;
+    const color = new THREE.Color();
+    color.setHSL(Math.random(),1,0.7);
+
+    createFireworks(
+        counts,                    
+        position,    
+        size,                    
+        texture,            
+        radius,                      
+        color 
+    );
+}
+window.addEventListener('click', e => {
+    createRandomFireworks()
 })

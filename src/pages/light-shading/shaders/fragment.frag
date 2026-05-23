@@ -3,35 +3,44 @@ uniform vec3 uColor;
 varying vec3 vNormal;
 varying vec3 vPosition;
 
-
-
 #include "../../includes/lights.glsl"
+
 
 void main(){
     vec3 normal = normalize(vNormal);
+    vec3 color = uColor;
 
     vec3 viewDirection = normalize(vPosition - cameraPosition);
 
-    vec3 color = uColor;
-    //light
     vec3 light = vec3(0.0);
-    light += ambientLight( 
-        vec3(1.0),                //light color
-        0.03                      //light intensity
-    );
-    light += directionLight( 
-        vec3(0.1, 0.1, 1.0),      //light color
-        1.0,                      //light intensity
-        normal,                  //normal
-        vec3(0.0, 0.0, 3.0),      //light position
-        viewDirection,             //view direction
-        20.0                        //specular power
+
+    light += ambientLight(
+        vec3(1.0), //light color
+        0.03       //light intensity
     );
 
+    light += directionLight(
+        vec3(0.1, 0.1, 1.0),        //light color
+        0.5,                        //light intensity
+        vec3(0.0, 0.0, 3.0),        //light Position
+        normal,                     //normal
+        viewDirection,              //viewDirection
+        20.0                         //specular power
+    );
 
-    //apply light
+    light += pointLight(
+        vec3(1.0, 0.1, 0.1),        //light color
+        1.0,                        //light intensity
+        vec3(0.0, 2.5, 0.0),        //light Position
+        normal,                     //normal
+        viewDirection,              //viewDirection
+        20.0,                      //specular power
+        vPosition,                  //position 
+        0.25                        //light decay
+    );
+
     color *= light;
-
+ 
     gl_FragColor = vec4(color,1.0);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>

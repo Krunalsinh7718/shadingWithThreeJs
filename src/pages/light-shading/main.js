@@ -67,7 +67,8 @@ const material = new THREE.ShaderMaterial({
     vertexShader: testVertexShader,
     fragmentShader: testFragmentShader,
     uniforms: {
-       uColor: new THREE.Uniform(new THREE.Color(materialParameters.color))
+       uColor: new THREE.Uniform(new THREE.Color(materialParameters.color)),
+       uDirLightPosition : new THREE.Uniform(new THREE.Vector3(0))
     }
 });
 
@@ -100,14 +101,25 @@ sphere.position.x = - 3
 scene.add(sphere)
 
 //light helper
+const dirLightRadius = 6;
 const directionalLightHelper = new THREE.Mesh(
     new THREE.PlaneGeometry(),
     new THREE.MeshBasicMaterial()
 )
 directionalLightHelper.material.color.setRGB(0.1, 0.1, 1)
 directionalLightHelper.material.side = THREE.DoubleSide
-directionalLightHelper.position.set(0, 0, 3)
+directionalLightHelper.position.set(0, 0, dirLightRadius)
 scene.add(directionalLightHelper)
+
+
+const pointLightHelper = new THREE.Mesh(
+    new THREE.SphereGeometry(0.1),
+    new THREE.MeshBasicMaterial()
+)
+pointLightHelper.material.color.setRGB(1.0, 0.1, 0.1);
+pointLightHelper.position.set(0, 2.5, 0);
+scene.add(pointLightHelper);
+
 
 
 
@@ -116,6 +128,16 @@ scene.add(directionalLightHelper)
 const clock = new THREE.Clock();
 
 //animation loop
+function animateDirectionLight(time){
+    directionalLightHelper.position.set(
+        Math.sin(time * 0.1) * dirLightRadius,
+        0,
+        Math.cos(time * 0.1) * dirLightRadius
+    )
+    material.uniforms.uDirLightPosition.value.set(directionalLightHelper.position);
+    // console.log(directionalLightHelper.position);
+    
+}
 function animate() {
 
     const elapsedTime = clock.getElapsedTime();
@@ -131,6 +153,9 @@ function animate() {
 
     torusKnot.rotation.x = - elapsedTime * 0.1
     torusKnot.rotation.y = elapsedTime * 0.2
+
+
+    animateDirectionLight(elapsedTime)
 
 
 

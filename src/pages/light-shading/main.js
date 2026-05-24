@@ -68,7 +68,9 @@ const material = new THREE.ShaderMaterial({
     fragmentShader: testFragmentShader,
     uniforms: {
        uColor: new THREE.Uniform(new THREE.Color(materialParameters.color)),
-       uDirLightPosition : new THREE.Uniform(new THREE.Vector3(0))
+       uDirLightPosition : new THREE.Uniform(new THREE.Vector3(0)),
+       uPointLightPosition : new THREE.Uniform(new THREE.Vector3(0)),
+       uPointLightPosition1 : new THREE.Uniform(new THREE.Vector3(0)),
     }
 });
 
@@ -111,14 +113,24 @@ directionalLightHelper.material.side = THREE.DoubleSide
 directionalLightHelper.position.set(0, 0, dirLightRadius)
 scene.add(directionalLightHelper)
 
-
+const pointLightRadius = 2.5;
 const pointLightHelper = new THREE.Mesh(
     new THREE.SphereGeometry(0.1),
     new THREE.MeshBasicMaterial()
 )
 pointLightHelper.material.color.setRGB(1.0, 0.1, 0.1);
-pointLightHelper.position.set(0, 2.5, 0);
+pointLightHelper.position.set(0, pointLightRadius, 0);
 scene.add(pointLightHelper);
+
+
+const pointLightRadius1 = 6;
+const pointLightHelper1 = new THREE.Mesh(
+    new THREE.SphereGeometry(0.1),
+    new THREE.MeshBasicMaterial()
+)
+pointLightHelper1.material.color.setRGB(0.1, 1.0, 0.1);
+pointLightHelper1.position.set(2.0, 0.0, 3.0);
+scene.add(pointLightHelper1);
 
 
 
@@ -134,10 +146,25 @@ function animateDirectionLight(time){
         0,
         Math.cos(time * 0.1) * dirLightRadius
     )
-    material.uniforms.uDirLightPosition.value.set(directionalLightHelper.position);
+    directionalLightHelper.lookAt(new THREE.Vector3(0));
+    material.uniforms.uDirLightPosition.value = directionalLightHelper.position;
     // console.log(directionalLightHelper.position);
     
 }
+
+function animatePointLight(time){
+    pointLightHelper.position.set(
+        0,
+        -Math.sin(time * 0.5) * pointLightRadius,
+        -Math.cos(time * 0.5) * pointLightRadius
+    )
+    material.uniforms.uPointLightPosition.value = pointLightHelper.position;
+    // console.log(directionalLightHelper.position);
+    
+}
+
+
+
 function animate() {
 
     const elapsedTime = clock.getElapsedTime();
@@ -156,6 +183,7 @@ function animate() {
 
 
     animateDirectionLight(elapsedTime)
+    animatePointLight(elapsedTime)
 
 
 

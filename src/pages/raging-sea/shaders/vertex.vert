@@ -19,7 +19,7 @@ void main(){
                       uBigWaveElevation;
 
     for(float i = 0.0; i < uSmallWaveIteration;i++){
-        elevation -= abs(cnoise(vec3(modelPosition.xz * uSmallWaveFrequency * i, uTime * uSmallWaveSpeed)) * uSmallWaveElevation);
+        elevation -= abs(perlinClass3D(vec3(modelPosition.xz * uSmallWaveFrequency * i, uTime * uSmallWaveSpeed)) * uSmallWaveElevation);
     }
     modelPosition.y += elevation;
 

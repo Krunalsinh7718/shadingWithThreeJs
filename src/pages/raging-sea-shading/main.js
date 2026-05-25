@@ -25,22 +25,26 @@ scene.add(camera)
 //renderer setup
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(sizes.width, sizes.height)
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.setAnimationLoop(animate);
 document.body.appendChild(renderer.domElement);
 
 //mesh setup
 // Geometry
 const geometry = new THREE.PlaneGeometry(2, 2, 512, 512);
+geometry.deleteAttribute('normal');
+geometry.deleteAttribute('uv');
 
 // Material
-debugObject.depthColor = "#186691";
-debugObject.surfaceColor = "#9bd8ff";
+debugObject.depthColor = "#ff4000";
+debugObject.surfaceColor = "#151c37";
+debugObject.dirLightRadius = 3.5;
+debugObject.pointLightRadius = 1.5
 
 const waterMaterial = new THREE.ShaderMaterial({
     vertexShader: testVertexShader,
     fragmentShader: testFragmentShader,
     transparent: true,
-    side: THREE.DoubleSide,
     uniforms: {
         uTime: {value : 0},
 
@@ -55,8 +59,16 @@ const waterMaterial = new THREE.ShaderMaterial({
 
         uDepthColor: {value: new THREE.Color(debugObject.depthColor)},
         uSurfaceColor: {value: new THREE.Color(debugObject.surfaceColor)},
-        uColorOffset: {value: 0.08},
-        uColorMultiplier: {value: 5},
+        uColorOffset: {value: 0.925},
+        uColorMultiplier: {value: 1},
+
+        uDirLightPosition : {value : new THREE.Vector3( debugObject.dirLightRadius, debugObject.dirLightRadius, 0)},
+        uPointLightPosition : {value : new THREE.Vector3(0, debugObject.pointLightRadius, 0)},
+
+        uDirLightIntensity: {value: 5},
+        uPointLightIntensity: {value: 10},
+
+        uNormalShift : {value: 0.01}
     }
     
 });
@@ -77,6 +89,16 @@ gui.add(waterMaterial.uniforms.uSmallWaveFrequency, 'value').min(0).max(30).step
 gui.add(waterMaterial.uniforms.uSmallWaveSpeed, 'value').min(0).max(4).step(0.001).name('uSmallWaveSpeed')
 gui.add(waterMaterial.uniforms.uSmallWaveIteration, 'value').min(0).max(5).step(1).name('uSmallWaveIteration')
 
+gui.add(waterMaterial.uniforms.uSmallWaveIteration, 'value').min(0).max(5).step(1).name('uSmallWaveIteration')
+
+gui.add(waterMaterial.uniforms.uNormalShift, 'value').min(0).max(1).step(0.001).name('Normal shift')
+
+gui.add(debugObject, 'dirLightRadius').min(0).max(6).step(0.1).name('Directional Light Radius')
+gui.add(waterMaterial.uniforms.uDirLightIntensity, 'value').min(0).max(20).step(0.1).name('Directional Light Intensity')
+gui.add(debugObject, 'pointLightRadius').min(0).max(6).step(0.1).name('Point Light Radius')
+gui.add(waterMaterial.uniforms.uPointLightIntensity, 'value').min(0).max(20).step(0.1).name('Point Light Intensity')
+
+
 // Mesh
 const mesh = new THREE.Mesh(geometry, waterMaterial);
 mesh.rotation.x = - Math.PI * 0.5;
@@ -87,14 +109,63 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 
+//light helpers
+const directionalLightHelper = new THREE.Mesh(
+    new THREE.PlaneGeometry(),
+    new THREE.MeshBasicMaterial()
+)
+directionalLightHelper.material.color.setRGB(0.1, 0.1, 1)
+directionalLightHelper.material.side = THREE.DoubleSide
+directionalLightHelper.position.set(-1.0, 3.5, 0.0)
+scene.add(directionalLightHelper)
+
+
+const pointLightHelper = new THREE.Mesh(
+    new THREE.SphereGeometry(0.1),
+    new THREE.MeshBasicMaterial()
+)
+pointLightHelper.material.color.setRGB(1.0, 0.1, 0.1);
+pointLightHelper.position.set(0.0, 0.25, 0.0);
+scene.add(pointLightHelper);
+
+function animateDirectionLight(time){
+    directionalLightHelper.position.set(
+        Math.sin(time * 0.1) * debugObject.dirLightRadius,
+        Math.cos(time * 0.1) * debugObject.dirLightRadius,
+        0
+    )
+    directionalLightHelper.lookAt(new THREE.Vector3(0));
+    waterMaterial.uniforms.uDirLightPosition.value = directionalLightHelper.position;
+}
+
+function animatePointLight(time){
+    pointLightHelper.position.set(
+        0,
+        -Math.sin(time * 0.5) * debugObject.pointLightRadius,
+        0
+    )
+    waterMaterial.uniforms.uPointLightPosition.value = pointLightHelper.position;
+}
+
+//axis helper
+const axisHelper = new THREE.AxesHelper();
+axisHelper.position.y += 0.25;
+scene.add(axisHelper);
+
 const clock = new THREE.Clock();
 
 //animation loop
+
+
 function animate() {
 
     const elapsedTime = clock.getElapsedTime();
 
     waterMaterial.uniforms.uTime.value = elapsedTime;
+
+    //animate light
+    animateDirectionLight(elapsedTime)
+    animatePointLight(elapsedTime)
 
     //update controls
     controls.update();

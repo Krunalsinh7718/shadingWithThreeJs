@@ -38,6 +38,9 @@ window.addEventListener('resize', () => {
     renderer.setSize(sizes.width, sizes.height);
     renderer.setPixelRatio(sizes.pixelRatio)
 
+    //update uResolution uniform
+    material.uniforms.uResolution.value.set(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)
+
 });
 
 //scene setup
@@ -45,7 +48,7 @@ const scene = new THREE.Scene();
 
 //camera setup
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.set(7, 7, 7)
+camera.position.set(3, 3, 3)
 scene.add(camera)
 
 //renderer setup
@@ -60,8 +63,7 @@ document.body.appendChild(renderer.domElement);
 
 gui
     .addColor(rendererParameters, 'clearColor')
-    .onChange(() =>
-    {
+    .onChange(() => {
         renderer.setClearColor(rendererParameters.clearColor)
     })
 
@@ -76,16 +78,16 @@ materialParameters.color = '#ff794d'
 const material = new THREE.ShaderMaterial({
     vertexShader: testVertexShader,
     fragmentShader: testFragmentShader,
-   uniforms:
-       {
-           uColor: new THREE.Uniform(new THREE.Color(materialParameters.color)),
-           uShadeColor: new THREE.Uniform(new THREE.Color(materialParameters.shadeColor)),
-       }
+    uniforms:
+    {
+        uColor: new THREE.Uniform(new THREE.Color(materialParameters.color)),
+        uShadeColor: new THREE.Uniform(new THREE.Color(materialParameters.shadeColor)),
+        uResolution : new THREE.Uniform(new THREE.Vector2(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio))
+    }
 });
 gui
     .addColor(materialParameters, 'color')
-    .onChange(() =>
-    {
+    .onChange(() => {
         material.uniforms.uColor.value.set(materialParameters.color)
     })
 
@@ -127,8 +129,7 @@ function animate() {
 
     const elapsedTime = clock.getElapsedTime();
 
-    if(model)
-    {
+    if (model) {
         model.rotation.x = - elapsedTime * 0.1
         model.rotation.y = elapsedTime * 0.2
     }
@@ -138,9 +139,6 @@ function animate() {
 
     torusKnot.rotation.x = - elapsedTime * 0.1
     torusKnot.rotation.y = elapsedTime * 0.2
-
-    animateDirectionLight(elapsedTime)
-    animatePointLight(elapsedTime)
 
     //update controls
     controls.update();

@@ -1,4 +1,6 @@
 uniform vec3 uColor;
+uniform vec2 uResolution;
+
 
 varying vec3 vNormal;
 varying vec3 vPosition;
@@ -14,12 +16,30 @@ void main(){
 
     light += ambientLight(
         vec3(1.0), //light color
-        0.03       //light intensity
+        1.00       //light intensity
+    );
+
+     light += directionLight(
+        vec3(1.0),        //light color
+        1.0,                        //light intensity
+        vec3(1.0, 1.0, 0.0),        //light Position
+        normal,                     //normal
+        viewDirection,              //viewDirection
+        1.0                         //specular power
     );
 
     color *= light;
+
+    //halftone
+    float repetitions = 50.0;
+
+    vec2 uv = gl_FragCoord.xy / uResolution.y;
+    uv *= repetitions;
+    uv = mod(uv, 1.0);
+    float point = distance(uv, vec2(0.5));
+    point = 1.0 - step(0.5, point);
  
-    gl_FragColor = vec4(color,1.0);
+    gl_FragColor = vec4(point, point, point, 1.0);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
 }

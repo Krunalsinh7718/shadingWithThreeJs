@@ -74,7 +74,10 @@ controls.dampingFactor = 0.05;
 
 //material setup
 const materialParameters = {}
-materialParameters.color = '#ff794d'
+materialParameters.color = '#ff794d';
+materialParameters.shadowColor = '#8e19b8';
+materialParameters.lightColor = '#e5ffe0';
+
 const material = new THREE.ShaderMaterial({
     vertexShader: testVertexShader,
     fragmentShader: testFragmentShader,
@@ -82,7 +85,11 @@ const material = new THREE.ShaderMaterial({
     {
         uColor: new THREE.Uniform(new THREE.Color(materialParameters.color)),
         uShadeColor: new THREE.Uniform(new THREE.Color(materialParameters.shadeColor)),
-        uResolution : new THREE.Uniform(new THREE.Vector2(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio))
+        uResolution : new THREE.Uniform(new THREE.Vector2(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)),
+        uRepetation: new THREE.Uniform(50),
+        uShadowColor : new THREE.Uniform(new THREE.Color(materialParameters.shadowColor)),
+        uLightRepetation: new THREE.Uniform(50),
+        uLightColor : new THREE.Uniform(new THREE.Color(materialParameters.lightColor)),
     }
 });
 gui
@@ -90,6 +97,22 @@ gui
     .onChange(() => {
         material.uniforms.uColor.value.set(materialParameters.color)
     })
+
+gui
+    .addColor(materialParameters, 'shadowColor')
+    .onChange(() => {
+        material.uniforms.uShadowColor.value.set(materialParameters.shadowColor)
+    })
+gui
+    .add(material.uniforms.uRepetation, 'value').min(10).max(200).step(1).name("Shadow Repetation");
+
+gui
+    .addColor(materialParameters, 'lightColor')
+    .onChange(() => {
+        material.uniforms.uLightColor.value.set(materialParameters.lightColor)
+    })
+gui
+    .add(material.uniforms.uLightRepetation, 'value').min(10).max(200).step(1).name("Light Repetation");
 
 //model
 let model = null;

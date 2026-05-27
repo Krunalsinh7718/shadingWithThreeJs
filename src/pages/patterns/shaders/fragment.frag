@@ -40,7 +40,6 @@ void main(){
     // float strength = min(abs(uv.x - uCtrl1), abs(uv.y - uCtrl1)) ;
     // float strength = max(abs(uv.x - uCtrl1), abs(uv.y - uCtrl1)) ;
     // float strength =  min(abs(uv.y - 0.5),abs(uv.x - 0.5) );
-
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 17
@@ -75,10 +74,10 @@ void main(){
     // gl_FragColor = vec4(vec3(strength), 1.0);   
 
     //pattern 31
-    // vec2 rotatedUv = rotate(vUv, PI * uCtrl1, vec2(0.5));
-    // float strength =  starShape(0.15, rotatedUv, vec2(0.5), uCtrl4, 1.0);
-    // vec3 mixedColor = mix(blackColor, uvColor, strength);
-    // gl_FragColor = vec4(mixedColor, 1.0);   
+    vec2 rotatedUv = rotate(vUv, PI * uCtrl1, vec2(0.5));
+    float strength =  starShape(0.15, rotatedUv, vec2(0.5), uCtrl4, 1.0);
+    vec3 mixedColor = mix(blackColor, uvColor, strength);
+    gl_FragColor = vec4(mixedColor, 1.0);   
 
 
     //pattern 33
@@ -133,10 +132,10 @@ void main(){
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 50
-    float strength = step(0.9, sin(cnoise(vUv * 10.0) * uCtrl5));
-    strength = clamp(strength, 0.0, 1.0);
-    vec3 mixedColor = mix(blackColor, uvColor, strength);
-    gl_FragColor = vec4(mixedColor, 1.0);
+    // float strength = step(0.9, sin(cnoise(vUv * 10.0) * uCtrl5));
+    // strength = clamp(strength, 0.0, 1.0);
+    // vec3 mixedColor = mix(blackColor, uvColor, strength);
+    // gl_FragColor = vec4(mixedColor, 1.0);
 
     #include <colorspace_fragment>
 }

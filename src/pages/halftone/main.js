@@ -53,15 +53,15 @@ scene.add(camera)
 
 //renderer setup
 const rendererParameters = {}
-rendererParameters.clearColor = '#26132f'
+rendererParameters.clearColor = '#023047'
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setClearColor(rendererParameters.clearColor)
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(sizes.pixelRatio);
 renderer.setAnimationLoop(animate);
 document.body.appendChild(renderer.domElement);
-
-gui
+const backgroundFolder = gui.addFolder('Background');
+backgroundFolder
     .addColor(rendererParameters, 'clearColor')
     .onChange(() => {
         renderer.setClearColor(rendererParameters.clearColor)
@@ -73,10 +73,12 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 
 //material setup
+
 const materialParameters = {}
-materialParameters.color = '#ff794d';
-materialParameters.shadowColor = '#8e19b8';
-materialParameters.lightColor = '#e5ffe0';
+materialParameters.color = '#219ebc';
+materialParameters.shadowColor = '#ffb703';
+
+materialParameters.lightColor = '#fb8500';
 
 const material = new THREE.ShaderMaterial({
     vertexShader: testVertexShader,
@@ -86,33 +88,63 @@ const material = new THREE.ShaderMaterial({
         uColor: new THREE.Uniform(new THREE.Color(materialParameters.color)),
         uShadeColor: new THREE.Uniform(new THREE.Color(materialParameters.shadeColor)),
         uResolution : new THREE.Uniform(new THREE.Vector2(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)),
-        uRepetation: new THREE.Uniform(50),
+        uRepetation: new THREE.Uniform(110),
         uShadowColor : new THREE.Uniform(new THREE.Color(materialParameters.shadowColor)),
+        uShadowLow : new THREE.Uniform(0.5),
+        uShadowHigh : new THREE.Uniform(1.5),
+        uShadowPattern : new THREE.Uniform(1),
+
         uLightRepetation: new THREE.Uniform(50),
         uLightColor : new THREE.Uniform(new THREE.Color(materialParameters.lightColor)),
+        uLightLow : new THREE.Uniform(-0.8),
+        uLightHigh : new THREE.Uniform(1.5),
+        uLightPattern : new THREE.Uniform(2),
+         
     }
 });
-gui
-    .addColor(materialParameters, 'color')
-    .onChange(() => {
-        material.uniforms.uColor.value.set(materialParameters.color)
-    })
 
-gui
-    .addColor(materialParameters, 'shadowColor')
-    .onChange(() => {
-        material.uniforms.uShadowColor.value.set(materialParameters.shadowColor)
-    })
-gui
-    .add(material.uniforms.uRepetation, 'value').min(10).max(200).step(1).name("Shadow Repetation");
+//model folder
+const modelFolder = gui.addFolder('Model');
+modelFolder
+.addColor(materialParameters, 'color')
+.onChange(() => {
+    material.uniforms.uColor.value.set(materialParameters.color)
+})
 
-gui
+//shadow folder
+const shadowFolder = gui.addFolder('Shadow');
+
+shadowFolder
+.addColor(materialParameters, 'shadowColor')
+.onChange(() => {
+    material.uniforms.uShadowColor.value.set(materialParameters.shadowColor)
+})
+shadowFolder
+.add(material.uniforms.uRepetation, 'value').min(10).max(200).step(1).name("Shadow Repetation");
+shadowFolder
+    .add(material.uniforms.uShadowLow, 'value').min(0).max(1).step(0.01).name("Shadow Low");
+shadowFolder
+    .add(material.uniforms.uShadowHigh, 'value').min(1).max(2).step(0.01).name("Shadow High");
+shadowFolder.add( material.uniforms.uShadowPattern, 'value', { pattern1: 1, pattern2: 2, pattern3: 3, pattern4: 4 }).name("Pattern").onChange( value => {
+		console.log( material.uniforms.uShadowPattern.value );
+	} );
+
+//light folder
+const lightFolder = gui.addFolder('Light');
+lightFolder
     .addColor(materialParameters, 'lightColor')
     .onChange(() => {
         material.uniforms.uLightColor.value.set(materialParameters.lightColor)
     })
-gui
+lightFolder
     .add(material.uniforms.uLightRepetation, 'value').min(10).max(200).step(1).name("Light Repetation");
+lightFolder
+    .add(material.uniforms.uLightLow, 'value').min(-0.1).max(0.5).step(0.01).name("Light Low");
+lightFolder
+    .add(material.uniforms.uLightHigh, 'value').min(0).max(2).step(0.01).name("Light High");
+lightFolder.add( material.uniforms.uLightPattern, 'value', { pattern1: 1, pattern2: 2, pattern3: 3, pattern4: 4 }).name("Pattern").onChange( value => {
+		console.log( material.uniforms.uLightPattern.value );
+	} );
 
 //model
 let model = null;

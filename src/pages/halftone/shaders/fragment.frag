@@ -8,76 +8,25 @@ uniform float uRepetation;
 uniform vec3 uLightColor;
 uniform float uLightRepetation;
 
+uniform float uLightLow;
+uniform float uLightHigh;
+uniform int uShadowPattern;
+
+uniform float uShadowLow;
+uniform float uShadowHigh;
+uniform int uLightPattern;
+
 
 varying vec3 vNormal;
 varying vec3 vPosition;
 
 #include "../../includes/lights.glsl"
 #include ../../includes/functions.glsl
-
-vec3 halftone(
-    vec3 color,
-    float repetitions,
-    vec3 direction,
-    float low,
-    float high,
-    vec3 pointColor,
-    vec3 normal
-){
-    float intensity = dot(normal, direction);
-    intensity = smoothstep(low, high, intensity);
-    
-
-    vec2 uv = gl_FragCoord.xy / uResolution.y;
-    uv *= repetitions;
-    uv = mod(uv, 1.0);
-    float point = distance(uv, vec2(0.5));
-    point = 1.0 - step(0.5 * intensity, point);
-    return mix(color, pointColor, point);
-}
-
-vec3 halftone1(
-    vec3 color,
-    float repetitions,
-    vec3 direction,
-    float low,
-    float high,
-    vec3 pointColor,
-    vec3 normal
-){
-    float intensity = dot(normal, direction);
-    intensity = smoothstep(low, high, intensity);
-
-    vec2 uv = gl_FragCoord.xy / uResolution.y;
-    float strenth = randomShades(0.0, uv * intensity, 0.0);
-
-    return mix(color, pointColor, strenth);
-
-}
+#include ../../includes/halftones.glsl
 
 
-vec3 halftone2(
-    vec3 color,
-    float repetitions,
-    vec3 direction,
-    float low,
-    float high,
-    vec3 pointColor,
-    vec3 normal
-){
-    float intensity = dot(normal, direction);
-    intensity = smoothstep(low, high, intensity);
-    
 
-    vec2 uv = gl_FragCoord.xy / uResolution.y;
-    vec2 rotatedUv = rotate(uv, PI * 0.4, vec2(0.5));
 
-    uv *= repetitions;
-    uv = mod(uv, 1.0);
-    float point = distance(uv, vec2(0.5));
-    point = 1.0 - step(0.5 * intensity, point);
-    return mix(color, pointColor, point);
-}
 
 
 void main(){
@@ -106,31 +55,115 @@ void main(){
     //halftone
     float repetitions = 50.0;
     vec3 direction = vec3(0.0, -1.0, 0.0);
-    float low = -0.8;
-    float high = 1.5;
+    
     vec3 pointColor = vec3(1.0, 0.0, 0.0);
 
-    color = halftone1(
+
+    switch (uShadowPattern) {
+    case 1:
+        color = halftone(
         color,                  //base color
         uRepetation,                   //repetitions
         vec3(0.0, -1.0, 0.0),   //direction
-        -0.8,                   //low,
-        1.5,                    //high,
+        uLightLow,                   //low,
+        uLightHigh,                    //high,
         uShadowColor,    //pointColor
         normal                  //normal
     );
+        break;
+    case 2:
+        color = halftone1(
+        color,                  //base color
+        uRepetation,                   //repetitions
+        vec3(0.0, -1.0, 0.0),   //direction
+        uLightLow,                   //low,
+        uLightHigh,                    //high,
+        uShadowColor,    //pointColor
+        normal                  //normal
+    );
+        break;
+
+    case 3:
+        color = halftone2(
+        color,                  //base color
+        uRepetation,                   //repetitions
+        vec3(0.0, -1.0, 0.0),   //direction
+        uLightLow,                   //low,
+        uLightHigh,                    //high,
+        uShadowColor,    //pointColor
+        normal                  //normal
+    );
+        break;
+    case 4:
+        color = halftone3(
+        color,                  //base color
+        uRepetation,                   //repetitions
+        vec3(0.0, -1.0, 0.0),   //direction
+        uLightLow,                   //low,
+        uLightHigh,                    //high,
+        uShadowColor,    //pointColor
+        normal                  //normal
+    );
+        break;
+   
+    default:
+        // Default behavior
+        break;
+}
 
  
 
-    color = halftone1(
+   
+
+    switch (uLightPattern) {
+    case 1:
+        color = halftone(
         color,                  //base color
         uLightRepetation,                   //repetitions
         vec3(1.0, 1.0, 0.0),   //direction
-        0.5,                   //low,
-        1.5,                    //high,
+        uShadowLow,                   //low,
+        uShadowHigh,                    //high,
         uLightColor,    //pointColor
         normal                  //normal
     );
+        break;
+    case 2:
+       color = halftone1(
+        color,                  //base color
+        uLightRepetation,                   //repetitions
+        vec3(1.0, 1.0, 0.0),   //direction
+        uShadowLow,                   //low,
+        uShadowHigh,                    //high,
+        uLightColor,    //pointColor
+        normal                  //normal
+    );
+        break;
+    case 3:
+        color = halftone2(
+        color,                  //base color
+        uLightRepetation,                   //repetitions
+        vec3(1.0, 1.0, 0.0),   //direction
+        uShadowLow,                   //low,
+        uShadowHigh,                    //high,
+        uLightColor,    //pointColor
+        normal                  //normal
+    );
+        break;
+    case 4:
+        color = halftone3(
+        color,                  //base color
+        uLightRepetation,                   //repetitions
+        vec3(1.0, 1.0, 0.0),   //direction
+        uShadowLow,                   //low,
+        uShadowHigh,                    //high,
+        uLightColor,    //pointColor
+        normal                  //normal
+    );
+        break;
+    default:
+        // Default behavior
+        break;
+}
  
     gl_FragColor = vec4(color, 1.0);
     #include <tonemapping_fragment>

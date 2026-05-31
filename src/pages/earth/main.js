@@ -68,6 +68,13 @@ controls.dampingFactor = 0.05;
 /**
  * Earth
  */
+//Textures
+const earthDayTexture = textureLoader.load("/images/earth/2k_earth_daymap.jpg");
+earthDayTexture.colorSpace = THREE.SRGBColorSpace;
+const earthNightTexture = textureLoader.load("/images/earth/2k_earth_nightmap.jpg");
+earthNightTexture.colorSpace = THREE.SRGBColorSpace;
+const earthSpecularCloudTexture = textureLoader.load("/images/earth/2k_earth_clouds.jpg");
+
 // Sphere
 const earthGeometry = new THREE.SphereGeometry(2, 64, 64)
 const earthMaterial = new THREE.ShaderMaterial({
@@ -75,10 +82,35 @@ const earthMaterial = new THREE.ShaderMaterial({
     fragmentShader: testFragmentShader,
     uniforms:
     {
+        uDayTexture: new THREE.Uniform(earthDayTexture),
+        uNightTexture: new THREE.Uniform(earthNightTexture),
+        uSpecularCloudTexture: new THREE.Uniform(earthSpecularCloudTexture),
     }
 })
 const earth = new THREE.Mesh(earthGeometry, earthMaterial)
 scene.add(earth)
+
+//model
+let model = null;
+gltfLoader.load("/models/suzanne/suzanne.glb", gltf => {
+    model = gltf.scene;
+    model.traverse((child) => {
+        if (child.isMesh)
+            child.material = earthMaterial
+    })
+    scene.add(model);
+    model.position.z = -6
+})
+
+//sun
+const sunSpherical = new THREE.Spherical(1, Math.PI * 0.5, 0.5);
+const sunDirection = new THREE.Vector3();
+
+//update sun
+const updateSun = () => {
+    sunDirection.setFromSpherical(sunSpherical);
+}
+
 
 //animation loop
 const clock = new THREE.Clock();
@@ -87,7 +119,9 @@ function animate() {
 
     const elapsedTime = clock.getElapsedTime();
 
-    earth.rotation.y = elapsedTime * 0.1
+    earth.rotation.y = elapsedTime ;
+    if(model)
+    model.rotation.y = elapsedTime ;
 
     //update controls
     controls.update();

@@ -11,6 +11,7 @@ void main(){
 
     // Model normal
     vec3 modelNormal = (modelMatrix * vec4(normal, 0.0)).xyz;
+    // vec3 modelNormal = normal;
 
     // Varyings
     vUv = uv;

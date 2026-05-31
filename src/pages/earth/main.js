@@ -71,11 +71,18 @@ controls.dampingFactor = 0.05;
 //Textures
 const earthDayTexture = textureLoader.load("/images/earth/2k_earth_daymap.jpg");
 earthDayTexture.colorSpace = THREE.SRGBColorSpace;
+earthDayTexture.anisotropy = 8;
 const earthNightTexture = textureLoader.load("/images/earth/2k_earth_nightmap.jpg");
 earthNightTexture.colorSpace = THREE.SRGBColorSpace;
-const earthSpecularCloudTexture = textureLoader.load("/images/earth/2k_earth_clouds.jpg");
+earthNightTexture.anisotropy = 8;
+const earthSpecularCloudTexture = textureLoader.load("/images/earth/specularClouds.jpg");
+earthSpecularCloudTexture.anisotropy = 8;
 
 // Sphere
+const debugParameters = {};
+debugParameters.atmosphereDayColor = "#00eeff";
+debugParameters.atmosphereTwilightColor = "#ff1e00";
+
 const earthGeometry = new THREE.SphereGeometry(2, 64, 64)
 const earthMaterial = new THREE.ShaderMaterial({
     vertexShader: testVertexShader,
@@ -85,10 +92,20 @@ const earthMaterial = new THREE.ShaderMaterial({
         uDayTexture: new THREE.Uniform(earthDayTexture),
         uNightTexture: new THREE.Uniform(earthNightTexture),
         uSpecularCloudTexture: new THREE.Uniform(earthSpecularCloudTexture),
+        uSunDirection: new THREE.Uniform(new THREE.Vector3(0,0,1)),
+        uAtmosphereDayColor : new THREE.Uniform(new THREE.Color(debugParameters.atmosphereDayColor)),
+        uAtmosphereTwilightColor : new THREE.Uniform(new THREE.Color(debugParameters.atmosphereTwilightColor)),
     }
 })
 const earth = new THREE.Mesh(earthGeometry, earthMaterial)
 scene.add(earth)
+
+gui.addColor(debugParameters, 'atmosphereDayColor').name("Atmosphere Day Color").onChange(e => {
+    earthMaterial.uniforms.uAtmosphereDayColor.value.set(debugParameters.atmosphereDayColor);
+})
+gui.addColor(debugParameters, 'atmosphereTwilightColor').name("Atmosphere Day Color").onChange(e => {
+    earthMaterial.uniforms.uAtmosphereTwilightColor.value.set(debugParameters.atmosphereTwilightColor);
+})
 
 //model
 let model = null;
@@ -99,18 +116,40 @@ gltfLoader.load("/models/suzanne/suzanne.glb", gltf => {
             child.material = earthMaterial
     })
     scene.add(model);
-    model.position.z = -6
+    model.position.z = -6;
 })
 
 //sun
 const sunSpherical = new THREE.Spherical(1, Math.PI * 0.5, 0.5);
+console.log(sunSpherical);
+
 const sunDirection = new THREE.Vector3();
+
+//debug
+const debugSun = new THREE.Mesh(
+    new THREE.SphereGeometry(0.2),
+    new THREE.MeshBasicMaterial()
+)
+// debugSun.position.x = 5;
+scene.add(debugSun);
 
 //update sun
 const updateSun = () => {
+    //sun direction
     sunDirection.setFromSpherical(sunSpherical);
-}
 
+    //debug sun
+    debugSun.position.copy(sunDirection).multiplyScalar(5);
+
+    //update Uniform
+    earthMaterial.uniforms.uSunDirection.value.copy(sunDirection);
+
+
+}
+updateSun();
+gui.add(sunSpherical,'phi').min(0).max(Math.PI).onChange(updateSun);
+gui.add(sunSpherical,'theta').min(-Math.PI).max(Math.PI).onChange(updateSun);
+gui.add(sunSpherical,'radius').min(-3).max(3).onChange(updateSun);
 
 //animation loop
 const clock = new THREE.Clock();

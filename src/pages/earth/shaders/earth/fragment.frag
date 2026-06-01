@@ -50,7 +50,9 @@ void main(){
     float specular = -dot(reflect, viewDirection );
     specular = max(specular, 0.0);
     specular = pow(specular, 32.0);
-    color += vec3(specular);
+    specular *= specularCloudTexture.r;
+    vec3 specularColor = mix(vec3(1.0), atmosphereColor, fresnel);
+    color += specular * specularColor;
     
     // Final color
     gl_FragColor = vec4(color, 1.0);

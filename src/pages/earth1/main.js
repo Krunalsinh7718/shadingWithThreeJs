@@ -92,13 +92,17 @@ const earthMaterial = new THREE.ShaderMaterial({
         uEarthNightTexture : new THREE.Uniform(earthNightTexture),
         uSpecularCloudTexture : new THREE.Uniform(specularCloudTexture),
         uSunDirection : new THREE.Uniform(new THREE.Vector3(0, 0, 0)),
-        uCloudDensity: new THREE.Uniform(0)
+        uCloudDensity: new THREE.Uniform(0),
+        uAtmosphereDayColor: new THREE.Uniform(new THREE.Color(debugParameters.atmosphereDayColor)),
+        uAtmosphereTwilightColor: new THREE.Uniform(new THREE.Color(debugParameters.atmosphereTwilightColor))
     }
 })
 const earth = new THREE.Mesh(earthGeometry, earthMaterial);
 scene.add(earth);
 
-gui.add(earthMaterial.uniforms.uCloudDensity, 'value').min(0).max(0.6).step(0.01).name('Cloud Density')
+gui.add(earthMaterial.uniforms.uCloudDensity, 'value').min(0).max(0.6).step(0.01).name('Cloud Density');
+gui.addColor(debugParameters, 'atmosphereDayColor').onChange( e => earthMaterial.uniforms.uAtmosphereDayColor.value.set(debugParameters.atmosphereDayColor));
+gui.addColor(debugParameters, 'atmosphereTwilightColor').onChange( e => earthMaterial.uniforms.uAtmosphereTwilightColor.value.set(debugParameters.atmosphereTwilightColor));
 
 //sun
 const sun = new THREE.Mesh(

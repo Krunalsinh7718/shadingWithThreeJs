@@ -51,7 +51,7 @@ void main(){
     specular *= cloudsTexture.r;
     vec3 specularColor = mix(vec3(1.0), atmosphereColor, fresnel);
     color += specularColor * specular;
-    
+    // color = vec3(specular);
     // Final color
     gl_FragColor = vec4(color, 1.0);
     #include <tonemapping_fragment>

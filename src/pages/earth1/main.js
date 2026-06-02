@@ -104,6 +104,18 @@ gui.add(earthMaterial.uniforms.uCloudDensity, 'value').min(0).max(0.6).step(0.01
 gui.addColor(debugParameters, 'atmosphereDayColor').onChange( e => earthMaterial.uniforms.uAtmosphereDayColor.value.set(debugParameters.atmosphereDayColor));
 gui.addColor(debugParameters, 'atmosphereTwilightColor').onChange( e => earthMaterial.uniforms.uAtmosphereTwilightColor.value.set(debugParameters.atmosphereTwilightColor));
 
+//atmosphere
+const atmosphereMaterial = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    transparent: true
+});
+const atmosphere = new THREE.Mesh(
+    earthGeometry,
+    atmosphereMaterial
+)
+scene.add(atmosphere);
+atmosphere.scale.set(1.03, 1.03, 1.03);
+
 //sun
 const sun = new THREE.Mesh(
     new THREE.SphereGeometry(0.2),

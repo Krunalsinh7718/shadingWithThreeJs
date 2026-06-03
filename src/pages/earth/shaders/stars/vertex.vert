@@ -1,6 +1,11 @@
-varying vec2 vUv;
-varying vec3 vNormal;
-varying vec3 vPosition;
+
+varying vec3 vColor;
+
+uniform float uSize;
+
+attribute float scales;
+
+
 
 void main(){
     //positions
@@ -12,11 +17,10 @@ void main(){
     // Model normal
     vec3 modelNormal = (modelMatrix * vec4(normal, 0.0)).xyz;
 
-    // Varyings
-    vUv = uv;
-    vNormal = modelNormal;
-    vPosition = modelPosition.xyz;
+    gl_PointSize = uSize * scales;
+    gl_PointSize *= (1.0 / - viewPosition.z);
 
+    vColor = color;
 }
 
 

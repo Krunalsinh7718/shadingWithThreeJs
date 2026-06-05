@@ -150,11 +150,11 @@ const flare3 = textureLoader.load('/images/lenses/lensflare1.png');
 const lensflare = new Lensflare();
 
 lensflare.addElement(
-    new LensflareElement(flare0, 150, 0)
+    new LensflareElement(flare3, 150, 1)
 );
 
 lensflare.addElement(
-    new LensflareElement(flare3, 60, 0.6)
+    new LensflareElement(flare0, 150, 0)
 );
 
 lensflare.addElement(

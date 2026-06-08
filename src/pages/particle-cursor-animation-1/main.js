@@ -137,9 +137,7 @@ const imageMaterial = new THREE.ShaderMaterial({
         uResolution: new THREE.Uniform(new THREE.Vector2(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)),
         uImage: new THREE.Uniform(textureLoader.load('/images/grayscale/lion.png')),
         uDisplacementTexture: new THREE.Uniform(displacement.texture),
-        uTime : new THREE.Uniform(0),
-        uColor1: new THREE.Uniform(new THREE.Color('#2a9d8f')),
-        uColor2: new THREE.Uniform(new THREE.Color('#e9c46a')),
+        uTime : new THREE.Uniform(0)
     }
 })
 const particles = new THREE.Points(imagePlane, imageMaterial);

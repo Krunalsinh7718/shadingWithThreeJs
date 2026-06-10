@@ -76,18 +76,20 @@ controls.dampingFactor = 0.05;
  */
 let particles = {};
 
-gltfLoader.load("/models/particle-models/models.glb", gltf => {
-
+gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
+    
+    
     particles.index = 0;
-
+    
     const positions = gltf.scene.children.map(child => child.geometry.attributes.position);
     particles.maxCount = 0;
-
+    
     for (const position of positions) {
         if (position.count > particles.maxCount) {
             particles.maxCount = position.count;
         }
     }
+    // console.log(particles.maxCount);
 
     particles.positions = [];
     for (const position of positions) {

@@ -76,7 +76,7 @@ controls.dampingFactor = 0.05;
  */
 let particles = {};
 
-gltfLoader.load("/models/particle-models/models.glb", gltf => {
+gltfLoader.load("/models/particle-models/models1.glb", gltf => {
     console.log(gltf.scene);
     const positions = gltf.scene.children.map(child => child.geometry.attributes.position);
     particles.maxCount = 0;

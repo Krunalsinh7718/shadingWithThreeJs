@@ -1,5 +1,7 @@
 varying vec3 vColor;
 
+uniform float uOpacity;
+
 void main()
 {
     vec2 uv = gl_PointCoord;
@@ -9,7 +11,7 @@ void main()
     //color
     vec3 color = vec3(1.0);
 
-    gl_FragColor = vec4(vColor, alpha);
+    gl_FragColor = vec4(vColor * uOpacity, alpha);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
 }

@@ -77,26 +77,33 @@ controls.dampingFactor = 0.05;
 let particles = {};
 
 gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
-    
+
     particles.index = 0;
     particles.translate = -1;
-    console.log(particles.translate);
-    
-    
+
     const modelWorld = gltf.scene;
     scene.add(modelWorld);
     modelWorld.translateY(particles.translate);
-    
+
     particles.frog = getMeshesByName(modelWorld, 'frog')[0];
-    particles.frog.visible = false;
+    particles.frogMaterial = particles.frog.material;
+    particles.frogMaterial.transparent = true;
+    particles.frogMaterial.opacity = 1;
+    console.log("frog", particles.frog);
+
     particles.frogPosition = particles.frog.geometry.attributes.position;
     particles.base = getMeshesByName(modelWorld, 'base')[0];
     particles.prince = getMeshesByName(modelWorld, 'prince')[0];
-    particles.prince.visible = false;
+    particles.princeMaterial = particles.prince.material;
+    particles.princeMaterial.transparent = true;
+    particles.princeMaterial.opacity = 0;
+    console.log("prince opacity", particles.prince.material.opacity);
+
+
     particles.princePosition = particles.prince.geometry.attributes.position;
-    
+
     particles.maxCount = 0;
-    
+
     for (const position of [particles.frogPosition, particles.princePosition]) {
         if (position.count > particles.maxCount) {
             particles.maxCount = position.count;
@@ -126,10 +133,10 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
     const sizesArray = new Float32Array(particles.maxCount);
     for (let i = 0; i < particles.maxCount; i++) {
         sizesArray[i] = Math.random();
-        
+
     }
     console.log("particle pos", particles.positions);
-    
+
 
     particles.geometry = new THREE.BufferGeometry(3);
     particles.geometry.setAttribute('position', particles.positions[0]);
@@ -138,18 +145,23 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
     particles.geometry.setIndex(null);
 
     // Material
-    particles.uColorA = "#f00505";
-    particles.uColorB = "#0a17d1";
+    particles.uColorA = "#ff7300";
+    particles.uColorB = "#0091ff";
     particles.material = new THREE.ShaderMaterial({
         blending: THREE.AdditiveBlending,
+        transparent: true,
+        opacity: 0,
         depthWrite: false,
         vertexShader: particlesVertexShader,
         fragmentShader: particlesFragmentShader,
+        uMinY: new THREE.Uniform(0),
+        uMaxY: new THREE.Uniform(10),
         uniforms:
         {
             uSize: new THREE.Uniform(0.01),
             uResolution: new THREE.Uniform(new THREE.Vector2(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)),
             uProgress: new THREE.Uniform(0),
+            uOpacity: new THREE.Uniform(0),
             uColorA: new THREE.Uniform(new THREE.Color(particles.uColorA)),
             uColorB: new THREE.Uniform(new THREE.Color(particles.uColorB)),
         }
@@ -163,17 +175,80 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
 
     gui.add(particles.material.uniforms.uProgress, 'value').min(0).max(1).step(0.001).name('uProgress').listen()
 
-
-
-   
-
-
+})
+const animaButtom = document.querySelector("#animationButton");
+animaButtom.addEventListener('click', e => {
+    let tl = gsap.timeline();
+    tl.fromTo(
+        particles.frogMaterial,
+        { opacity: 1 },
+        { opacity: 0, duration: 1, ease: 'linear' }
+    )
+        .fromTo(
+            particles.material.uniforms.uOpacity,
+            { value: 0 },
+            { value: 1, duration: 1, ease: 'linear' },
+            "<" // starts with frog fade
+        )
+        .fromTo(
+            particles.material.uniforms.uProgress,
+            { value: 0 },
+            { value: 1, duration: 3, ease: 'linear' }
+        )
+        .fromTo(
+            particles.princeMaterial,
+            { opacity: 0 },
+            { opacity: 1, duration: 1, ease: 'linear' }
+        )
+        .fromTo(
+            particles.material.uniforms.uOpacity,
+            { value: 1 },
+            { value: 0, duration: 1, ease: "power1.out" },
+            "<" // starts with prince fade
+        )
 })
 
-window.addEventListener('mousemove', e => {
-    // console.log(camera.position);
-    
-})
+//skybox
+textureLoader.load(
+    '/images/magic-world-skymap/magic-world.png',
+    (texture) => {
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.mapping =
+            THREE.EquirectangularReflectionMapping;
+
+        scene.background = texture;
+        scene.environment = texture;
+    }
+);
+
+//floor
+const textureColor = textureLoader.load("/images/floor/stone_pathway_02_diff_4k.png");
+textureColor.colorSpace = THREE.SRGBColorSpace;
+const textureARM = textureLoader.load("/images/floor/stone_pathway_02_arm_4k.png");
+const textureDisplace = textureLoader.load("/images/floor/stone_pathway_02_disp_4k.png");
+const textureNormal = textureLoader.load("/images/floor/stone_pathway_02_nor_gl_4k.png");
+
+const floorGeometry = new THREE.PlaneGeometry(4, 4, 512, 512);
+ const floorMaterial = new THREE.MeshStandardMaterial({
+    map: textureColor,
+    transparent: true,
+    alphaMap: textureARM,
+    displacementMap: textureDisplace,
+    displacementScale: 0.15,
+    displacementBias: -0.04,
+    normalMap: textureNormal,
+    metalnessMap: textureARM,
+    roughnessMap: textureARM
+  })
+const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+floor.position.y = -1.05;
+floor.rotation.x = - Math.PI * 0.5;
+scene.add(floor);
+
+
+
+
+//lights
 const ambient = new THREE.AmbientLight(0xffffff, 2);
 scene.add(ambient);
 

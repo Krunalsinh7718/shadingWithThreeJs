@@ -3,6 +3,8 @@ uniform float uSize;
 uniform float uProgress;
 uniform vec3 uColorA;
 uniform vec3 uColorB;
+uniform float uMinY;
+uniform float uMaxY;
 
 attribute vec3 aPositionTarget;
 attribute float aSize;
@@ -13,7 +15,6 @@ varying vec3 vColor;
 
 void main()
 {
-    //mixed position
     float noiseOrigin =  simplexNoise3d(position * 0.2);
     float noiseTarget =  simplexNoise3d(aPositionTarget * 0.2);
     float noise = mix(noiseOrigin, noiseTarget, uProgress);
@@ -23,7 +24,27 @@ void main()
     float delay = (1.0 - duration) * noise;
     float end = delay + duration;
     float progress = smoothstep(delay, end, uProgress);
-    vec3 mixedPosition = mix(position, aPositionTarget, progress);
+    // vec3 mixedPosition = mix(position, aPositionTarget, progress);
+
+    //tornado effect
+    vec3 centerPosition = mix(position, aPositionTarget, progress);
+    float tornadoStrength = sin(progress * 3.14159265);
+    float heightFactor = smoothstep(uMinY, uMaxY, centerPosition.y);
+    float rotationMultiplier = mix(2.0, 1.0, aPositionTarget.y);
+    float angle = progress * 25.0 * rotationMultiplier + noise * 20.0;
+    float funnelShape = pow(heightFactor, 3.0);
+    float radius = 1.0 * tornadoStrength * (0.5 + noise);
+    radius *= mix(0.03, 1.0, funnelShape);
+
+    vec3 tornadoOffset;
+
+    tornadoOffset.x = cos(angle) * radius;
+
+    tornadoOffset.z = sin(angle) * radius;
+
+    tornadoOffset.y = (noise - 0.5) * tornadoStrength;
+
+    vec3 mixedPosition = centerPosition + tornadoOffset;
 
     // Final position
     vec4 modelPosition = modelMatrix * vec4(mixedPosition, 1.0);
@@ -32,7 +53,8 @@ void main()
     gl_Position = projectedPosition;
 
     // Point size
-    gl_PointSize = uSize  * uResolution.y;
+    float newPontSize = max(uSize * 3.0 * uProgress, 0.01);
+    gl_PointSize = newPontSize * aSize * uResolution.y;
     gl_PointSize *= (1.0 / - viewPosition.z);
 
     //varyings

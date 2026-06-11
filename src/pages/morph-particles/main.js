@@ -94,6 +94,7 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
     particles.frogPosition = particles.frog.geometry.attributes.position;
     particles.base = getMeshesByName(modelWorld, 'base')[0];
     particles.prince = getMeshesByName(modelWorld, 'prince')[0];
+    particles.prince.visible = false;
     particles.princeMaterial = particles.prince.material;
     particles.princeMaterial.transparent = true;
     particles.princeMaterial.opacity = 0;
@@ -183,7 +184,10 @@ animaButtom.addEventListener('click', e => {
         particles.frogMaterial,
         { opacity: 1 },
         { opacity: 0, duration: 1, ease: 'linear' }
-    )
+    ).to(
+            particles.frog,
+            { visible: false, duration: 0 },
+        )
         .fromTo(
             particles.material.uniforms.uOpacity,
             { value: 0 },
@@ -199,6 +203,11 @@ animaButtom.addEventListener('click', e => {
             particles.princeMaterial,
             { opacity: 0 },
             { opacity: 1, duration: 1, ease: 'linear' }
+        )
+        .to(
+            particles.prince,
+            { visible: true, duration: 0 },
+            "<" // starts with prince fade
         )
         .fromTo(
             particles.material.uniforms.uOpacity,
@@ -222,26 +231,27 @@ textureLoader.load(
 );
 
 //floor
-const textureColor = textureLoader.load("/images/floor/stone_pathway_02_diff_4k.png");
+const textureColor = textureLoader.load("/images/floor/cracked_concrete_diff_1k.png");
 textureColor.colorSpace = THREE.SRGBColorSpace;
-const textureARM = textureLoader.load("/images/floor/stone_pathway_02_arm_4k.png");
-const textureDisplace = textureLoader.load("/images/floor/stone_pathway_02_disp_4k.png");
-const textureNormal = textureLoader.load("/images/floor/stone_pathway_02_nor_gl_4k.png");
+const textureARM = textureLoader.load("/images/floor/cracked_concrete_arm_1k.png");
+const textureDisplace = textureLoader.load("/images/floor/cracked_concrete_disp_1k.png");
+const textureNormal = textureLoader.load("/images/floor/cracked_concrete_nor_gl_1k.png");
 
 const floorGeometry = new THREE.PlaneGeometry(4, 4, 512, 512);
  const floorMaterial = new THREE.MeshStandardMaterial({
+    side: THREE.DoubleSide,
     map: textureColor,
     transparent: true,
-    alphaMap: textureARM,
     displacementMap: textureDisplace,
-    displacementScale: 0.15,
+    displacementScale: 0.08,
     displacementBias: -0.04,
     normalMap: textureNormal,
     metalnessMap: textureARM,
-    roughnessMap: textureARM
+    roughnessMap: textureARM,
+    depthWrite: false
   })
 const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-floor.position.y = -1.05;
+floor.position.y = -1.03;
 floor.rotation.x = - Math.PI * 0.5;
 scene.add(floor);
 

@@ -6,6 +6,7 @@ import particlesFragmentShader from './shaders/fragment.frag'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import gsap from 'gsap';
+import { getMeshesByName } from '../../common-utility/common-functions';
 
 //gui
 const gui = new GUI();
@@ -16,7 +17,7 @@ const textureLoader = new THREE.TextureLoader();
 const dracoLoader = new DRACOLoader()
 dracoLoader.setDecoderPath('/models/draco/')
 const gltfLoader = new GLTFLoader()
-gltfLoader.setDRACOLoader(dracoLoader)
+// gltfLoader.setDRACOLoader(dracoLoader)
 
 //sizes
 const sizes = {
@@ -24,7 +25,6 @@ const sizes = {
     height: window.innerHeight,
     pixelRatio: Math.min(window.devicePixelRatio, 2)
 }
-
 
 window.addEventListener('resize', () => {
 
@@ -51,7 +51,7 @@ const scene = new THREE.Scene();
 
 //camera setup
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.set(0, 0, 8 * 2)
+camera.position.set(2.0943266285053173, 0.36571717305067314, 1.0602807802484266)
 scene.add(camera)
 
 //renderer setup
@@ -78,21 +78,32 @@ let particles = {};
 
 gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
     
-    
     particles.index = 0;
+    particles.translate = -1;
+    console.log(particles.translate);
     
-    const positions = gltf.scene.children.map(child => child.geometry.attributes.position);
+    
+    const modelWorld = gltf.scene;
+    scene.add(modelWorld);
+    modelWorld.translateY(particles.translate);
+    
+    particles.frog = getMeshesByName(modelWorld, 'frog')[0];
+    particles.frog.visible = false;
+    particles.frogPosition = particles.frog.geometry.attributes.position;
+    particles.base = getMeshesByName(modelWorld, 'base')[0];
+    particles.prince = getMeshesByName(modelWorld, 'prince')[0];
+    particles.prince.visible = false;
+    particles.princePosition = particles.prince.geometry.attributes.position;
+    
     particles.maxCount = 0;
     
-    for (const position of positions) {
+    for (const position of [particles.frogPosition, particles.princePosition]) {
         if (position.count > particles.maxCount) {
             particles.maxCount = position.count;
         }
     }
-    // console.log(particles.maxCount);
-
     particles.positions = [];
-    for (const position of positions) {
+    for (const position of [particles.frogPosition, particles.princePosition]) {
         const originalArray = position.array;
         const newArray = new Float32Array(particles.maxCount * 3);
 
@@ -117,15 +128,14 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
         sizesArray[i] = Math.random();
         
     }
+    console.log("particle pos", particles.positions);
+    
 
     particles.geometry = new THREE.BufferGeometry(3);
-    particles.geometry.setAttribute('position', particles.positions[1]);
-    particles.geometry.setAttribute('aPositionTarget', particles.positions[3]);
+    particles.geometry.setAttribute('position', particles.positions[0]);
+    particles.geometry.setAttribute('aPositionTarget', particles.positions[1]);
     particles.geometry.setAttribute('aSize', new THREE.BufferAttribute(sizesArray, 1));
     particles.geometry.setIndex(null);
-
-
-
 
     // Material
     particles.uColorA = "#f00505";
@@ -137,56 +147,39 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
         fragmentShader: particlesFragmentShader,
         uniforms:
         {
-            uSize: new THREE.Uniform(0.1),
+            uSize: new THREE.Uniform(0.01),
             uResolution: new THREE.Uniform(new THREE.Vector2(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)),
             uProgress: new THREE.Uniform(0),
             uColorA: new THREE.Uniform(new THREE.Color(particles.uColorA)),
             uColorB: new THREE.Uniform(new THREE.Color(particles.uColorB)),
         }
     })
-    gui.addColor(particles, 'uColorA').onChange( e => {
-        particles.material.uniforms.uColorA.value.set(particles.uColorA);
-    })
-    gui.addColor(particles, 'uColorB').onChange( e => {
-        particles.material.uniforms.uColorB.value.set(particles.uColorB);
-    })
 
     // Points
-    particles.points = new THREE.Points(particles.geometry, particles.material);
-    particles.points.frustumCulled = false;
-    scene.add(particles.points);
+    particles.points = new THREE.Points(particles.geometry, particles.material)
+    particles.points.translateY(particles.translate);
+    particles.points.frustumCulled = false
+    scene.add(particles.points)
 
-    //method
-    particles.morph = (index) => {
-        //update attributes
-        particles.geometry.attributes.position = particles.positions[index];
-        particles.geometry.attributes.aPositionTarget = particles.positions[
-           index > 2 ? 0 :  index+1
-        ];
+    gui.add(particles.material.uniforms.uProgress, 'value').min(0).max(1).step(0.001).name('uProgress').listen()
 
-        //animate uProgress
-        gsap.fromTo(particles.material.uniforms.uProgress, 
-            { value: 0 }, 
-            { value: 1, duration: 3, ease : 'linear' }
-        )
 
-        //save index
-        // particles.index = index;
 
-    }
-    particles.morph0 = () => {particles.morph(0)}
-    particles.morph1 = () => {particles.morph(1)}
-    particles.morph2 = () => {particles.morph(2)}
-    particles.morph3 = () => {particles.morph(3)}
+   
 
-    gui.add(particles.material.uniforms.uProgress, 'value').min(0).max(1).step(0.001).listen();
-
-    gui.add(particles, 'morph0');
-    gui.add(particles, 'morph1');
-    gui.add(particles, 'morph2');
-    gui.add(particles, 'morph3');
 
 })
+
+window.addEventListener('mousemove', e => {
+    // console.log(camera.position);
+    
+})
+const ambient = new THREE.AmbientLight(0xffffff, 2);
+scene.add(ambient);
+
+const dir = new THREE.DirectionalLight(0xffffff, 5);
+dir.position.set(5, 5, 5);
+// scene.add(dir);
 
 //animation loop
 function animate() {

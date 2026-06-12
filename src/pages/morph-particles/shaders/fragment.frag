@@ -13,7 +13,7 @@ void main()
     //color
     vec3 color = vColor;
 
-    gl_FragColor = vec4(color, alpha);
+    gl_FragColor = vec4(vColor , alpha * uOpacity);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
 }

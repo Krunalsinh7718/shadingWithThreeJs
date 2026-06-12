@@ -51,7 +51,7 @@ const scene = new THREE.Scene();
 
 //camera setup
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.set(2.0943266285053173, 0.36571717305067314, 1.0602807802484266)
+camera.position.set(2.0943, 0.3657, 1.0602)
 scene.add(camera)
 
 //renderer setup
@@ -76,6 +76,9 @@ controls.dampingFactor = 0.05;
  */
 let particles = {};
 
+particles.frogScale = 1;
+particles.frogTranslate = { x: 0, y: 0, z: 0 };
+
 gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
 
     particles.index = 0;
@@ -86,6 +89,15 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
     modelWorld.translateY(particles.translate);
 
     particles.frog = getMeshesByName(modelWorld, 'frog')[0];
+    console.log(particles.frog);
+
+    // particles.frog.scale.set(1.01, 1.01, 1.01);
+    // particles.frog.position.set(-0.01,0,-0.01);
+    // gui.add(particles,'frogScale').min(1).max(2).step(0.001).onChange(e => particles.frog.scale.set(particles.frogScale, particles.frogScale, particles.frogScale))
+    // gui.add(particles.frogTranslate,'x').min(-2).max(2).step(0.001).onChange(e => particles.frog.position.x = particles.frogTranslate.x )
+    // gui.add(particles.frogTranslate,'y').min(-2).max(2).step(0.001).onChange(e => particles.frog.position.y = particles.frogTranslate.y )
+    // gui.add(particles.frogTranslate,'z').min(-2).max(2).step(0.001).onChange(e => particles.frog.position.z = particles.frogTranslate.z )
+
     particles.frogMaterial = particles.frog.material;
     particles.frogMaterial.transparent = true;
     particles.frogMaterial.opacity = 1;
@@ -149,10 +161,10 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
     particles.uColorA = "#ff7300";
     particles.uColorB = "#0091ff";
     particles.material = new THREE.ShaderMaterial({
-        blending: THREE.AdditiveBlending,
         transparent: true,
         opacity: 0,
         depthWrite: false,
+        blending: THREE.AdditiveBlending,
         vertexShader: particlesVertexShader,
         fragmentShader: particlesFragmentShader,
         uMinY: new THREE.Uniform(0),
@@ -162,7 +174,7 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
             uSize: new THREE.Uniform(0.01),
             uResolution: new THREE.Uniform(new THREE.Vector2(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)),
             uProgress: new THREE.Uniform(0),
-            uOpacity: new THREE.Uniform(0),
+            uOpacity: new THREE.Uniform(1),
             uColorA: new THREE.Uniform(new THREE.Color(particles.uColorA)),
             uColorB: new THREE.Uniform(new THREE.Color(particles.uColorB)),
         }
@@ -172,6 +184,7 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
     particles.points = new THREE.Points(particles.geometry, particles.material)
     particles.points.translateY(particles.translate);
     particles.points.frustumCulled = false
+
     scene.add(particles.points)
 
     gui.add(particles.material.uniforms.uProgress, 'value').min(0).max(1).step(0.001).name('uProgress').listen()
@@ -180,19 +193,21 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
 const animaButtom = document.querySelector("#animationButton");
 animaButtom.addEventListener('click', e => {
     let tl = gsap.timeline();
-    tl.fromTo(
-        particles.frogMaterial,
-        { opacity: 1 },
-        { opacity: 0, duration: 1, ease: 'linear' }
-        ).set(
-            particles.frog,
-            { visible: false },
+    tl.
+        fromTo(
+            particles.frogMaterial,
+            { opacity: 1 },
+            { opacity: 0, duration: 1, ease: 'linear' }
         )
         .fromTo(
             particles.material.uniforms.uOpacity,
             { value: 0 },
             { value: 1, duration: 1, ease: 'linear' },
             "<" // starts with frog fade
+        )
+        .set(
+            particles.frog,
+            { visible: false },
         )
         .fromTo(
             particles.material.uniforms.uProgress,
@@ -240,14 +255,12 @@ const floorGeometry = new THREE.PlaneGeometry(4, 4, 512, 512);
 const floorMaterial = new THREE.MeshStandardMaterial({
     side: THREE.DoubleSide,
     map: textureColor,
-    transparent: true,
     displacementMap: textureDisplace,
     displacementScale: 0.08,
     displacementBias: -0.04,
     normalMap: textureNormal,
     metalnessMap: textureARM,
     roughnessMap: textureARM,
-    depthWrite: false
 })
 const floor = new THREE.Mesh(floorGeometry, floorMaterial);
 floor.position.y = -1.03;
@@ -255,18 +268,49 @@ floor.rotation.x = - Math.PI * 0.5;
 scene.add(floor);
 
 
+//wand
+const frogWorldPos = new THREE.Vector3(0.01, -1, 0.8);
+const wandGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.5, 6);
+const wandMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+const wand = new THREE.Mesh(wandGeometry, wandMaterial);
+scene.add(wand);
 
+const spherical = new THREE.Spherical();
+
+const mouse = new THREE.Vector2();
+
+// const axisHelper = new THREE.AxesHelper(1);
+// axisHelper.position.set(0.01, -1, 0.8);
+// scene.add(axisHelper)
+
+window.addEventListener("mousemove", (event) => {
+
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    // if(particles.frog);
+    wand.lookAt(frogWorldPos);
+
+});
+const raycaster = new THREE.Raycaster();
+const intersection = new THREE.Vector3();
 
 //lights
 const ambient = new THREE.AmbientLight(0xffffff, 2);
 scene.add(ambient);
 
-const dir = new THREE.DirectionalLight(0xffffff, 5);
-dir.position.set(5, 5, 5);
-// scene.add(dir);
-
 //animation loop
 function animate() {
+    //wand movement
+    raycaster.setFromCamera(mouse, camera);
+
+    raycaster.ray.intersectPlane(
+        floor,
+        intersection
+    );
+
+    wand.lookAt(intersection);
+
 
     //update controls
     controls.update();

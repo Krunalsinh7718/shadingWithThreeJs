@@ -184,9 +184,9 @@ animaButtom.addEventListener('click', e => {
         particles.frogMaterial,
         { opacity: 1 },
         { opacity: 0, duration: 1, ease: 'linear' }
-    ).to(
+        ).set(
             particles.frog,
-            { visible: false, duration: 0 },
+            { visible: false },
         )
         .fromTo(
             particles.material.uniforms.uOpacity,
@@ -199,15 +199,14 @@ animaButtom.addEventListener('click', e => {
             { value: 0 },
             { value: 1, duration: 3, ease: 'linear' }
         )
+        .set(
+            particles.prince,
+            { visible: true },
+        )
         .fromTo(
             particles.princeMaterial,
             { opacity: 0 },
             { opacity: 1, duration: 1, ease: 'linear' }
-        )
-        .to(
-            particles.prince,
-            { visible: true, duration: 0 },
-            "<" // starts with prince fade
         )
         .fromTo(
             particles.material.uniforms.uOpacity,
@@ -238,7 +237,7 @@ const textureDisplace = textureLoader.load("/images/floor/cracked_concrete_disp_
 const textureNormal = textureLoader.load("/images/floor/cracked_concrete_nor_gl_1k.png");
 
 const floorGeometry = new THREE.PlaneGeometry(4, 4, 512, 512);
- const floorMaterial = new THREE.MeshStandardMaterial({
+const floorMaterial = new THREE.MeshStandardMaterial({
     side: THREE.DoubleSide,
     map: textureColor,
     transparent: true,
@@ -249,7 +248,7 @@ const floorGeometry = new THREE.PlaneGeometry(4, 4, 512, 512);
     metalnessMap: textureARM,
     roughnessMap: textureARM,
     depthWrite: false
-  })
+})
 const floor = new THREE.Mesh(floorGeometry, floorMaterial);
 floor.position.y = -1.03;
 floor.rotation.x = - Math.PI * 0.5;

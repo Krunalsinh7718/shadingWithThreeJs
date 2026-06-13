@@ -72,7 +72,9 @@ controls.dampingFactor = 0.05;
 /**
  * Particles
  */
-let particles = null
+let particles = null;
+particles.colorA = '#ff7300'
+    particles.colorB = '#0091ff'
 
 gltfLoader.load('/models/particle-models/models.glb', (gltf) =>
 {
@@ -130,8 +132,7 @@ gltfLoader.load('/models/particle-models/models.glb', (gltf) =>
 
 
     // Material
-    particles.colorA = '#ff7300'
-    particles.colorB = '#0091ff'
+    
 
     particles.material = new THREE.ShaderMaterial({
         vertexShader: particlesVertexShader,

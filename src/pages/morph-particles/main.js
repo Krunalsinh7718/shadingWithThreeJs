@@ -1,8 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import GUI from 'lil-gui'
-import particlesVertexShader from './shaders/vertex.vert'
-import particlesFragmentShader from './shaders/fragment.frag'
+import particlesVertexShader from './shaders/particles-shaders/vertex.vert'
+import particlesFragmentShader from './shaders/particles-shaders/fragment.frag'
+import magicVertexShader from './shaders/magic-shaders/vertex.vert'
+import magicFragmentShader from './shaders/magic-shaders/fragment.frag'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import gsap from 'gsap';
@@ -167,14 +169,14 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
         blending: THREE.AdditiveBlending,
         vertexShader: particlesVertexShader,
         fragmentShader: particlesFragmentShader,
-        uMinY: new THREE.Uniform(0),
-        uMaxY: new THREE.Uniform(10),
         uniforms:
         {
+            uMinY: new THREE.Uniform(10),
+            uMaxY: new THREE.Uniform(0),
             uSize: new THREE.Uniform(0.01),
             uResolution: new THREE.Uniform(new THREE.Vector2(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)),
             uProgress: new THREE.Uniform(0),
-            uOpacity: new THREE.Uniform(1),
+            uOpacity: new THREE.Uniform(0),
             uColorA: new THREE.Uniform(new THREE.Color(particles.uColorA)),
             uColorB: new THREE.Uniform(new THREE.Color(particles.uColorB)),
         }
@@ -268,29 +270,49 @@ floor.rotation.x = - Math.PI * 0.5;
 scene.add(floor);
 
 
-//wand
-const frogWorldPos = new THREE.Vector3(0.01, -1, 0.8);
-const wandGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.5, 6);
-const wandMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-const wand = new THREE.Mesh(wandGeometry, wandMaterial);
-scene.add(wand);
+//wand group
+const wandGroup = new THREE.Group();
+scene.add(wandGroup)
 
-const spherical = new THREE.Spherical();
+const frogWorldPos = new THREE.Vector3(0.01, -1, 0.8);
+//wand
+const wandGeometry = new THREE.CylinderGeometry(0.008, 0.02, 0.5, 6);
+const wandTexture = textureLoader.load('/images/wand-texture/crimson_handle.png');
+wandTexture.colorSpace = THREE.SRGBColorSpace;
+wandTexture.wrapS = THREE.RepeatWrapping;
+wandTexture.wrapT = THREE.RepeatWrapping;
+wandTexture.repeat.set(3, 1);
+const wandMaterial = new THREE.MeshBasicMaterial({ map: wandTexture });
+const wand = new THREE.Mesh(wandGeometry, wandMaterial);
+wandGroup.add(wand);
+
+//wand particles
+const magicParticlesGeo = new THREE.SphereGeometry(0.03, 30, 30);
+const magicParticleMaterial = new THREE.ShaderMaterial({
+    vertexShader: magicVertexShader,
+    fragmentShader: magicFragmentShader,
+    uniforms:
+    {
+            uMinY: new THREE.Uniform(0),
+            uMaxY: new THREE.Uniform(100),
+            uSize: new THREE.Uniform(50),
+            uResolution: new THREE.Uniform(new THREE.Vector2(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)),
+            uProgress: new THREE.Uniform(0),
+            uOpacity: new THREE.Uniform(1),
+            uColorA: new THREE.Uniform(new THREE.Color(particles.uColorA)),
+            uColorB: new THREE.Uniform(new THREE.Color(particles.uColorB)),
+    },
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+});
+const magic = new THREE.Points(magicParticlesGeo, magicParticleMaterial);
+magic.position.y = 0.25;
+wandGroup.add(magic);
 
 const mouse = new THREE.Vector2();
-
-// const axisHelper = new THREE.AxesHelper(1);
-// axisHelper.position.set(0.01, -1, 0.8);
-// scene.add(axisHelper)
-
 window.addEventListener("mousemove", (event) => {
-
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-    // if(particles.frog);
-    wand.lookAt(frogWorldPos);
-
 });
 const raycaster = new THREE.Raycaster();
 const intersection = new THREE.Vector3();
@@ -304,12 +326,17 @@ function animate() {
     //wand movement
     raycaster.setFromCamera(mouse, camera);
 
-    raycaster.ray.intersectPlane(
-        floor,
-        intersection
-    );
+    const intersection = raycaster.intersectObject(floor);
+    //  if(intersection.length){
+    //     const distOffsetX = wandGroup.position.x - intersection[0].point.x;
+    //     const distOffsetZ = wandGroup.position.z - intersection[0].point.z;
+    //     wandGroup.position.x -= distOffsetX * 0.05;
+    //     wandGroup.position.z -= distOffsetZ * 0.05;
+    //  }
+    // wandGroup.lookAt(frogWorldPos);
 
-    wand.lookAt(intersection);
+
+    // wand.lookAt(intersection);
 
 
     //update controls

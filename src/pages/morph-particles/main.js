@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Timer } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import GUI from 'lil-gui'
 import particlesVertexShader from './shaders/particles-shaders/vertex.vert'
@@ -72,6 +73,23 @@ document.body.appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
+
+
+//wand group
+const wandGroup = new THREE.Group();
+scene.add(wandGroup)
+
+const frogWorldPos = new THREE.Vector3(0.01, -1, 0.8);
+//wand
+const wandGeometry = new THREE.CylinderGeometry(0.008, 0.02, 0.5, 6);
+const wandTexture = textureLoader.load('/images/wand-texture/crimson_handle.png');
+wandTexture.colorSpace = THREE.SRGBColorSpace;
+wandTexture.wrapS = THREE.RepeatWrapping;
+wandTexture.wrapT = THREE.RepeatWrapping;
+wandTexture.repeat.set(3, 1);
+const wandMaterial = new THREE.MeshBasicMaterial({ map: wandTexture });
+const wand = new THREE.Mesh(wandGeometry, wandMaterial);
+wandGroup.add(wand);
 
 /**
  * Particles
@@ -153,7 +171,7 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
     console.log("particle pos", particles.positions);
 
 
-    particles.geometry = new THREE.BufferGeometry(3);
+    particles.geometry = new THREE.BufferGeometry();
     particles.geometry.setAttribute('position', particles.positions[0]);
     particles.geometry.setAttribute('aPositionTarget', particles.positions[1]);
     particles.geometry.setAttribute('aSize', new THREE.BufferAttribute(sizesArray, 1));
@@ -190,6 +208,70 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
     scene.add(particles.points)
 
     gui.add(particles.material.uniforms.uProgress, 'value').min(0).max(1).step(0.001).name('uProgress').listen()
+
+
+
+    //wand particles
+    particles.magicParticlePositions = new Float32Array(particles.maxCount * 3);
+
+const center = new THREE.Vector3(0, 0.03, 0);
+const radius = 0.03;
+
+for(let i = 0; i < particles.maxCount; i++)
+{
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+
+    const pos = new THREE.Vector3();
+
+    pos.setFromSpherical(
+        new THREE.Spherical(radius, phi, theta)
+    );
+
+    pos.add(center);
+
+    const i3 = i * 3;
+
+    particles.magicParticlePositions[i3 + 0] = pos.x;
+    particles.magicParticlePositions[i3 + 1] = pos.y;
+    particles.magicParticlePositions[i3 + 2] = pos.z;
+}
+
+
+    // const magicParticlesGeo = new THREE.SphereGeometry(0.03, 30, 30);
+    const magicParticlesGeo = new THREE.BufferGeometry();
+    magicParticlesGeo.setAttribute('position', new THREE.BufferAttribute(particles.magicParticlePositions, 3));
+    magicParticlesGeo.setAttribute('aPositionTarget', particles.positions[0]);
+    magicParticlesGeo.setAttribute('aSize', new THREE.BufferAttribute(sizesArray, 1));
+
+
+    particles.magicParticleMaterial = new THREE.ShaderMaterial({
+        vertexShader: magicVertexShader,
+        fragmentShader: magicFragmentShader,
+        uniforms:
+        {
+            uMinY: new THREE.Uniform(0),
+            uMaxY: new THREE.Uniform(100),
+            uSize: new THREE.Uniform(0.1),
+            uResolution: new THREE.Uniform(new THREE.Vector2(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)),
+            uProgress: new THREE.Uniform(0),
+            uOpacity: new THREE.Uniform(1),
+            uColorA: new THREE.Uniform(new THREE.Color(particles.uColorA)),
+            uColorB: new THREE.Uniform(new THREE.Color(particles.uColorB)),
+            uTime: new THREE.Uniform(0),
+            uMagicWandDistToFrog : new THREE.Uniform(new THREE.Vector3())
+        },
+        blending: THREE.AdditiveBlending,
+       transparent: true,
+        depthWrite: false,
+    });
+    particles.magic = new THREE.Points(magicParticlesGeo, particles.magicParticleMaterial);
+    particles.magic.position.y = 0.23;
+    scene.add(particles.magic);
+
+    gui.add(particles.magicParticleMaterial.uniforms.uProgress, 'value').min(0).max(1).step(0.001).name('uProgress wand particles').listen()
+
+
 
 })
 const animaButtom = document.querySelector("#animationButton");
@@ -270,44 +352,6 @@ floor.rotation.x = - Math.PI * 0.5;
 scene.add(floor);
 
 
-//wand group
-const wandGroup = new THREE.Group();
-scene.add(wandGroup)
-
-const frogWorldPos = new THREE.Vector3(0.01, -1, 0.8);
-//wand
-const wandGeometry = new THREE.CylinderGeometry(0.008, 0.02, 0.5, 6);
-const wandTexture = textureLoader.load('/images/wand-texture/crimson_handle.png');
-wandTexture.colorSpace = THREE.SRGBColorSpace;
-wandTexture.wrapS = THREE.RepeatWrapping;
-wandTexture.wrapT = THREE.RepeatWrapping;
-wandTexture.repeat.set(3, 1);
-const wandMaterial = new THREE.MeshBasicMaterial({ map: wandTexture });
-const wand = new THREE.Mesh(wandGeometry, wandMaterial);
-wandGroup.add(wand);
-
-//wand particles
-const magicParticlesGeo = new THREE.SphereGeometry(0.03, 30, 30);
-const magicParticleMaterial = new THREE.ShaderMaterial({
-    vertexShader: magicVertexShader,
-    fragmentShader: magicFragmentShader,
-    uniforms:
-    {
-            uMinY: new THREE.Uniform(0),
-            uMaxY: new THREE.Uniform(100),
-            uSize: new THREE.Uniform(50),
-            uResolution: new THREE.Uniform(new THREE.Vector2(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)),
-            uProgress: new THREE.Uniform(0),
-            uOpacity: new THREE.Uniform(1),
-            uColorA: new THREE.Uniform(new THREE.Color(particles.uColorA)),
-            uColorB: new THREE.Uniform(new THREE.Color(particles.uColorB)),
-    },
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
-});
-const magic = new THREE.Points(magicParticlesGeo, magicParticleMaterial);
-magic.position.y = 0.25;
-wandGroup.add(magic);
 
 const mouse = new THREE.Vector2();
 window.addEventListener("mousemove", (event) => {
@@ -321,18 +365,37 @@ const intersection = new THREE.Vector3();
 const ambient = new THREE.AmbientLight(0xffffff, 2);
 scene.add(ambient);
 
+
+
 //animation loop
+const timer = new Timer(); 
 function animate() {
+    //timer
+    timer.update();
+    const elapsedTime = timer.getElapsed();
+
+    //update magic particle material
+    if(particles.magic)
+    particles.magicParticleMaterial.uniforms.uTime.value = elapsedTime;
+
+
+
     //wand movement
     raycaster.setFromCamera(mouse, camera);
 
     const intersection = raycaster.intersectObject(floor);
-    //  if(intersection.length){
-    //     const distOffsetX = wandGroup.position.x - intersection[0].point.x;
-    //     const distOffsetZ = wandGroup.position.z - intersection[0].point.z;
-    //     wandGroup.position.x -= distOffsetX * 0.05;
-    //     wandGroup.position.z -= distOffsetZ * 0.05;
-    //  }
+     if(intersection.length){
+        const distOffsetX = wandGroup.position.x - intersection[0].point.x;
+        const distOffsetZ = wandGroup.position.z - intersection[0].point.z;
+        wandGroup.position.x -= distOffsetX * 0.05;
+        wandGroup.position.z -= distOffsetZ * 0.05;
+
+        particles.magicParticleMaterial.uniforms.uMagicWandDistToFrog.value.set(distOffsetX, 0, distOffsetZ);
+
+        particles.magic.position.y = 0.23;
+        particles.magic.position.set(wandGroup.position.x, 0.23, wandGroup.position.z)
+
+     }
     // wandGroup.lookAt(frogWorldPos);
 
 

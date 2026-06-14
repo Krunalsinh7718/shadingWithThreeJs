@@ -5,6 +5,8 @@ uniform vec3 uColorA;
 uniform vec3 uColorB;
 uniform float uMinY;
 uniform float uMaxY;
+uniform float uTime;
+uniform vec3 uMagicWandDistToFrog;
 
 attribute vec3 aPositionTarget;
 attribute float aSize;
@@ -15,6 +17,7 @@ varying vec3 vColor;
 
 void main()
 {
+    vec3 newTarget = aPositionTarget * uMagicWandDistToFrog;
     float noiseOrigin =  simplexNoise3d(position * 0.2);
     float noiseTarget =  simplexNoise3d(aPositionTarget * 0.2);
     float noise = mix(noiseOrigin, noiseTarget, uProgress);
@@ -26,6 +29,32 @@ void main()
     float progress = smoothstep(delay, end, uProgress);
     vec3 mixedPosition = mix(position, aPositionTarget, progress);
 
+    //elevation
+    //  float elevation = sin(mixedPosition.x * 4.0 + uTime * 0.75) * 
+    //                   cos(mixedPosition.z * 1.5 + uTime * 0.75) * 
+    //                   0.15;
+
+    // for(float i = 0.0; i < 4.0;i++){
+    //     elevation -= abs(simplexNoise3d(vec3(mixedPosition.xz * 3.0 * i, uTime * 0.2)) * 0.15);
+    //     // elevation -= abs(simplexNoise3d(vec3(mixedPosition.x * uTime * 0.2, mixedPosition.y * uTime * 0.2, mixedPosition.z * uTime * 0.2)) * 0.15);
+    // }
+    
+    // mixedPosition.y += elevation ;
+
+    vec3 dir = normalize(position);
+
+float noiseMix =
+    simplexNoise3d(
+        position * 4.0 +
+        uTime
+    );
+
+mixedPosition +=
+    dir *
+    aSize *
+    sin(uTime * aSize * 3.0) *
+    0.03;
+
   
 
     // Final position
@@ -35,7 +64,8 @@ void main()
     gl_Position = projectedPosition;
 
     // Point size
-    gl_PointSize = uSize * aSize * uResolution.y;
+    float newPontSize = max(uSize * 0.01 * uProgress, 0.001);
+    gl_PointSize = newPontSize  * aSize * uResolution.y;
     gl_PointSize *= (1.0 / - viewPosition.z);
 
     //varyings

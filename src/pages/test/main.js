@@ -44,12 +44,12 @@ controls.dampingFactor = 0.05;
 //axis helper
 
 const axisHelper = new THREE.AxesHelper(10);
-scene.add(axisHelper);
+// scene.add(axisHelper);
 
 
 //points
 const shapeData = {};
-shapeData.pointsCount = 10;
+shapeData.pointsCount = 10000;
 
 const sphericalShape = new THREE.Spherical(1, Math.PI, Math.PI * 2);
 const testVector = new THREE.Vector3();
@@ -73,7 +73,7 @@ for (let i = 0; i < shapeData.pointsCount; i++) {
     pointsArray[i3 + 2] = testVector.z;
 
     aSizeArray[i3] = Math.random();
-    aIndexArray[i3] = i3 / shapeData.pointsCount;
+    aIndexArray[i] = i;
 
     
 }
@@ -84,11 +84,13 @@ console.log(aIndexArray);
 
 
 const pointMaterial = new THREE.ShaderMaterial({
+    blending: THREE.AdditiveBlending,
+    depthWrite: true,
     vertexShader: appVertexShader,
     fragmentShader: appFragmentShader,
     uniforms: {
         uTime : new THREE.Uniform(0),
-        uPointSize : new THREE.Uniform(100),
+        uPointSize : new THREE.Uniform(60),
     }
 })
 const points = new THREE.Points(pointGeo, pointMaterial);

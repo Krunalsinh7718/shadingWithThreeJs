@@ -72,7 +72,7 @@ controls.dampingFactor = 0.05;
 /**
  * Particles
  */
-let particles = null;
+let particles = {};
 particles.colorA = '#ff7300'
     particles.colorB = '#0091ff'
 
@@ -173,8 +173,10 @@ gltfLoader.load('/models/particle-models/models.glb', (gltf) =>
     }
 
     // Tweaks
-    gui.addColor(particles, 'colorA').onChange(() => { particles.material.uniforms.uColorA.value.set(particles.colorA) })
-    gui.addColor(particles, 'colorB').onChange(() => { particles.material.uniforms.uColorB.value.set(particles.colorB) })
+    if (particles.material && particles.material.color) {
+        gui.addColor(particles, 'colorA').onChange(() => { particles.material.uniforms.uColorA.value.set(particles.colorA) })
+        gui.addColor(particles, 'colorB').onChange(() => { particles.material.uniforms.uColorB.value.set(particles.colorB) })
+    }
     gui.add(particles.material.uniforms.uProgress, 'value').min(0).max(1).step(0.001).name('uProgress').listen()
 
     particles.morph0 = () => { particles.morph(0) }

@@ -17,11 +17,13 @@ varying vec3 vColor;
 
 void main()
 {   
+
     vec3 newPos = position;
+    float distance = distance(vec3(0.0), newPos );
     newPos = newPos * (
         sin((uTime * 0.5 ) + aSize * 10.0) *
-        cos((uTime * 0.5 ) + aSize * 10.0)
-    ) * 0.5;
+        sin((uTime * 0.5 ) + aSize * 10.0)
+    ) * 0.3;
     vec3 targetPosition = aPositionTarget + (uFrogWorldPos - uWandWorldPos);
     float noiseOrigin =  simplexNoise3d(newPos * 0.2);
     float noiseTarget =  simplexNoise3d(aPositionTarget * 0.2);
@@ -55,5 +57,6 @@ void main()
     gl_PointSize *= (1.0 / - viewPosition.z);
 
     //varyings
-    vColor = mix(uColorA, uColorB, 0.5);
+
+    vColor = mix(uColorA, uColorB, distance);
 }

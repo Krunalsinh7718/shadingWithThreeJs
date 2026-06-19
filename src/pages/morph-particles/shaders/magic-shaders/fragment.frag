@@ -6,6 +6,8 @@ void main()
 {
     vec2 uv = gl_PointCoord;
     float distanceToCenter = length(uv - 0.5);
+     if(distanceToCenter > 0.5)
+        discard;
     float alpha = 5.0 / distanceToCenter - 0.1;
     alpha *= uOpacity;
     alpha = clamp(alpha, 0.0, 1.0);

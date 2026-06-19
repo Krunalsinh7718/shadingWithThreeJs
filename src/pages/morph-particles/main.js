@@ -225,13 +225,17 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
     const radius = 0.03;
 
     for (let i = 0; i < particles.maxCount; i++) {
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos(2 * Math.random() - 1);
+        // const theta = Math.random() * Math.PI * 2;
+        // const phi = Math.acos(2 * Math.random() - 1);
 
         const pos = new THREE.Vector3();
 
         pos.setFromSpherical(
-            new THREE.Spherical(radius, phi, theta)
+            new THREE.Spherical(
+                Math.min(Math.random() , Math.random()), 
+                Math.random() * Math.PI, 
+                Math.random() * Math.PI * 2
+            )
         );
 
         pos.add(center);
@@ -422,7 +426,13 @@ function animate() {
         );
     }
     if (particles.magic)
-        particles.magic.position.copy(wandDummyPositionParticleWorldPosition);
+        particles.magic.position.copy(
+            {
+               x: wandDummyPositionParticleWorldPosition.x,
+               y: wandDummyPositionParticleWorldPosition.y,
+               z: wandDummyPositionParticleWorldPosition.z
+            }
+        );
     if(particles.frog)
     wandGroup.lookAt(frogWorldPos);
     

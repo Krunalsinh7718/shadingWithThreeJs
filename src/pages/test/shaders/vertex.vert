@@ -28,9 +28,11 @@ void main(){
     gl_PointSize = aSize * distance * uPointSize;
     gl_PointSize *= 1.0 / -viewPosition.z;
 
-    vColor = vec3(
-        abs(newPosition.x),
-        abs(newPosition.y),
-        abs(newPosition.z)
-    );
+    vColor = mix(vec3(1, 0.01, 0.08), vec3(0.01, 1, 0.98) , distance);
+
+    // vColor = vec3(
+    //     abs(newPosition.x),
+    //     abs(newPosition.y),
+    //     abs(newPosition.z)
+    // );
 }

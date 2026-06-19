@@ -16,9 +16,14 @@ varying vec3 vColor;
 #include "../../../includes/simplexNoise3d.glsl"
 
 void main()
-{
+{   
+    vec3 newPos = position;
+    newPos = newPos * (
+        sin((uTime * 0.5 ) + aSize * 10.0) *
+        cos((uTime * 0.5 ) + aSize * 10.0)
+    ) * 0.5;
     vec3 targetPosition = aPositionTarget + (uFrogWorldPos - uWandWorldPos);
-    float noiseOrigin =  simplexNoise3d(position * 0.2);
+    float noiseOrigin =  simplexNoise3d(newPos * 0.2);
     float noiseTarget =  simplexNoise3d(aPositionTarget * 0.2);
     float noise = mix(noiseOrigin, noiseTarget, uProgress);
     noise = smoothstep(-1.0, 1.0, noise);
@@ -27,12 +32,16 @@ void main()
     float delay = (1.0 - duration) * noise;
     float end = delay + duration;
     float progress = smoothstep(delay, end, uProgress);
-    vec3 mixedPosition = mix(position, targetPosition, progress);
+    vec3 mixedPosition = mix(newPos, targetPosition, progress);
 
     //elevation
-    vec3 dir = normalize(position);
-    float noiseMix = simplexNoise3d( position * 4.0 + uTime );
-    mixedPosition += dir * aSize * sin(uTime * aSize * 3.0) * 0.03;
+    // vec3 dir = normalize(position);
+    // float noiseMix = simplexNoise3d( position * 4.0 + uTime );
+    // mixedPosition += dir * aSize * sin(uTime * aSize * 3.0) * 0.03;
+
+
+
+    
 
     // Final position
     vec4 modelPosition = modelMatrix * vec4(mixedPosition, 1.0);

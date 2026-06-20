@@ -264,7 +264,7 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
         fragmentShader: magicFragmentShader,
         uniforms:
         {
-            uSize: new THREE.Uniform(0.1),
+            uSize: new THREE.Uniform(0.005),
             uResolution: new THREE.Uniform(new THREE.Vector2(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)),
             uProgress: new THREE.Uniform(0),
             uOpacity: new THREE.Uniform(1),
@@ -288,8 +288,9 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
 
 
 })
-const animaButtom = document.querySelector("#animationButton");
-animaButtom.addEventListener('click', e => {
+const animaButton = document.querySelector("#animationButton");
+animaButton.addEventListener('click', e => {
+    animaButton.setAttribute('disabled', true);
     let tl = gsap.timeline({
         onComplete: () => {
             if (particles.magicTarget === "frog") {
@@ -302,11 +303,12 @@ animaButtom.addEventListener('click', e => {
 
             }
             console.log(particles.magicTarget);
+            animaButton.removeAttribute("disabled")
 
         }
     });
     if (particles.magicTarget === "frog") {
-        console.log("particles opacity",particles.material.uniforms.uOpacity.value);
+        // console.log("particles opacity",particles.material.uniforms.uOpacity.value);
         
 
         tl.fromTo(
@@ -322,10 +324,10 @@ animaButtom.addEventListener('click', e => {
             { opacity: 1 },
             { opacity: 0, duration: 1, ease: 'linear' },
             "<"
-        ).fromTo(
+        ).to(
             particles.material.uniforms.uOpacity,
-            { value: 0 },
             { value: 1, duration: 1, ease: 'linear' },
+            "<"
         ).set(
             particles.frog,
             { visible: false },
@@ -340,10 +342,10 @@ animaButtom.addEventListener('click', e => {
             particles.princeMaterial,
             { opacity: 0 },
             { opacity: 1, duration: 1, ease: 'linear' }
-        ).fromTo(
+        ).to(
             particles.material.uniforms.uOpacity,
-            { value: 1 },
             { value: 0, duration: 1, ease: "linear" },
+            "<"
         ).to(
             particles.magicParticleMaterial.uniforms.uProgress,
             { value: 0, duration: 1, ease: 'linear' }
@@ -369,10 +371,10 @@ animaButtom.addEventListener('click', e => {
             { opacity: 1 },
             { opacity: 0, duration: 1, ease: 'linear' },
             "<"
-        ).fromTo(
+        ).to(
             particles.material.uniforms.uOpacity,
-            { value: 0 },
             { value: 1, duration: 1, ease: 'linear' },
+            "<"
         ).set(
             particles.prince,
             { visible: false },
@@ -387,10 +389,9 @@ animaButtom.addEventListener('click', e => {
             particles.frogMaterial,
             { opacity: 0 },
             { opacity: 1, duration: 1, ease: 'linear' }
-        ).fromTo(
+        ).to(
             particles.material.uniforms.uOpacity,
-            { value: 1 },
-            { value: 0, duration: 1, ease: "power1.out" },
+            { value: 0, duration: 1, ease: "linear" },
             "<"
         ).to(
             particles.magicParticleMaterial.uniforms.uProgress,
@@ -424,7 +425,7 @@ const textureARM = textureLoader.load("/images/floor/cracked_concrete_arm_1k.png
 const textureDisplace = textureLoader.load("/images/floor/cracked_concrete_disp_1k.png");
 const textureNormal = textureLoader.load("/images/floor/cracked_concrete_nor_gl_1k.png");
 
-const floorGeometry = new THREE.PlaneGeometry(4, 4, 512, 512);
+const floorGeometry = new THREE.CircleGeometry(5, 32);
 const floorMaterial = new THREE.MeshStandardMaterial({
     side: THREE.DoubleSide,
     map: textureColor,

@@ -53,7 +53,7 @@ void main()
 
     // Point size
     float newPontSize = max(uSize * 0.01 * uProgress, 0.001);
-    gl_PointSize = newPontSize  * aSize * uResolution.y;
+    gl_PointSize = uSize  * aSize * uResolution.y;
     gl_PointSize *= (1.0 / - viewPosition.z);
 
     //varyings

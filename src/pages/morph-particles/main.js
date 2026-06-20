@@ -76,10 +76,12 @@ controls.dampingFactor = 0.05;
 
 
 //wand group
+
 const wandGroup = new THREE.Group(0, 0, 0);
 scene.add(wandGroup)
 
-const frogWorldPos = new THREE.Vector3(0.01, -1, 0.8);
+const frogWorldPos = new THREE.Vector3(0, 0, 0);
+const princeWorldPos = new THREE.Vector3(0, 0, 0);
 //wand
 const wandGeometry = new THREE.CylinderGeometry(0.008, 0.02, 0.5, 6);
 const wandTexture = textureLoader.load('/images/wand-texture/crimson_handle.png');
@@ -102,9 +104,11 @@ wandDummyPositionParticle.position.y = 0.24;
  * Particles
  */
 let particles = {};
-
+particles.magicTarget = "frog";
 particles.frogScale = 1;
 particles.frogTranslate = { x: 0, y: 0, z: 0 };
+
+
 
 gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
 
@@ -116,7 +120,7 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
     modelWorld.translateY(particles.translate);
 
     particles.frog = getMeshesByName(modelWorld, 'frog')[0];
-    console.log(particles.frog);
+    // console.log(particles.frog);
 
     // particles.frog.scale.set(1.01, 1.01, 1.01);
     // particles.frog.position.set(-0.01,0,-0.01);
@@ -128,7 +132,7 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
     particles.frogMaterial = particles.frog.material;
     particles.frogMaterial.transparent = true;
     particles.frogMaterial.opacity = 1;
-    console.log("frog", particles.frog);
+    // console.log("frog", particles.frog);
 
     particles.frogPosition = particles.frog.geometry.attributes.position;
     particles.base = getMeshesByName(modelWorld, 'base')[0];
@@ -175,7 +179,7 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
         sizesArray[i] = Math.random();
 
     }
-    console.log("particle pos", particles.positions);
+    // console.log("particle pos", particles.positions);
 
 
     particles.geometry = new THREE.BufferGeometry();
@@ -232,8 +236,8 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
 
         pos.setFromSpherical(
             new THREE.Spherical(
-                Math.min(Math.random() , Math.random()), 
-                Math.random() * Math.PI, 
+                Math.min(Math.random(), Math.random()),
+                Math.random() * Math.PI,
                 Math.random() * Math.PI * 2
             )
         );
@@ -248,11 +252,11 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
     }
 
 
-    // const magicParticlesGeo = new THREE.SphereGeometry(0.03, 30, 30);
-    const magicParticlesGeo = new THREE.BufferGeometry();
-    magicParticlesGeo.setAttribute('position', new THREE.BufferAttribute(particles.magicParticlePositions, 3));
-    magicParticlesGeo.setAttribute('aPositionTarget', particles.positions[0]);
-    magicParticlesGeo.setAttribute('aSize', new THREE.BufferAttribute(sizesArray, 1));
+    // const particles.magicParticlesGeo = new THREE.SphereGeometry(0.03, 30, 30);
+    particles.magicParticlesGeo = new THREE.BufferGeometry();
+    particles.magicParticlesGeo.setAttribute('position', new THREE.BufferAttribute(particles.magicParticlePositions, 3));
+    particles.magicParticlesGeo.setAttribute('aPositionTarget', particles.positions[0]);
+    particles.magicParticlesGeo.setAttribute('aSize', new THREE.BufferAttribute(sizesArray, 1));
 
 
     particles.magicParticleMaterial = new THREE.ShaderMaterial({
@@ -260,7 +264,7 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
         fragmentShader: magicFragmentShader,
         uniforms:
         {
-            uSize: new THREE.Uniform(0.1),
+            uSize: new THREE.Uniform(0.005),
             uResolution: new THREE.Uniform(new THREE.Vector2(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)),
             uProgress: new THREE.Uniform(0),
             uOpacity: new THREE.Uniform(1),
@@ -274,19 +278,40 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
         transparent: true,
         depthWrite: false,
     });
-    particles.magic = new THREE.Points(magicParticlesGeo, particles.magicParticleMaterial);
+    particles.magic = new THREE.Points(particles.magicParticlesGeo, particles.magicParticleMaterial);
     particles.magic.position.y = 0.23;
     scene.add(particles.magic);
 
     gui.add(particles.magicParticleMaterial.uniforms.uProgress, 'value').min(0).max(1).step(0.001).name('uProgress wand particles').listen()
+    gui.add(particles.material.uniforms.uOpacity, 'value').min(0).max(1).step(0.001).name('uOpacity').listen()
 
 
 
 })
-const animaButtom = document.querySelector("#animationButton");
-animaButtom.addEventListener('click', e => {
-    let tl = gsap.timeline();
-    tl.fromTo(
+const animaButton = document.querySelector("#animationButton");
+animaButton.addEventListener('click', e => {
+    animaButton.setAttribute('disabled', true);
+    let tl = gsap.timeline({
+        onComplete: () => {
+            if (particles.magicTarget === "frog") {
+                particles.magicParticlesGeo.setAttribute('aPositionTarget', particles.positions[1]);
+                particles.magicTarget = "prince";
+
+            } else if (particles.magicTarget === "prince") {
+                particles.magicParticlesGeo.setAttribute('aPositionTarget', particles.positions[0]);
+                particles.magicTarget = "frog";
+
+            }
+            console.log(particles.magicTarget);
+            animaButton.removeAttribute("disabled")
+
+        }
+    });
+    if (particles.magicTarget === "frog") {
+        // console.log("particles opacity",particles.material.uniforms.uOpacity.value);
+        
+
+        tl.fromTo(
             particles.magicParticleMaterial.uniforms.uProgress,
             { value: 0 },
             { value: 1, duration: 1, ease: 'linear' }
@@ -294,43 +319,90 @@ animaButtom.addEventListener('click', e => {
             particles.magicParticleMaterial.uniforms.uOpacity,
             { value: 1 },
             { value: 0, duration: 1, ease: 'linear' }
-        )
-        .fromTo(
+        ).fromTo(
             particles.frogMaterial,
             { opacity: 1 },
             { opacity: 0, duration: 1, ease: 'linear' },
             "<"
-        )
-        .fromTo(
+        ).to(
             particles.material.uniforms.uOpacity,
-            { value: 0 },
             { value: 1, duration: 1, ease: 'linear' },
-            "<" // starts with frog fade
-        )
-        .set(
+            "<"
+        ).set(
             particles.frog,
             { visible: false },
-        )
-        .fromTo(
+        ).fromTo(
             particles.material.uniforms.uProgress,
             { value: 0 },
             { value: 1, duration: 3, ease: 'linear' }
-        )
-        .set(
+        ).set(
             particles.prince,
             { visible: true },
-        )
-        .fromTo(
+        ).fromTo(
             particles.princeMaterial,
             { opacity: 0 },
             { opacity: 1, duration: 1, ease: 'linear' }
-        )
-        .fromTo(
+        ).to(
             particles.material.uniforms.uOpacity,
-            { value: 1 },
-            { value: 0, duration: 1, ease: "power1.out" },
-            "<" // starts with prince fade
+            { value: 0, duration: 1, ease: "linear" },
+            "<"
+        ).to(
+            particles.magicParticleMaterial.uniforms.uProgress,
+            { value: 0, duration: 1, ease: 'linear' }
+        ).to(
+            particles.magicParticleMaterial.uniforms.uOpacity,
+            { value: 1, duration: 1, ease: 'linear' }
         )
+
+
+    }
+    if (particles.magicTarget === "prince") {
+
+        tl.fromTo(
+            particles.magicParticleMaterial.uniforms.uProgress,
+            { value: 0 },
+            { value: 1, duration: 1, ease: 'linear' }
+        ).fromTo(
+            particles.magicParticleMaterial.uniforms.uOpacity,
+            { value: 1 },
+            { value: 0, duration: 1, ease: 'linear' }
+        ).fromTo(
+            particles.princeMaterial,
+            { opacity: 1 },
+            { opacity: 0, duration: 1, ease: 'linear' },
+            "<"
+        ).to(
+            particles.material.uniforms.uOpacity,
+            { value: 1, duration: 1, ease: 'linear' },
+            "<"
+        ).set(
+            particles.prince,
+            { visible: false },
+        ).fromTo(
+            particles.material.uniforms.uProgress,
+            { value: 1 },
+            { value: 0, duration: 3, ease: 'linear' }
+        ).set(
+            particles.frog,
+            { visible: true },
+        ).fromTo(
+            particles.frogMaterial,
+            { opacity: 0 },
+            { opacity: 1, duration: 1, ease: 'linear' }
+        ).to(
+            particles.material.uniforms.uOpacity,
+            { value: 0, duration: 1, ease: "linear" },
+            "<"
+        ).to(
+            particles.magicParticleMaterial.uniforms.uProgress,
+            { value: 0, duration: 1, ease: 'linear' }
+        ).to(
+            particles.magicParticleMaterial.uniforms.uOpacity,
+            { value: 1, duration: 1, ease: 'linear' }
+        )
+    }
+
+
 })
 
 //skybox
@@ -353,7 +425,7 @@ const textureARM = textureLoader.load("/images/floor/cracked_concrete_arm_1k.png
 const textureDisplace = textureLoader.load("/images/floor/cracked_concrete_disp_1k.png");
 const textureNormal = textureLoader.load("/images/floor/cracked_concrete_nor_gl_1k.png");
 
-const floorGeometry = new THREE.PlaneGeometry(4, 4, 512, 512);
+const floorGeometry = new THREE.CircleGeometry(5, 32);
 const floorMaterial = new THREE.MeshStandardMaterial({
     side: THREE.DoubleSide,
     map: textureColor,
@@ -408,35 +480,39 @@ function animate() {
         const distOffsetZ = wandGroup.position.z - intersection[0].point.z;
         wandGroup.position.x -= distOffsetX * 0.05;
         wandGroup.position.z -= distOffsetZ * 0.05;
-
-        
-        
-        
     }
     //magic particle movement
-    if(particles.frog){
+    if (particles.frog) {
         particles.frog.getWorldPosition(frogWorldPos);
-        
+
         particles.magicParticleMaterial.uniforms.uFrogWorldPos.value.copy(
-            frogWorldPos 
+            frogWorldPos
         );
-        
+
         particles.magicParticleMaterial.uniforms.uWandWorldPos.value.copy(
             particles.magic.position
         );
     }
+    if (particles.prince) {
+        particles.prince.getWorldPosition(princeWorldPos);
+    }
     if (particles.magic)
         particles.magic.position.copy(
             {
-               x: wandDummyPositionParticleWorldPosition.x,
-               y: wandDummyPositionParticleWorldPosition.y,
-               z: wandDummyPositionParticleWorldPosition.z
+                x: wandDummyPositionParticleWorldPosition.x,
+                y: wandDummyPositionParticleWorldPosition.y,
+                z: wandDummyPositionParticleWorldPosition.z
             }
         );
-    if(particles.frog)
-    wandGroup.lookAt(frogWorldPos);
-    
-    
+    if (particles.frog && particles.magicTarget === "frog") {
+
+        wandGroup.lookAt(frogWorldPos);
+    }
+    if (particles.prince && particles.magicTarget === "prince") {
+        wandGroup.lookAt(princeWorldPos);
+    }
+
+
 
 
     //update controls

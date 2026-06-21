@@ -21,43 +21,201 @@ varying vec3 vColor;
 void main()
 {
 
-     vec3 newPos = position;
-    float distance = distance(vec3(0.0), newPos );
-    newPos = newPos * (
-        sin((uTime * 0.5 ) + aSize * 10.0) *
-        sin((uTime * 0.5 ) + aSize * 10.0)
+    vec3 newPos = position;
+
+    newPos *=
+    (
+        sin((uTime * 0.5) + aSize * 10.0) *
+        sin((uTime * 0.5) + aSize * 10.0)
     ) * 0.3;
-     vec3 targetPosition = aPositionTarget + (uFrogWorldPos - uWandWorldPos);
-     vec3 targetPosition1 = aPositionTarget1 + (uPrinceWorldPos - uWandWorldPos);
 
-    float noiseOrigin =  simplexNoise3d(newPos * 0.2);
-    float noiseTarget =  simplexNoise3d(targetPosition * 0.2);
-    float noiseTarget1 =  simplexNoise3d(targetPosition1 * 0.2);
-    float noise = mix(noiseOrigin, noiseTarget, uProgress);
-    noise = smoothstep(-1.0, 1.0, noise);
 
-    float duration = 0.4;
-    float delay = (1.0 - duration) * noise;
-    float end = delay + duration;
-    float progress = smoothstep(delay, end, uProgress);
-    // vec3 mixedPosition = mix(newPos, targetPosition1, progress);
+    // ======================================================
+    // TARGET POSITIONS
+    // ======================================================
 
-    //tornado effect
-    vec3 centerPosition = mix(targetPosition, targetPosition1, progress);
-    float tornadoStrength = sin(progress * 3.14159265);
-    float heightFactor = smoothstep(uMinY, uMaxY, centerPosition.y);
-    float rotationMultiplier = mix(2.0, 1.0, aPositionTarget.y);
-    float angle = progress * 25.0 * rotationMultiplier + noise * 20.0;
-    float funnelShape = pow(heightFactor, 3.0);
-    float radius = 1.0 * tornadoStrength * (0.5 + noise);
-    radius *= mix(0.03, 1.0, funnelShape);
+    vec3 frogPosition =
+        aPositionTarget +
+        (uFrogWorldPos - uWandWorldPos);
 
-    vec3 tornadoOffset;
-    tornadoOffset.x = cos(angle) * radius;
-    tornadoOffset.z = sin(angle) * radius;
-    tornadoOffset.y = (noise - 0.5) * tornadoStrength;
-    vec3 mixedPosition = centerPosition + tornadoOffset;
+    vec3 princePosition =
+        aPositionTarget1 +
+        (uPrinceWorldPos - uWandWorldPos);
 
+
+    // ======================================================
+    // NOISE
+    // ======================================================
+
+    float noiseOrigin =
+        simplexNoise3d(newPos * 0.2);
+
+    float noiseFrog =
+        simplexNoise3d(frogPosition * 0.2);
+
+    float noisePrince =
+        simplexNoise3d(princePosition * 0.2);
+
+
+    // ======================================================
+    // PHASE PROGRESS
+    // ======================================================
+
+    float localProgress;
+    float noise;
+    vec3 centerPosition;
+
+    if(uProgress < 0.5)
+    {
+        //----------------------------------
+        // WAND -> FROG
+        //----------------------------------
+
+        localProgress = uProgress * 2.0;
+
+        noise = mix(
+            noiseOrigin,
+            noiseFrog,
+            localProgress
+        );
+
+        noise = smoothstep(
+            -1.0,
+            1.0,
+            noise
+        );
+
+        float duration = 0.4;
+
+        float delay =
+            (1.0 - duration) *
+            noise;
+
+        float end =
+            delay + duration;
+
+        float delayedProgress =
+            smoothstep(
+                delay,
+                end,
+                localProgress
+            );
+
+        centerPosition = mix(
+            newPos,
+            frogPosition,
+            delayedProgress
+        );
+    }
+    else
+    {
+        //----------------------------------
+        // FROG -> PRINCE
+        //----------------------------------
+
+        localProgress =
+            (uProgress - 0.5) * 2.0;
+
+        noise = mix(
+            noiseFrog,
+            noisePrince,
+            localProgress
+        );
+
+        noise = smoothstep(
+            -1.0,
+            1.0,
+            noise
+        );
+
+        float duration = 0.4;
+
+        float delay =
+            (1.0 - duration) *
+            noise;
+
+        float end =
+            delay + duration;
+
+        float delayedProgress =
+            smoothstep(
+                delay,
+                end,
+                localProgress
+            );
+
+        centerPosition = mix(
+            frogPosition,
+            princePosition,
+            delayedProgress
+        );
+    }
+
+
+    // ======================================================
+    // TORNADO
+    // ONLY ACTIVE DURING FROG -> PRINCE
+    // ======================================================
+
+    vec3 mixedPosition = centerPosition;
+
+    if(uProgress > 0.5)
+    {
+        float tornadoProgress =
+            (uProgress - 0.5) * 2.0;
+
+        float tornadoStrength =
+            sin(tornadoProgress * 3.14159265);
+
+        float heightFactor =
+            smoothstep(
+                uMinY,
+                uMaxY,
+                centerPosition.y
+            );
+
+        float rotationMultiplier =
+            mix(
+                2.0,
+                1.0,
+                aPositionTarget.y
+            );
+
+        float angle =
+            tornadoProgress *
+            25.0 *
+            rotationMultiplier +
+            noise * 20.0;
+
+        float funnelShape =
+            pow(heightFactor, 3.0);
+
+        float radius =
+            tornadoStrength *
+            (0.5 + noise);
+
+        radius *=
+            mix(
+                0.03,
+                1.0,
+                funnelShape
+            );
+
+        vec3 tornadoOffset;
+
+        tornadoOffset.x =
+            cos(angle) * radius;
+
+        tornadoOffset.z =
+            sin(angle) * radius;
+
+        tornadoOffset.y =
+            (noise - 0.5) *
+            tornadoStrength;
+
+        mixedPosition += tornadoOffset;
+    }
+    
     // Final position
     vec4 modelPosition = modelMatrix * vec4(mixedPosition, 1.0);
     vec4 viewPosition = viewMatrix * modelPosition;

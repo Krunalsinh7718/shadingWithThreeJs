@@ -259,42 +259,6 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
    
 
 
-    // const particles.magicParticlesGeo = new THREE.SphereGeometry(0.03, 30, 30);
-    particles.magicParticlesGeo = new THREE.BufferGeometry();
-    particles.magicParticlesGeo.setAttribute('position', new THREE.BufferAttribute(particles.magicParticlePositions, 3));
-    particles.magicParticlesGeo.setAttribute('aPositionTarget', particles.positions[0]);
-    particles.magicParticlesGeo.setAttribute('aSize', new THREE.BufferAttribute(sizesArray, 1));
-
-
-    particles.magicParticleMaterial = new THREE.ShaderMaterial({
-        opacity: 0,
-        vertexShader: magicVertexShader,
-        fragmentShader: magicFragmentShader,
-        uniforms:
-        {
-            uSize: new THREE.Uniform(0.005),
-            uResolution: new THREE.Uniform(new THREE.Vector2(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)),
-            uProgress: new THREE.Uniform(0),
-            uOpacity: new THREE.Uniform(1),
-            uColorA: new THREE.Uniform(new THREE.Color(particles.uColorA)),
-            uColorB: new THREE.Uniform(new THREE.Color(particles.uColorB)),
-            uTime: new THREE.Uniform(0),
-            uFrogWorldPos: new THREE.Uniform(new THREE.Vector3()),
-            uWandWorldPos: new THREE.Uniform(new THREE.Vector3()),
-        },
-        blending: THREE.AdditiveBlending,
-        transparent: true,
-        depthWrite: false,
-    });
-    particles.magic = new THREE.Points(particles.magicParticlesGeo, particles.magicParticleMaterial);
-    particles.magic.position.y = 0.23;
-    scene.add(particles.magic);
-    particles.magic.visible = false;
-
-    gui.add(particles.magicParticleMaterial.uniforms.uProgress, 'value').min(0).max(1).step(0.001).name('uProgress wand particles').listen()
-    gui.add(particles.material.uniforms.uOpacity, 'value').min(0).max(1).step(0.001).name('uOpacity').listen()
-
-
 
 })
 const animaButton = document.querySelector("#animationButton");
@@ -303,11 +267,14 @@ animaButton.addEventListener('click', e => {
     let tl = gsap.timeline({
         onComplete: () => {
             if (particles.magicTarget === "frog") {
-                particles.magicParticlesGeo.setAttribute('aPositionTarget', particles.positions[1]);
+                particles.geometry.setAttribute('aPositionTarget', particles.positions[1]);
+                particles.geometry.setAttribute('aPositionTarget1', particles.positions[0]);
+                
                 particles.magicTarget = "prince";
 
             } else if (particles.magicTarget === "prince") {
-                particles.magicParticlesGeo.setAttribute('aPositionTarget', particles.positions[0]);
+                particles.geometry.setAttribute('aPositionTarget', particles.positions[0]);
+                particles.geometry.setAttribute('aPositionTarget1', particles.positions[1]);
                 particles.magicTarget = "frog";
 
             }
@@ -320,46 +287,34 @@ animaButton.addEventListener('click', e => {
         // console.log("particles opacity",particles.material.uniforms.uOpacity.value);
         
 
-        tl.fromTo(
-            particles.magicParticleMaterial.uniforms.uProgress,
-            { value: 0 },
-            { value: 1, duration: 1, ease: 'linear' }
-        ).fromTo(
-            particles.magicParticleMaterial.uniforms.uOpacity,
-            { value: 1 },
-            { value: 0, duration: 1, ease: 'linear' }
-        ).fromTo(
-            particles.frogMaterial,
-            { opacity: 1 },
-            { opacity: 0, duration: 1, ease: 'linear' },
-            "<"
+        tl.to(
+            particles.material.uniforms.uProgress,
+            { value: 0.5, duration: 1, ease: 'linear' }
         ).to(
-            particles.material.uniforms.uOpacity,
-            { value: 1, duration: 1, ease: 'linear' },
+            particles.frogMaterial,
+            { opacity: 0, duration: 1, ease: 'linear' },
             "<"
         ).set(
             particles.frog,
             { visible: false },
-        ).fromTo(
+        ).to(
             particles.material.uniforms.uProgress,
-            { value: 0 },
             { value: 1, duration: 3, ease: 'linear' }
         ).set(
             particles.prince,
             { visible: true },
-        ).fromTo(
+        ).to(
             particles.princeMaterial,
-            { opacity: 0 },
             { opacity: 1, duration: 1, ease: 'linear' }
         ).to(
             particles.material.uniforms.uOpacity,
             { value: 0, duration: 1, ease: "linear" },
             "<"
         ).to(
-            particles.magicParticleMaterial.uniforms.uProgress,
+            particles.material.uniforms.uProgress,
             { value: 0, duration: 1, ease: 'linear' }
         ).to(
-            particles.magicParticleMaterial.uniforms.uOpacity,
+            particles.material.uniforms.uOpacity,
             { value: 1, duration: 1, ease: 'linear' }
         )
 
@@ -367,46 +322,34 @@ animaButton.addEventListener('click', e => {
     }
     if (particles.magicTarget === "prince") {
 
-        tl.fromTo(
-            particles.magicParticleMaterial.uniforms.uProgress,
-            { value: 0 },
-            { value: 1, duration: 1, ease: 'linear' }
-        ).fromTo(
-            particles.magicParticleMaterial.uniforms.uOpacity,
-            { value: 1 },
-            { value: 0, duration: 1, ease: 'linear' }
-        ).fromTo(
-            particles.princeMaterial,
-            { opacity: 1 },
-            { opacity: 0, duration: 1, ease: 'linear' },
-            "<"
+        tl.to(
+            particles.material.uniforms.uProgress,
+            { value: 0.5, duration: 1, ease: 'linear' }
         ).to(
-            particles.material.uniforms.uOpacity,
-            { value: 1, duration: 1, ease: 'linear' },
+            particles.princeMaterial,
+            { opacity: 0, duration: 1, ease: 'linear' },
             "<"
         ).set(
             particles.prince,
             { visible: false },
-        ).fromTo(
+        ).to(
             particles.material.uniforms.uProgress,
-            { value: 1 },
-            { value: 0, duration: 3, ease: 'linear' }
+            { value: 1, duration: 3, ease: 'linear' }
         ).set(
             particles.frog,
             { visible: true },
-        ).fromTo(
+        ).to(
             particles.frogMaterial,
-            { opacity: 0 },
             { opacity: 1, duration: 1, ease: 'linear' }
         ).to(
             particles.material.uniforms.uOpacity,
             { value: 0, duration: 1, ease: "linear" },
             "<"
         ).to(
-            particles.magicParticleMaterial.uniforms.uProgress,
+            particles.material.uniforms.uProgress,
             { value: 0, duration: 1, ease: 'linear' }
         ).to(
-            particles.magicParticleMaterial.uniforms.uOpacity,
+            particles.material.uniforms.uOpacity,
             { value: 1, duration: 1, ease: 'linear' }
         )
     }
@@ -502,18 +445,8 @@ function animate() {
     }
     if (particles.frog) {
         particles.frog.getWorldPosition(frogWorldPos);
-
-        particles.magicParticleMaterial.uniforms.uFrogWorldPos.value.copy(
-            frogWorldPos
-        );
-
-        particles.magicParticleMaterial.uniforms.uWandWorldPos.value.copy(
-            particles.magic.position
-        );
     }
      if (particles.points) {
-        
-
         particles.material.uniforms.uFrogWorldPos.value.copy(
             frogWorldPos
         );
@@ -527,14 +460,7 @@ function animate() {
         );
     }
     
-    if (particles.magic)
-        particles.magic.position.copy(
-            {
-                x: wandDummyPositionParticleWorldPosition.x,
-                y: wandDummyPositionParticleWorldPosition.y,
-                z: wandDummyPositionParticleWorldPosition.z
-            }
-        );
+
 
     if(particles.points){
         particles.points.position.copy(

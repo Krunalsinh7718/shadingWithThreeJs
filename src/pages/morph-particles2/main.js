@@ -4,8 +4,6 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import GUI from 'lil-gui'
 import particlesVertexShader from './shaders/particles-shaders/vertex.vert'
 import particlesFragmentShader from './shaders/particles-shaders/fragment.frag'
-import magicVertexShader from './shaders/magic-shaders/vertex.vert'
-import magicFragmentShader from './shaders/magic-shaders/fragment.frag'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import gsap from 'gsap';
@@ -115,11 +113,11 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
     particles.index = 0;
     particles.translate = -1;
 
-    const modelWorld = gltf.scene;
-    scene.add(modelWorld);
-    modelWorld.translateY(particles.translate);
+    particles.modelWorld = gltf.scene;
+    scene.add(particles.modelWorld);
+    particles.modelWorld.translateY(particles.translate);
 
-    particles.frog = getMeshesByName(modelWorld, 'frog')[0];
+    particles.frog = getMeshesByName(particles.modelWorld, 'frog')[0];
     // console.log(particles.frog);
 
     // particles.frog.scale.set(1.01, 1.01, 1.01);
@@ -135,8 +133,8 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
     // console.log("frog", particles.frog);
 
     particles.frogPosition = particles.frog.geometry.attributes.position;
-    particles.base = getMeshesByName(modelWorld, 'base')[0];
-    particles.prince = getMeshesByName(modelWorld, 'prince')[0];
+    particles.base = getMeshesByName(particles.modelWorld, 'base')[0];
+    particles.prince = getMeshesByName(particles.modelWorld, 'prince')[0];
     particles.prince.visible = false;
     particles.princeMaterial = particles.prince.material;
     particles.princeMaterial.transparent = true;
@@ -290,7 +288,8 @@ animaButton.addEventListener('click', e => {
             { visible: false },
         ).to(
             particles.material.uniforms.uProgress,
-            { value: 1, duration: 3, ease: 'linear' }
+            { value: 1, duration: 3, ease: 'linear' },
+            "+=0.3"
         ).set(
             particles.prince,
             { visible: true },
@@ -325,7 +324,8 @@ animaButton.addEventListener('click', e => {
             { visible: false },
         ).to(
             particles.material.uniforms.uProgress,
-            { value: 1, duration: 3, ease: 'linear' }
+            { value: 1, duration: 3, ease: 'linear' },
+             "+=0.3"
         ).set(
             particles.frog,
             { visible: true },
@@ -470,7 +470,8 @@ function animate() {
         wandGroup.lookAt(princeWorldPos);
     }
 
-
+    // const rotateAngle = elapsedTime * 0.01;
+    floor.rotation.z = elapsedTime * 0.02
 
 
     //update controls

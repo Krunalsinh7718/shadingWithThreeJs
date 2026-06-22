@@ -141,7 +141,7 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
     particles.princeMaterial = particles.prince.material;
     particles.princeMaterial.transparent = true;
     particles.princeMaterial.opacity = 0;
-    console.log("prince opacity", particles.prince.material.opacity);
+    // console.log("prince opacity", particles.prince.material.opacity);
 
 
     particles.princePosition = particles.prince.geometry.attributes.position;
@@ -185,8 +185,6 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
     const radius = 0.03;
 
     for (let i = 0; i < particles.maxCount; i++) {
-        // const theta = Math.random() * Math.PI * 2;
-        // const phi = Math.acos(2 * Math.random() - 1);
 
         const pos = new THREE.Vector3();
 
@@ -251,15 +249,8 @@ gltfLoader.load("/models/frog-prince/frog-prince.glb", gltf => {
 
     scene.add(particles.points)
 
-    gui.add(particles.material.uniforms.uProgress, 'value').min(0).max(1).step(0.001).name('uProgress').listen()
-
-
-
-    //wand magic particles
-   
-
-
-
+    gui.add(particles.material.uniforms.uProgress, 'value').min(0).max(1).step(0.001).name('uProgress').listen();
+    gui.add(particles.material.uniforms.uOpacity, 'value').min(0).max(1).step(0.001).name('uOpacity').listen();
 })
 const animaButton = document.querySelector("#animationButton");
 animaButton.addEventListener('click', e => {
@@ -278,7 +269,7 @@ animaButton.addEventListener('click', e => {
                 particles.magicTarget = "frog";
 
             }
-            console.log(particles.magicTarget);
+            // console.log(particles.magicTarget);
             animaButton.removeAttribute("disabled")
 
         }

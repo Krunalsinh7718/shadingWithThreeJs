@@ -9,5 +9,9 @@ export default {
         alias: {
             'three/addons': 'three/examples/jsm'
         }
-    }
+    },
+     build:
+    {
+        target: 'esnext'
+    },
 }

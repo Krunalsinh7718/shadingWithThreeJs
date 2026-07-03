@@ -60,14 +60,13 @@ scene.add(camera)
  * Load model
  */
 const gltf = await gltfLoader.loadAsync('/models/ship/model.glb');
-console.log(gltf.scene.children[0]);
+// console.log(gltf.scene.children[0]);
 
-/**
- * Base geometry
- */
-const baseGeometry = {}
-baseGeometry.instance = gltf.scene.children[0].geometry;
-baseGeometry.count = baseGeometry.instance.attributes.position.count;
+
+
+// console.log(baseGeometry.count);
+
+
 // console.log(baseGeometry.count);
 
 //renderer setup
@@ -87,6 +86,14 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 
+
+/**
+ * Base geometry
+ */
+const baseGeometry = {}
+baseGeometry.instance = new THREE.SphereGeometry(3);
+baseGeometry.count = baseGeometry.instance.attributes.position.count;
+
 /**
  * GPU Compute
  */
@@ -94,87 +101,31 @@ controls.dampingFactor = 0.05;
 const gpgpu = {}
 gpgpu.size = Math.ceil(Math.sqrt(baseGeometry.count));
 gpgpu.computation = new GPUComputationRenderer(gpgpu.size, gpgpu.size, renderer);
-// console.log(gpgpu.computation);
 
 // Base particles
 const baseParticleTexture = gpgpu.computation.createTexture();
-// console.log(baseParticleTexture.image.data);
-
-
-for (let i = 0; i < baseGeometry.count; i++) {
-    const i3 = i * 3;
-    const i4 = i * 4;
-
-    baseParticleTexture.image.data[i4 + 0] =  baseGeometry.instance.attributes.position.array[i3 + 0];
-    baseParticleTexture.image.data[i4 + 1] =  baseGeometry.instance.attributes.position.array[i3 + 1]
-    baseParticleTexture.image.data[i4 + 2] =  baseGeometry.instance.attributes.position.array[i3 + 2]
-    baseParticleTexture.image.data[i4 + 3] =  Math.random();
-}
-// console.log( "image data :",baseParticleTexture.image.data);
 
 // Particles variable
-gpgpu.particlesVarible = gpgpu.computation.addVariable('uParticles', gpgpuParticlesShader, baseParticleTexture);
-gpgpu.computation.setVariableDependencies(gpgpu.particlesVarible, [gpgpu.particlesVarible]);
-// Uniforms
-gpgpu.particlesVarible.material.uniforms.uTime = new THREE.Uniform(0);
-gpgpu.particlesVarible.material.uniforms.uBase = new THREE.Uniform(baseParticleTexture)
-gpgpu.particlesVarible.material.uniforms.uDeltaTime  = new THREE.Uniform(0)
-gpgpu.particlesVarible.material.uniforms.uFlowFieldInfluence = new THREE.Uniform(0.5)
-gpgpu.particlesVarible.material.uniforms.uFlowFieldStrength = new THREE.Uniform(2)
-gpgpu.particlesVarible.material.uniforms.uFlowFieldFrequency = new THREE.Uniform(0.5)
+gpgpu.particleVariable = gpgpu.computation.addVariable('uParticles', gpgpuParticlesShader, baseParticleTexture);
+gpgpu.computation.setVariableDependencies(gpgpu.particleVariable, [gpgpu.particleVariable]);
 
-/**
- * Tweaks
- */
-// ...
-gui.add(gpgpu.particlesVarible.material.uniforms.uFlowFieldInfluence, 'value').min(0).max(1).step(0.001).name('uFlowfieldInfluence')
-gui.add(gpgpu.particlesVarible.material.uniforms.uFlowFieldStrength, 'value').min(0).max(10).step(0.001).name('uFlowfieldStrength')
-gui.add(gpgpu.particlesVarible.material.uniforms.uFlowFieldFrequency, 'value').min(0).max(1).step(0.001).name('uFlowfieldFrequency')
-
-// Init
-gpgpu.computation.init()
+//init
+gpgpu.computation.init();
 
 // Debug
 gpgpu.debug = new THREE.Mesh(
     new THREE.PlaneGeometry(3, 3),
-    new THREE.MeshBasicMaterial({
-        map: gpgpu.computation.getCurrentRenderTarget(gpgpu.particlesVarible).texture
-    })
+    new THREE.MeshBasicMaterial()
 )
 gpgpu.debug.position.x = 3
-gpgpu.debug.visible = false;
-scene.add(gpgpu.debug);
-
-// console.log(gpgpu.computation.getCurrentRenderTarget(gpgpu.particlesVarible).texture);
-
-
+scene.add(gpgpu.debug)
 
 /**
  * Particles
  */
 const particles = {};
 particles.geometry = new THREE.BufferGeometry();
-particles.geometry.setDrawRange(0, baseGeometry.count);
-const particlesUvArray = new Float32Array(baseGeometry.count * 2);
-const sizeArray = new Float32Array(baseGeometry.count);
 
-for (let y = 0; y < gpgpu.size; y++) {
-    for (let x = 0; x < gpgpu.size; x++) {
-        const i = (y * gpgpu.size + x);
-        const i2 = i * 2;
-
-        const uvX = (x + 0.5) / gpgpu.size;
-        const uvY = (y + 0.5) / gpgpu.size;
-        
-        particlesUvArray[i2 + 0] = uvX;
-        particlesUvArray[i2 + 1] = uvY;
-
-        sizeArray[i] = Math.random();
-    }
-}
-particles.geometry.setAttribute('aParticleUv', new THREE.BufferAttribute(particlesUvArray, 2));
-particles.geometry.setAttribute('aColor', baseGeometry.instance.attributes.color);
-particles.geometry.setAttribute('aSize', new THREE.BufferAttribute(sizeArray, 1));
 
 // Material
 particles.material = new THREE.ShaderMaterial({
@@ -189,7 +140,7 @@ particles.material = new THREE.ShaderMaterial({
 })
 
 // Points
-particles.points = new THREE.Points(particles.geometry, particles.material)
+particles.points = new THREE.Points(baseGeometry.instance, particles.material)
 scene.add(particles.points)
 
 /**
@@ -202,8 +153,6 @@ gui.add(particles.material.uniforms.uSize, 'value').min(0).max(1).step(0.001).na
 
 
 //animation loop
-
-
 function animate() {
 
     const elapsedTime = clock.getElapsedTime();
@@ -211,10 +160,7 @@ function animate() {
     previousTime = elapsedTime;
 
     // GPGPU Update
-    gpgpu.particlesVarible.material.uniforms.uTime.value = elapsedTime;
-    gpgpu.particlesVarible.material.uniforms.uDeltaTime.value  = deltaTime;
     gpgpu.computation.compute();
-    particles.material.uniforms.uParticleTexture.value = gpgpu.computation.getCurrentRenderTarget(gpgpu.particlesVarible).texture;
 
 
     //update controls

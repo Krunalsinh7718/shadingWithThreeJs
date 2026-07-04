@@ -1,0 +1,255 @@
+1) we have points with sphere geometry with shader materials
+
+2) GPGPU, Flow field
+
+- GPGPU = A way of using GPU to process data rather than render pixels on canvas
+
+- Flow field = A formula that tell vertex to go on specific direction
+
+3) Persistence (Save Data)
+
+- save current position on every frame 
+- we will use FBO textures in which we save renders instead of doing on the "canvas"
+- in three js FBO can create by WebGLRenderTarget
+- we will take x,y,z position of pixel and store in r,g,b channels of FBO texture
+
++++++++++++++++++
++RGB-RGB-RGB-RGB+
++XYZ-XYZ-XYZ-XYZ+
++++++++++++++++++
+
+- we don't need "A" channel right now
+- then we move particle in our scene
+
+4) create our own GPGPU
+- First we have to create offscreen scene ( user will not see this, for backend data reading)
+- Create flat plane and fill that plane with position color discuss as above
+- send that texture which contain initial position
+- then we apply custom shader on plane (manipulate (apply flow field ) and prepare data) and send it to FBO texture
+- Before rendering real scene we will render offscreen scene using offscreen camera and save result in FBO
+
+- On next frame we send FBO again, apply flow field and save it again in FBO
+- RGB pixels will update in every frame
+
+5) challenges
+- We can't read and right same FBO
+- SO we need two FBO ( known as "Ping-pong buffer"
+- First frame read from FBO2 and write in FBO1, Second frame read from FBO1 and write in FBO2
+- we need compleat setup to work this technique
+- there class in Three.js called "GPUComputationRendererwill" do most of the heavy lifting 
+	A) Creating the scene
+	B) Handling the ping-pong buffers
+	C) Setting the color format
+	D) Rendering
+
+7) First we need below initial below setup.
+- Made chages in geomatry
+- instaniate GPUComputationRendererwill class with width and height parameters. The size( height and width ) will be used internally to create FBOs. it depends on particles amount because we need one pixel per particle
+- we need particle amount first that's why we need to define geomatry first 
+
+8) decleare geomatry
+
+/*
+* Base geometry
+*/
+const baseGeometry = {}
+baseGeometry.instance = new THREE. SphereGeometry(3)
+baseGeometry.count = baseGeometry.instance.attributes.position.count
+
+- this is the place where we can store amount of vertices
+- we can read particle amount using positon attribute in geomatry
+
+9) repace geomatry in mesh
+//Matrials
+...
+//Points
+particles.points = new THREE. Points (baseGeometry.instance, particles.material)
+scene.add(particles.points)
+
+10) Before the Particles section, create a GPU Compute section with a gpgpu object
+
+- import class => import { GPUComputationRenderer } from 'three/addons/misc/GPUComputationRenderer.js'
+- For 9 particles, we need a 3 by 3 FBO and we can calculate that thanks to the square root.
+- Create a size property and assign to it the result of Math.ceil() of the Math.sqrt() of baseGeometry.count:
+
+/*
+* GPU Compute
+*/
+// Setup	
+const gpgpu = {}
+gpgpu.size = Math.ceil(Math.sqrt(baseGeometry.count))
+gpgpu.computation = new GPUComputationRenderer(gpgpu.size, gpgpu.size, renderer)
+
+/*
+* Particles
+/*
+
+11) base position
+- To that GPUComputationRenderer, we need to send the base particles as a texture. It’s the base texture that will be used for the first render and then updated again and again.
+- We can create one texture using the createTexture() method:
+
+// Base particles
+const baseParticlesTexture = gpgpu.computation.createTexture()
+console.log(baseParticlesTexture.image.data)
+
+- We get a bunch of 0. Each set of 4 values will correspond to one particle because each set of 4 values are the r, g, b and a channels of one pixel.
+
+- Let’s keep the baseParticlesTexture like this for now, and later, we are going to put the particles positions in there instead of those 0.
+
+12) Particles variable
+- GPUComputationRenderer works in a way where each type of data that will be computed is called a “variable”. In our case, we have only one variable and it’s the particles.
+
+- To create a variable, we send the base texture (baseParticlesTexture) that we created earlier. In addition, we need to send a shader that will update that texture.
+
+- create particles.glsl shader in seprate folder 
+
+void main()
+{
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+}
+
+- import that shader => import gpgpuParticlesShader from './shaders/gpgpu/particles.glsl'
+
+- Create a “variable” using the addVariable() method, send 'uParticles' as the first parameter, the gpgpuParticlesShader shader as the second parameter and the baseParticlesTexture as the third parameter. Save it in gpgpu.particlesVariable:
+
+// Base particles
+const baseParticlesTexture = gpgpu.computation.createTexture()
+
+// Particles variable
+gpgpu.particlesVariable = gpgpu.computation.addVariable('uParticles', gpgpuParticlesShader, baseParticlesTexture)
+
+- 'uParticles' is the name we choose for the texture. This means that, in the shader we provided, we can access the texture as uParticles.
+- As mentioned earlier, we want the particles to persist in time, meaning that their coordinates will be saved and re-used in the next frame.
+
+The “variable” needs to be re-injected into itself. To do that, we can use the setVariableDependencies() method.
+
+- The first parameter is the variable (gpgpu.particlesVariable in our case) and the second parameter is an array containing the dependencies (the same gpgpu.particlesVariable):
+
+// Particles variable
+gpgpu.particlesVariable = gpgpu.computation.addVariable('uParticles', gpgpuParticlesShader, baseParticlesTexture)
+gpgpu.computation.setVariableDependencies(gpgpu.particlesVariable, [ gpgpu.particlesVariable ])
+
+- This is how we create a loop, which allows us to keep on sending and updating the same texture.
+
+- Our GPUComputationRenderer is ready and we can initialize it with the init() method:
+
+// Init
+gpgpu.computation.init()
+
+- We now want to update our particles variable on each frame and it’s as simple as calling the compute() method on the GPUComputationRenderer instance, in the animate function, before the final render:
+
+const animate = () =>
+{
+    // ...
+
+    // GPGPU Update
+    gpgpu.computation.compute()
+
+    // Render normal scene
+    // ...
+}
+
+
+13) Debug
+- Before trying to use the output of GPUComputationRenderer on the particles, we are going to test what’s in there.
+- In the end, what we want from GPUComputationRenderer is a texture containing the particles coordinates. We are going to create a plane and apply the GPUComputationRenderer output texture to it, just to see what we get.
+- Back to the GPU Compute section: create a debug plane using PlaneGeometry and MeshBasicMaterial, move it sideways and add it to the scene:
+
+// Debug
+gpgpu.debug = new THREE.Mesh(
+    new THREE.PlaneGeometry(3, 3),
+    new THREE.MeshBasicMaterial()
+)
+gpgpu.debug.position.x = 3
+scene.add(gpgpu.debug)
+
+- We want to apply the GPUComputationRenderer output texture to that plane and we can access it using the getCurrentRenderTarget(). To this method, we need to send the variable, which is gpgpu.particlesVariable in our case.
+
+- console.log(gpgpu.computation.getCurrentRenderTarget(gpgpu.particlesVariable))
+
+- We get a WebGLRenderTarget which is the Three.js class handling the FBO.
+
+We can access the actual texture using the texture property:
+
+console.log(gpgpu.computation.getCurrentRenderTarget(gpgpu.particlesVariable).texture)
+
+- And we can assign that texture to the map property of the MeshBasicMaterial:
+
+gpgpu.debug = new THREE.Mesh(
+    new THREE.PlaneGeometry(3, 3),
+    new THREE.MeshBasicMaterial({ map: gpgpu.computation.getCurrentRenderTarget(gpgpu.particlesVariable).texture })
+)
+
+
+14) Send and update the particles
+Instead of that uniform red, we want to have our particles as pixels. We already sent baseParticlesTexture to the shader when creating the particles variable, but it’s currently filled with a bunch of 0. Let’s populate it.
+
+// Base particles
+const baseParticlesTexture = gpgpu.computation.createTexture()
+
+for (let i = 0; i < baseGeometry.count; i++) {
+    const i3 = i * 3;
+    const i4 = i * 4;
+
+    baseParticleTexture.image.data[i4 + 0] = baseGeometry.instance.attributes.position.array[i3 + 0];
+    baseParticleTexture.image.data[i4 + 1] = baseGeometry.instance.attributes.position.array[i3 + 1];
+    baseParticleTexture.image.data[i4 + 2] = baseGeometry.instance.attributes.position.array[i3 + 2];
+    baseParticleTexture.image.data[i4 + 3] = 0;
+}
+
+- In the particles.glsl, we now want to retrieve the texture. We opted for the name 'uParticles' and the GPUComputationRenderer automatically injected the texture as a sampler2D uParticles.
+
+void main(){
+    
+    vec2 uv = gl_FragCoord.xy / resolution.xy;
+    vec4 texture = texture(uParticles, uv);
+    gl_FragColor = texture;
+}
+
+15) Use the GPGPU to position particles
+
+- Our GPGPU, even though very basic, is ready and we now want to use that texture to position the particles.
+
+Currently, the particles are using the baseGeometry.instance as the geometry when instantiating the Points, but we want to use the GPGPU texture instead.
+
+// Geometry
+particles.geometry = new THREE.BufferGeometry()
+
+// Points
+particles.points = new THREE.Points(particles.geometry, particles.material)
+
+- By default, Three.js uses the amount of items in the position attribute to know how many points to draw. However, we don’t want to rely on the position attribute anymore.
+
+Fortunately, we can use the setDrawRange() method on the geometry to define a range of vertices:
+
+// Geometry
+particles.geometry = new THREE.BufferGeometry()
+particles.geometry.setDrawRange(0, baseGeometry.count)
+
+- There are currently thousands of particles at the center of the scene and we are going to use the GPGPU to move them.
+
+In the ShaderMaterial, send a uParticlesTexture uniform using the Uniform class and keep it empty for now:
+
+particles.material = new THREE.ShaderMaterial({
+    // ...
+    uniforms:
+    {
+        // ...
+        uParticlesTexture: new THREE.Uniform()
+    }
+})
+
+- In the tick function, update the uParticlesTexture uniform using the same technique we used previously to access the FBO from the GPGPU with the getCurrentRenderTarget() method and don’t forget that it’s the texture property we want:
+
+const tick = () =>
+{
+    // ...
+
+    // GPGPU Update
+    gpgpu.computation.compute()
+    particles.material.uniforms.uParticlesTexture.value = gpgpu.computation.getCurrentRenderTarget(gpgpu.particlesVariable).texture
+
+    // ...
+}
+
+- We need to send the RenderTarget texture on each frame because GPUComputationRenderer is using multiple FBOs for the ping-pong buffers, and we need the current one that has been used when computing this frame.

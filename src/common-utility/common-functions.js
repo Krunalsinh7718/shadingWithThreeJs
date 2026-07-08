@@ -46,5 +46,10 @@ function logSceneStructure(root) {
   });
 }
 
+//check for empty object
+function isEmptyObject (obj) {
+  return obj && Object.keys(obj).length === 0 && obj.constructor === Object;
+};
 
-export {getMeshesByName, applyMaterialByMeshName, applyMaterialByMaterialName, logSceneStructure}
+
+export {getMeshesByName, applyMaterialByMeshName, applyMaterialByMaterialName, logSceneStructure, isEmptyObject}

@@ -253,3 +253,304 @@ const tick = () =>
 }
 
 - We need to send the RenderTarget texture on each frame because GPUComputationRenderer is using multiple FBOs for the ping-pong buffers, and we need the current one that has been used when computing this frame.
+
+
+16) lode model
+
+We are going to load the model and use its geometry instead of SphereGeometry. As you know, loading models takes time. 
+This means that we need to wait for the model to load before initializing the GPGPU and the particles.
+
+We are going to end up with a lot of code in the callback function, but there is actually a trick named “async loading” which will get us rid of the callback function.
+
+/**
+ * Load model
+ */
+const gltf = await gltfLoader.loadAsync('/models/ship/model.glb')
+console.log(gltf)
+
+- We get the gltf immediately without any callback function.
+
+- What’s going on here is that we are using the loadAsync() which returns a Promise. In fact, we ask our code to wait for the Promise to be resolved before going any further using the await keyword.
+
+- Promises, await and async are part of a whole new and complex topic which we are not going to cover here, but the way to use it is as simple as demonstrated right now.
+
+- One thing to understand is that using await here is made possible thanks to Vite which creates an async scope allowing us to use the await at the top level. If you try to build the project using npm run build or try to put it live using Vercel (which will also rely on npm run build), you’ll very likely get an error because Vite tries to make your project compatible with most browsers, and top-level await isn’t available on all targeted browsers for compatibility.
+
+- To fix that, we can simply change the browsers targeted list. In the vite.config.js file, in the build property, add target: 'esnext':
+
+export default {
+    // ...
+    build:
+    {
+        // ...
+        target: 'esnext'
+    },
+    // ...
+}
+
+- Regardless, we now have our loaded model as gltf and we can extract the geometry from the first and only child of the scene. Then, we save it in baseGeometry.instance instead of the SphereGeometry:
+
+**
+ * Base geometry
+ */
+const baseGeometry = {}
+baseGeometry.instance = gltf.scene.children[0].geometry
+
+
+17) Colors
+
+- As mentioned earlier, I’ve saved the color directly in vertex colors which we can access using baseGeometry.instance.attributes.color.
+
+Right after setting the 'aParticlesUv' attribute, we can set a new attribute named 'aColor' and send baseGeometry.instance.attributes.color which is already a BufferAttribute:
+
+particles.geometry.setAttribute('aColor', baseGeometry.instance.attributes.color)
+
+- In particles/vertex.glsl, retrieve the aColor attribute as a vec3 and forward it to the vColor:
+attribute vec3 aColor;
+
+// ...
+
+void main()
+{
+    // ...
+    vColor = aColor;
+}
+
+17) Rendomize particle size
+
+- In the double … for … where we populated the particlesUvArray array, fill the sizesArray with a bunch of Math.random() at the i index since we only have one value per vertex:
+
+for(let y = 0; y < gpgpu.size; y++)
+{
+    for(let x = 0; x < gpgpu.size; x++)
+    {
+        // ...
+
+        // Size
+        sizesArray[i] = Math.random()
+    }
+}
+
+- Set a new attribute named 'aSize', use a BufferAttribute, send it sizesArray and set its item size to 1:
+
+- In particles/vertex.glsl, retrieve the aSize attribute as a float and multiply it in the gl_PointSize:
+
+ gl_PointSize = aSize * uSize * uResolution.y;
+
+
+ 18) Flow field animation
+
+ - And since the Simplex Noise allows more than 3 dimensions, we are going to use a 4D Simplex Noise in order to make the streams vary in time too.
+
+- The 4D Simplex Noise is already available in the src/shaders/includes/simplexNoise4d.glsl and has been taken from the usual Gist: https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
+
+
+- Before the main(), include simplexNoise4d.glsl:
+
+#include ../includes/simplexNoise4d.glsl
+
+void main()
+{
+    // ...
+}
+
+- Since a flow field is a 3D direction, we are going to create a vec3 flowField (don’t save yet):
+- For the first 3 values of the vec4(), we are going to use the particle position by swizzling the xyz and for the fourth value, we are setting it to 0.0 for now:
+
+// Flow field
+vec3 flowField = vec3(
+    simplexNoise4d(vec4(particle.xyz, 0.0)),
+        simplexNoise4d(vec4(particle.xyz, 0.0)),
+        simplexNoise4d(vec4(particle.xyz, 0.0))
+);
+
+Since it’s a direction, let’s normalize it so that its length is always 1:
+
+flowField = normalize(flowField);
+
+
+19) move particles
+
+- Moving the particle is as simple as adding the flowField to the particle.xyz:
+
+ particle.xyz += flowField;
+
+
+- Not the expected result. We have a few problems to solve.
+
+- First, all the particles are moving in a diagonal direction because we are sending the same coordinates to the three simplexNoise4d().
+
+- We need to send different values, and we can simply offset them slightly:
+
+void main()
+{
+    // ...
+    
+    // Flow field
+    vec3 flowField = vec3(
+        simplexNoise4d(vec4(particle.xyz + 0.0, 0.0)),
+        simplexNoise4d(vec4(particle.xyz + 1.0, 0.0)),
+        simplexNoise4d(vec4(particle.xyz + 2.0, 0.0))
+    );
+
+    // ...
+}
+
+- Now the effect is too strong.
+
+Lower it by multiplying flowField by 0.01 when applying it to the particle.xyz:
+
+particle.xyz += flowField * 0.01;
+
+- And now we get something looking like a flow field, but after a few seconds, particles seem stuck in loops.
+
+- It’s because the flow field stays the same in time and particles end up following the same path. We want to make the Simplex Noise vary in time. This is exactly what the fourth value of the vec4 can be used for. But since we want it to vary with the time, we need to send that time to the shader.
+
+- We want to add a uTime uniform, but be careful, as we want to set it on the GPGPU variable handling the particles, not the final particles ShaderMaterial.
+
+- To do that, you can access the GPGPU ShaderMaterial handling the particles using gpgpu.particlesVariable.material and it works like any ShaderMaterial, meaning that it has a uniforms property.
+
+- On gpgpu.particlesVariable.material.uniforms, add a uTime uniform using Uniform and set it to 0:
+
+20) Uniforms
+gpgpu.particlesVariable.material.uniforms.uTime = new THREE.Uniform(0)
+
+- In tick, update its value using the elapsedTime, before the compute():
+gpgpu.particleVariable.material.uniforms.uTime.value = elapsedTime;
+
+Back to gpgpu/particles.glsl: retrieve the uTime uniform as a float:
+
+uniform float uTime;
+
+- uTime is going to be a bit fast for what we want to do. Since we are going to use it in multiple places within the code, let’s create a variable for it.
+
+- At the beginning of main(), create a float time variable and assign to it uTime multiplied by 0.2:
+
+float time = uTime * 0.2;
+
+- Use it as the fourth value of the simplexNoise4d() instead of the 0.0:
+
+vec3 flowField = vec3(
+        simplexNoise4d(vec4(particle.xyz + 0.0, time)),
+        simplexNoise4d(vec4(particle.xyz + 1.0, time)),
+        simplexNoise4d(vec4(particle.xyz + 2.0, time))
+    );
+
+21) Life of a particle
+
+- We want the particles to live their life and, after a moment, get back to their initial position and start moving around again.
+
+- Each particle will have its own life span, meaning that we need this data to persist.
+
+- If only we had a value in addition to the rgb values… You guessed it, we are going to use the alpha channel.
+
+22) Decay
+
+- For each particle, its life will start with an a to 0.0, it will increase with each frame and, when reaching 1, it will reset itself to the initial position and have its a back to 0.0, ready to start again.
+
+- In gpgpu/particles.glsl, after updating the particle.xyz, increment the a by 0.01:
+
+void main()
+{
+    // Decay
+    particle.a += 0.01;
+
+    gl_FragColor = particle;
+}
+
+- Now we are going to use a condition to establish whether or not the particle is dead, which is when particle.a reaches 1.0 or above.
+
+- If it’s dead, for now, we’ll just reset the a to 0.0 ; otherwise, we apply the flow field and the decay:
+
+// Dead
+    if(particle.a >= 1.0)
+    {
+        particle.a = 0.0;
+    }
+
+    // Alive
+    else
+    {
+        // Flow field
+        vec3 flowField = vec3(
+            simplexNoise4d(vec4(particle.xyz + 0.0, time)),
+            simplexNoise4d(vec4(particle.xyz + 1.0, time)),
+            simplexNoise4d(vec4(particle.xyz + 2.0, time))
+        );
+        flowField = normalize(flowField);
+        particle.xyz += flowField * 0.01;
+        
+        // Decay
+        particle.a += 0.01;
+    }
+
+- Make sure to keep the gl_FragColor update outside of the if and else statements.
+
+- No difference yet, because all we do is revert the a back to 0.0 when the particle dies.
+
+23) Reset
+
+- We now want to reset the position, but we don’t have access to the initial position. Even though in the first frame uParticles contains the initial positions, it gets updated after each compute().
+
+- To fix that, we are going to send the baseParticlesTexture (the texture containing the initial positions) as a new uniform.
+
+- In script.js, after creating the uTime uniform, create a uBase uniform with the Uniform class and send it the baseParticlesTexture:
+
+// Uniforms
+// ...
+gpgpu.particlesVariable.material.uniforms.uBase = new THREE.Uniform(baseParticlesTexture)
+
+- In particles.glsl, retrieve the uBase uniform as a sampler2D:
+
+uniform sampler2D uBase;
+
+- After retrieving the particle from uParticles, do the same for uBase and save it as a vec4 base:
+
+// ...
+    vec4 particle = texture(uParticles, uv);
+    vec4 base = texture(uBase, uv);
+
+- We could have put the base in the if, but having it before will come in handy later.
+
+- In the if (when the particle dies), set the xyz of particle to base.xyz:
+
+24) Randomize
+
+All the particles are dying at the same time because they all start at 0, get updated with the same amount on each frame, and die together.
+
+To fix that, when populating baseParticlesTexture, change the 0 we assign to the alpha channel as Math.random():
+
+for(let i = 0; i < baseGeometry.count; i++)
+{
+    // ...
+    baseParticlesTexture.image.data[i4 + 3] = Math.random()
+}
+
+25) Fix the frame rate
+
+- An issue that some of you with high-frequency monitors might have seen, is that the particles are dying faster.
+
+- It’s because we increment the life by 0.01 with each frame, regardless of the frame rate.
+
+- We need to use the delta time.
+
+// Uniforms
+// ...
+gpgpu.particlesVariable.material.uniforms.uDeltaTime = new THREE.Uniform(0)
+
+- In the tick, update the uDeltaTime.value and assign to it the deltaTime that is already calculated:
+
+  gpgpu.particlesVariable.material.uniforms.uDeltaTime.value = deltaTime
+
+- In particles.glsl, retrieve the uDeltaTime uniform as a float:
+
+- uniform float uDeltaTime;
+
+- When applying the decay to particle.a, use the uDeltaTime and multiply it by 0.3 so that it’s not too slow:
+
+ // Decay
+        particle.a += uDeltaTime * 0.3;
+
+- And since we are here, we also need to use the uDeltaTime when applying the flowField to the particle.xyz so that they move at the same speed regardless of the frame rate. Multiply it by 0.5 so that it’s fast enough:
+
+    particle.xyz += flowField * uDeltaTime * 0.5;

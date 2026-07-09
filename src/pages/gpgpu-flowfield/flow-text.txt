@@ -554,3 +554,49 @@ gpgpu.particlesVariable.material.uniforms.uDeltaTime = new THREE.Uniform(0)
 - And since we are here, we also need to use the uDeltaTime when applying the flowField to the particle.xyz so that they move at the same speed regardless of the frame rate. Multiply it by 0.5 so that it’s fast enough:
 
     particle.xyz += flowField * uDeltaTime * 0.5;
+
+
+26) Fix the long frames
+
+- Long frames happen when the computer freezes for a moment or when we leave the tab and come back after a few seconds:
+
+- All the particles are synchronized because, for one frame, the uDeltaTime was huge, and they all died together. That’s almost romantic, but we need to fix it.
+
+There are multiple solutions for this issue.
+
+The most common one is to make sure that deltaTime never gets too big directly in JavaScript. I personally like to limit it to 1/30 of a second because 30FPS is considered as the minimal frame rate for a decent experience.
+
+But we are not going to use this technique. Instead, we are going to use a modulo 1 when resetting the a channel. This way, if the a goes beyond 1.0, it’ll simply loop back to 0 plus what was left and never exceed 1.0:
+
+// Dead
+if(particle.a >= 1.0)
+{
+    particle.a = mod(particle.a, 1.0);
+    // ...
+}
+
+
+27) Control the chaos
+
+- Currently, we apply the flow field on all particles at all times. Although it looks nice, it’s not subtle, and we can’t see the model anymore.
+
+- We want to apply the flow field only on parts of the model, and we want it to vary organically. We are going to use another Simplex Noise.
+
+- In the else, right before the flowField, call a simplexNoise4d(), send it the base.xyz as the first three values, time + 1.0 as the fourth (so that it’s different from the other simplexNoise4d()) and save it as strength:
+
+// Alive
+else
+{
+    // Strength
+    float strength = simplexNoise4d(vec4(base.xyz, time + 1.0));
+
+    // ...
+}
+
+- The Simplex Noise goes from -1.0 to +1.0 and we want something from 0.0 to 1.0. It’s also the opportunity to smooth the value with a smoothstep:
+
+strength = smoothstep(- 1.0, 1.0, strength);
+
+- We can finally use the strength when applying the flowField:
+
+particle.xyz += flowField * uDeltaTime * strength * 0.5;

@@ -116,8 +116,9 @@ gpgpu.computation.setVariableDependencies(gpgpu.particleVariable, [gpgpu.particl
 
 //uniforms
 gpgpu.particleVariable.material.uniforms.uTime = new THREE.Uniform(0);
-gpgpu.particleVariable.material.uniforms.uBase = new THREE.Uniform(baseParticleTexture);
 gpgpu.particleVariable.material.uniforms.uDeltaTime = new THREE.Uniform(0);
+gpgpu.particleVariable.material.uniforms.uBase = new THREE.Uniform(baseParticleTexture);
+gpgpu.particleVariable.material.uniforms.uFlowFieldInfluence = new THREE.Uniform(0.5);
 
 
 //init
@@ -190,6 +191,7 @@ scene.add(particles.points)
  */
 gui.addColor(debugObject, 'clearColor').onChange(() => { renderer.setClearColor(debugObject.clearColor) })
 gui.add(particles.material.uniforms.uSize, 'value').min(0).max(0.2).step(0.001).name('uSize')
+gui.add(gpgpu.particleVariable.material.uniforms.uFlowFieldInfluence, 'value').min(0).max(1).name("Flow Field Influance")
 
 
 

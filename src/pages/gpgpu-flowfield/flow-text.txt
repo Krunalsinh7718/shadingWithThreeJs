@@ -600,3 +600,64 @@ strength = smoothstep(- 1.0, 1.0, strength);
 - We can finally use the strength when applying the flowField:
 
 particle.xyz += flowField * uDeltaTime * strength * 0.5;
+
+28) Tweak
+
+- Since we can control the number of particles affected by the flow field using the smoothstep, let’s add it to the debug panel.
+
+- We want a tweak from 0 to 1 where 0 results in no particle affected and 1 results in all particles affected.
+
+- In the particlesVariable uniforms, add a uFlowFieldInfluence uniform using Uniform and set it to 0.5:
+
+// Uniforms
+// ...
+gpgpu.particlesVariable.material.uniforms.uFlowFieldInfluence = new THREE.Uniform(0.5)
+
+In the Tweaks section, add one tweak for the 'value' of uFlowFieldInfluence from 0 to 1:
+
+/**
+ * Tweaks
+ */
+// ...
+gui.add(gpgpu.particlesVariable.material.uniforms.uFlowFieldInfluence, 'value').min(0).max(1).step(0.001).name('uFlowfieldInfluence')
+
+- In particles.glsl, retrieve the uFlowFieldInfluence uniform as a float:
+
+uniform float uFlowFieldInfluence;
+
+- The uFlowFieldInfluence is going from 0 to 1 and, when it does, we want the first parameter of the smoothstep to go from +1 to -1. It’s not the same range and it’s inverted.
+
+- We could use a remap function, but the formula isn’t that complicated.
+
+- Right before the smoothstep, create a float influence variable, subtract 0.5 from uFlowFieldInfluence so that it goes from -0.5 to +0.5, multiply it by -2.0 so that it goes from +1.0 to -1.0, use it in the first parameter of smoothstep:
+
+float influence = (uFlowFieldInfluence - 0.5) * (- 2.0);
+strength = smoothstep(influence, 1.0, strength);
+       
+29) Life size
+
+- When dying, particles immediately pop back to their original position.
+
+- We want to control their size so that they grow up slowly, stay big for a moment, and start to shrink down before dying.
+
+- And to make the animation feel better, we want to make it smoother
+
+- It’s very similar to what we did in the Fireworks lesson and we need to do it in particles/vertex.glsl (not gpgpu/particles.glsl).
+
+- We can use the particle.a on a smoothstep to create a float sizeIn variable corresponding to when the particle scales up.
+
+- Then we use the particle.a on a smoothstep to create a float sizeOut variable corresponding to when the particle scales down.
+
+- Finally, we calculate the minimum of the two using min, save it as a size variable, and multiply it on gl_PointSize:
+
+// Point size
+    float sizeIn = smoothstep(0.0, 0.1, particle.a);
+    float sizeOut = 1.0 - smoothstep(0.7, 1.0, particle.a);
+    float size = min(sizeIn, sizeOut);
+
+    gl_PointSize = size * aSize * uSize * uResolution.y;
+
+30) Final tweak
+
+- hide debug
+gpgpu.debug.visible = false;

@@ -661,3 +661,5 @@ strength = smoothstep(influence, 1.0, strength);
 
 - hide debug
 gpgpu.debug.visible = false;
+
+- In the Tweaks section, add a tweak for uFlowFieldFrequency with a min set to 0 and a max set to 1:

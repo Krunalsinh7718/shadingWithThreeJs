@@ -63,6 +63,7 @@ scene.add(camera)
 const clock = new THREE.Clock();
 let previousTime = 0;
 const debugObject = {};
+
 debugObject.clearColor = '#29191f'
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setClearColor(debugObject.clearColor)

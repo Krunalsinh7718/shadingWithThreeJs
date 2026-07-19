@@ -32,7 +32,7 @@ void main()
         vec3 flowField = vec3(
             simplexNoise4d(vec4(particles.xyz * uFlowFieldFrequency + 0.0, time)) + 0.5,
             simplexNoise4d(vec4(particles.xyz * uFlowFieldFrequency + 1.0, time)) + 0.5,
-            simplexNoise4d(vec4(particles.xyz * uFlowFieldFrequency + 2.0, time))
+            simplexNoise4d(vec4(particles.xyz * uFlowFieldFrequency + 2.0, time)) - 0.5
         );
 
         flowField = normalize(flowField);

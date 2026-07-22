@@ -1,0 +1,191 @@
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js'
+import CustomShaderMaterial from 'three-custom-shader-material/vanilla'
+import GUI from 'lil-gui'
+import wobbleVertexShader from './shaders/vertex.vert'
+import wobbleFragmentShader from './shaders/fragment.frag'
+
+//gui
+const gui = new GUI({width: 340});
+const debugObject = {};
+
+//sizes
+const sizes = {
+    width: window.innerWidth,
+    height: window.innerHeight
+}
+
+//scene setup
+const scene = new THREE.Scene();
+
+// Loaders
+const rgbeLoader = new RGBELoader()
+const dracoLoader = new DRACOLoader()
+dracoLoader.setDecoderPath('/models/draco/')
+const gltfLoader = new GLTFLoader()
+gltfLoader.setDRACOLoader(dracoLoader)
+
+/**
+ * Environment map
+ */
+rgbeLoader.load('/hdr/urban_alley_01_1k.hdr', (environmentMap) =>
+{
+    environmentMap.mapping = THREE.EquirectangularReflectionMapping
+
+    scene.background = environmentMap
+    scene.environment = environmentMap
+})
+
+
+//camera setup
+const camera = new THREE.PerspectiveCamera(35, sizes.width / sizes.height, 0.1, 100)
+camera.position.set(13, - 3, - 5)
+scene.add(camera)
+
+//renderer setup
+const renderer = new THREE.WebGLRenderer({antialias: true});
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
+renderer.toneMapping = THREE.ACESFilmicToneMapping
+renderer.toneMappingExposure = 1
+renderer.setSize(sizes.width, sizes.height)
+renderer.setPixelRatio(sizes.pixelRatio)
+renderer.setAnimationLoop(animate);
+
+document.body.appendChild(renderer.domElement);
+
+/**
+ * Wobble
+ */
+
+//materials
+const uniforms = {
+    uTime : new THREE.Uniform(0),
+    uPositionFrequency: new THREE.Uniform(0.5),
+    uTimeFrequency: new THREE.Uniform(0.4),
+    uStrenth: new THREE.Uniform(0.3)
+}
+// Material
+const material = new CustomShaderMaterial({
+    //CSM
+    baseMaterial : THREE.MeshPhysicalMaterial,
+    vertexShader: wobbleVertexShader,
+    fragmentShader: wobbleFragmentShader,
+    uniforms: uniforms,
+    silent: true,
+    //MeshPhysicalMaterial
+    metalness: 0,
+    roughness: 0.5,
+    color: '#ffffff',
+    transmission: 0,
+    ior: 1.5,
+    thickness: 1.5,
+    transparent: true,
+    wireframe: false
+})
+
+const depthMaterial = new CustomShaderMaterial({
+    //CSM
+    baseMaterial : THREE.MeshDepthMaterial,
+    vertexShader: wobbleVertexShader,
+    uniforms: uniforms,
+    silent: true,
+
+    //mesh depth packing
+    depthPacking : THREE.RGBADepthPacking
+})
+
+// Tweaks
+gui.add(uniforms.uPositionFrequency, 'value', 0, 2, 0.001).name('uPositionFrequency')
+gui.add(uniforms.uTimeFrequency, 'value', 0, 2, 0.001).name('uTimeFrequency')
+gui.add(uniforms.uStrenth, 'value', 0, 2, 0.001).name('uStrenth')
+
+gui.add(material, 'metalness', 0, 1, 0.001)
+gui.add(material, 'roughness', 0, 1, 0.001)
+gui.add(material, 'transmission', 0, 1, 0.001)
+gui.add(material, 'ior', 0, 10, 0.001)
+gui.add(material, 'thickness', 0, 10, 0.001)
+gui.addColor(material, 'color')
+
+// Geometry
+let geometry = new THREE.IcosahedronGeometry(2.5, 50);
+geometry = mergeVertices(geometry);
+geometry.computeTangents();
+console.log(geometry);
+
+
+
+// Mesh
+const wobble = new THREE.Mesh(geometry, material);
+wobble.customDepthMaterial = depthMaterial;
+wobble.receiveShadow = true
+wobble.castShadow = true
+scene.add(wobble)
+
+/**
+ * Plane
+ */
+const plane = new THREE.Mesh(
+    new THREE.PlaneGeometry(15, 15, 15),
+    new THREE.MeshStandardMaterial()
+)
+plane.receiveShadow = true
+plane.rotation.y = Math.PI
+plane.position.y = - 5
+plane.position.z = 5
+scene.add(plane)
+
+/**
+ * Lights
+ */
+const directionalLight = new THREE.DirectionalLight('#ffffff', 3)
+directionalLight.castShadow = true
+directionalLight.shadow.mapSize.set(1024, 1024)
+directionalLight.shadow.camera.far = 15
+directionalLight.shadow.normalBias = 0.05
+directionalLight.position.set(0.25, 2, - 2.25)
+scene.add(directionalLight)
+
+
+//controls setup
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+
+const clock = new THREE.Clock();
+
+//animation loop
+function animate() {
+
+    const elapsedTime = clock.getElapsedTime();
+
+    uniforms.uTime.value = elapsedTime;
+  
+
+    //update controls
+    controls.update();
+
+    //render
+    renderer.render(scene, camera);
+}
+
+//handle window resize
+window.addEventListener('resize', () => {
+
+    // Update sizes
+    sizes.width = window.innerWidth
+    sizes.height = window.innerHeight
+     sizes.pixelRatio = Math.min(window.devicePixelRatio, 2)
+
+    // Update camera
+    camera.aspect = sizes.width / sizes.height
+    camera.updateProjectionMatrix()
+
+    // Update renderer
+    renderer.setSize(sizes.width, sizes.height)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+});

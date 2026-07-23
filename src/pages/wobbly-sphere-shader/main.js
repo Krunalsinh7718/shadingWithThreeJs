@@ -8,6 +8,7 @@ import CustomShaderMaterial from 'three-custom-shader-material/vanilla'
 import GUI from 'lil-gui'
 import wobbleVertexShader from './shaders/vertex.vert'
 import wobbleFragmentShader from './shaders/fragment.frag'
+import { vec3 } from 'three/tsl';
 
 //gui
 const gui = new GUI({width: 340});
@@ -63,11 +64,20 @@ document.body.appendChild(renderer.domElement);
  */
 
 //materials
+debugObject.colorA = "#0008ff";
+debugObject.colorB = "#ff00d0";
 const uniforms = {
     uTime : new THREE.Uniform(0),
     uPositionFrequency: new THREE.Uniform(0.5),
     uTimeFrequency: new THREE.Uniform(0.4),
-    uStrenth: new THREE.Uniform(0.3)
+    uStrenth: new THREE.Uniform(0.3),
+
+    uWarpPositionFrequency: new THREE.Uniform(0.38),
+    uWarpTimeFrequency: new THREE.Uniform(0.12),
+    uWarpStrenth: new THREE.Uniform(1.7),
+
+    uColorA : new THREE.Uniform(new THREE.Color(debugObject.colorA)),
+    uColorB : new THREE.Uniform(new THREE.Color(debugObject.colorB)),
 }
 // Material
 const material = new CustomShaderMaterial({
@@ -104,19 +114,29 @@ gui.add(uniforms.uPositionFrequency, 'value', 0, 2, 0.001).name('uPositionFreque
 gui.add(uniforms.uTimeFrequency, 'value', 0, 2, 0.001).name('uTimeFrequency')
 gui.add(uniforms.uStrenth, 'value', 0, 2, 0.001).name('uStrenth')
 
+gui.add(uniforms.uWarpPositionFrequency, 'value', 0, 2, 0.001).name('uWarpPositionFrequency')
+gui.add(uniforms.uWarpTimeFrequency, 'value', 0, 2, 0.001).name('uWarpTimeFrequency')
+gui.add(uniforms.uWarpStrenth, 'value', 0, 2, 0.001).name('uWarpStrenth')
+
 gui.add(material, 'metalness', 0, 1, 0.001)
 gui.add(material, 'roughness', 0, 1, 0.001)
 gui.add(material, 'transmission', 0, 1, 0.001)
 gui.add(material, 'ior', 0, 10, 0.001)
 gui.add(material, 'thickness', 0, 10, 0.001)
-gui.addColor(material, 'color')
+
+gui.addColor(debugObject, 'colorA').name('colorA').onChange(e => {
+    uniforms.uColorA.value.set(debugObject.colorA);
+})
+gui.addColor(debugObject, 'colorB').name('colorB').onChange(e => {
+    uniforms.uColorB.value.set(debugObject.colorB);
+})
+
 
 // Geometry
 let geometry = new THREE.IcosahedronGeometry(2.5, 50);
 geometry = mergeVertices(geometry);
 geometry.computeTangents();
 console.log(geometry);
-
 
 
 // Mesh
@@ -126,17 +146,41 @@ wobble.receiveShadow = true
 wobble.castShadow = true
 scene.add(wobble)
 
+
+//model
+let model = null;
+gltfLoader.load("/models/suzanne/suzanne.glb", gltf => {
+    console.log(gltf.scene);
+    
+    model = gltf.scene;
+    model.position.x = 10;
+    // model.scale.set(4, 4, 4)
+    
+    model.traverse((child) => {
+        if (child.isMesh)
+
+            child.geometry = mergeVertices(child.geometry);
+            // child.geometry.computeTangents();
+            child.receiveShadow = true
+            child.castShadow = true
+            child.material = material;
+            child.customDepthMaterial = depthMaterial;
+    })
+    scene.add(model);
+})
+
 /**
  * Plane
  */
 const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(15, 15, 15),
+    new THREE.PlaneGeometry(30, 15, 15),
     new THREE.MeshStandardMaterial()
 )
 plane.receiveShadow = true
 plane.rotation.y = Math.PI
-plane.position.y = - 5
+plane.position.y = - 3
 plane.position.z = 5
+plane.position.x = 5
 scene.add(plane)
 
 /**
@@ -144,11 +188,27 @@ scene.add(plane)
  */
 const directionalLight = new THREE.DirectionalLight('#ffffff', 3)
 directionalLight.castShadow = true
+
 directionalLight.shadow.mapSize.set(1024, 1024)
 directionalLight.shadow.camera.far = 15
 directionalLight.shadow.normalBias = 0.05
 directionalLight.position.set(0.25, 2, - 2.25)
 scene.add(directionalLight)
+
+
+const directionalLight1 = new THREE.DirectionalLight('#ffffff', 3)
+directionalLight1.castShadow = true
+directionalLight1.shadow.mapSize.set(1024, 1024)
+directionalLight1.shadow.camera.far = 15
+directionalLight1.shadow.normalBias = 0.05
+directionalLight1.position.set(8, 2, -2.25)
+directionalLight1.target.position.set(10,-10,10);
+scene.add(directionalLight1)
+scene.add(directionalLight1.target)
+
+
+// const shadowCameraHelper = new THREE.CameraHelper(directionalLight1.shadow.camera);
+// scene.add(shadowCameraHelper);
 
 
 //controls setup

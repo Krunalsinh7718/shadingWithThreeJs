@@ -5,15 +5,21 @@ uniform float uPositionFrequency;
 uniform float uTimeFrequency;
 uniform float uStrenth;
 
+uniform float uWarpPositionFrequency;
+uniform float uWrapTimeFrequency;
+uniform float uWrapStrenth;
+
+varying float vWobble;
+
 #include "../../includes/simplexNoise4d.glsl"
 
 float getWobble(vec3 position){
 
     vec3 wrapedPosition = position;
     wrapedPosition += simplexNoise4d(vec4(
-        position,
-        uTime
-    ));
+        position * uWarpPositionFrequency,
+        uTime * uWrapTimeFrequency
+    )) * uWrapStrenth;
 
     return simplexNoise4d(vec4(
          wrapedPosition * uPositionFrequency, //XYZ
@@ -40,5 +46,8 @@ void main(){
     vec3 toB = normalize(positionB - csm_Position);
 
     csm_Normal = cross(toA, toB);
+
+    //varyings
+    vWobble = wobble / uStrenth;
 
 }

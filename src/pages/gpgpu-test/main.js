@@ -14,7 +14,8 @@ import { getMeshesByName } from '../../common-utility/common-functions.js';
 
 //gui
 const gui = new GUI();
-const parameters = {};
+const rotating = {value : true}
+gui.add(rotating, 'value').name("rotating")
 const gpgpu = {}
 
 //loaders
@@ -65,7 +66,7 @@ const clock = new THREE.Clock();
 let previousTime = 0;
 const debugObject = {};
 
-debugObject.clearColor = '#29191f'
+debugObject.clearColor = '#9b9b9b'
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setClearColor(debugObject.clearColor)
 renderer.setSize(sizes.width, sizes.height);
@@ -81,10 +82,24 @@ controls.dampingFactor = 0.05;
 /**
  * Load model
  */
-const gltf = await gltfLoader.loadAsync('/models/robot/robot.glb');
-const modalBody = getMeshesByName(gltf.scene, "body")[0];
-const modalPart = getMeshesByName(gltf.scene, "hand")[0];
-scene.add(modalBody);
+const gltf1 = await gltfLoader.loadAsync('/models/black-panther/black-panther.glb');
+const modalBody = getMeshesByName(gltf1.scene, "body");
+const modalPart =  getMeshesByName(gltf1.scene, "particle")[0];
+scene.add(modalPart);
+scene.add(...modalBody);
+
+// const gltf = await gltfLoader.loadAsync('/models/robot/robot.glb');
+// const modalBody = getMeshesByName(gltf.scene, "body")[0];
+// const modalPart = getMeshesByName(gltf.scene, "hand")[0];
+
+gltfLoader.load('/models/thanos/thanos.glb', gltf => {
+    const thanos = gltf.scene;
+    thanos.scale.set(0.2, 0.2, 0.2); 
+    thanos.rotation.y = Math.PI;
+    thanos.position.set(0,0.2,7);
+    scene.add(gltf.scene)
+    
+})
 
 /**
  * Base geometry
@@ -121,9 +136,9 @@ gpgpu.computation.setVariableDependencies(gpgpu.particleVariable, [gpgpu.particl
 gpgpu.particleVariable.material.uniforms.uTime = new THREE.Uniform(0);
 gpgpu.particleVariable.material.uniforms.uDeltaTime = new THREE.Uniform(0);
 gpgpu.particleVariable.material.uniforms.uBase = new THREE.Uniform(baseParticleTexture);
-gpgpu.particleVariable.material.uniforms.uFlowFieldInfluence = new THREE.Uniform(0.5);
-gpgpu.particleVariable.material.uniforms.uFlowFieldStrength = new THREE.Uniform(2);
-gpgpu.particleVariable.material.uniforms.uFlowFieldFrequency = new THREE.Uniform(0.5);
+gpgpu.particleVariable.material.uniforms.uFlowFieldInfluence = new THREE.Uniform(0.656);
+gpgpu.particleVariable.material.uniforms.uFlowFieldStrength = new THREE.Uniform(2.5);
+gpgpu.particleVariable.material.uniforms.uFlowFieldFrequency = new THREE.Uniform(0.782);
 
 
 //init
@@ -183,7 +198,7 @@ particles.material = new THREE.ShaderMaterial({
     fragmentShader: particleFragmentShader,
     uniforms:
     {
-        uSize: new THREE.Uniform(0.07),
+        uSize: new THREE.Uniform(0.016),
         uResolution: new THREE.Uniform(new THREE.Vector2(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)),
         uParticleTexture : new THREE.Uniform(),
     }
@@ -196,7 +211,7 @@ scene.add(particles.points)
 /**
  * Tweaks
  */
-gui.addColor(debugObject, 'clearColor').onChange(() => { renderer.setClearColor(debugObject.clearColor) })
+// gui.addColor(debugObject, 'clearColor').onChange(() => { renderer.setClearColor(debugObject.clearColor) })
 gui.add(particles.material.uniforms.uSize, 'value').min(0).max(0.2).step(0.001).name('uSize')
 gui.add(gpgpu.particleVariable.material.uniforms.uFlowFieldInfluence, 'value').min(0).max(1).name("Flow Field Influance")
 gui.add(gpgpu.particleVariable.material.uniforms.uFlowFieldStrength, 'value').min(0).max(10).step(0.001).name("Flow Field Strength")
@@ -205,10 +220,47 @@ gui.add(gpgpu.particleVariable.material.uniforms.uFlowFieldFrequency, 'value').m
 /**
  * light 
  */
-const ambientLight = new THREE.AmbientLight("#fff" , 3.0);
+const ambientLight = new THREE.AmbientLight("#fff" , 5.0);
 scene.add(ambientLight);
 
+//skybox
+textureLoader.load(
+    '/images/galaxy/galaxy.png',
+    (texture) => {
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.mapping =
+            THREE.EquirectangularReflectionMapping;
+
+        scene.background = texture;
+        scene.environment = texture;
+    }
+);
+
+//floor
+const textureColor = textureLoader.load("/images/floor/cracked_concrete_diff_1k.png");
+textureColor.colorSpace = THREE.SRGBColorSpace;
+const textureARM = textureLoader.load("/images/floor/cracked_concrete_arm_1k.png");
+const textureDisplace = textureLoader.load("/images/floor/cracked_concrete_disp_1k.png");
+const textureNormal = textureLoader.load("/images/floor/cracked_concrete_nor_gl_1k.png");
+
+const floorGeometry = new THREE.CircleGeometry(20, 32);
+const floorMaterial = new THREE.MeshStandardMaterial({
+    side: THREE.DoubleSide,
+    map: textureColor,
+    displacementMap: textureDisplace,
+    displacementScale: 0.08,
+    displacementBias: -0.04,
+    normalMap: textureNormal,
+    metalnessMap: textureARM,
+    roughnessMap: textureARM,
+})
+const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+// floor.position.y = -1.03;
+floor.rotation.x = - Math.PI * 0.5;
+scene.add(floor);
+
 //animation loop
+
 function animate() {
 
     const elapsedTime = clock.getElapsedTime();
@@ -233,6 +285,16 @@ function animate() {
         if(particles && !isEmptyObject(gpgpu)){
             particles.material.uniforms.uParticleTexture.value = gpgpu.computation.getCurrentRenderTarget(gpgpu.particleVariable).texture;
         }
+    }
+
+    if(rotating.value){
+
+        camera.position.set(
+            Math.sin(Math.PI + elapsedTime * 0.1) * 15,
+            4,
+            Math.cos(Math.PI + elapsedTime * 0.1) * 15
+        )
+        camera.lookAt(new THREE.Vector3(0, 0, 0));
     }
 
 

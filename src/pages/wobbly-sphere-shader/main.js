@@ -11,8 +11,10 @@ import wobbleFragmentShader from './shaders/fragment.frag'
 import { vec3 } from 'three/tsl';
 
 //gui
-const gui = new GUI({width: 340});
+const gui = new GUI({ width: 340 });
 const debugObject = {};
+debugObject.rotating = true;
+gui.add(debugObject, 'rotating').name("rotating")
 
 //sizes
 const sizes = {
@@ -24,6 +26,7 @@ const sizes = {
 const scene = new THREE.Scene();
 
 // Loaders
+const textureLoader = new THREE.TextureLoader();
 const rgbeLoader = new RGBELoader()
 const dracoLoader = new DRACOLoader()
 dracoLoader.setDecoderPath('/models/draco/')
@@ -33,13 +36,26 @@ gltfLoader.setDRACOLoader(dracoLoader)
 /**
  * Environment map
  */
-rgbeLoader.load('/hdr/urban_alley_01_1k.hdr', (environmentMap) =>
-{
-    environmentMap.mapping = THREE.EquirectangularReflectionMapping
+// rgbeLoader.load('/hdr/urban_alley_01_1k.hdr', (environmentMap) =>
+// {
+//     environmentMap.mapping = THREE.EquirectangularReflectionMapping
 
-    scene.background = environmentMap
-    scene.environment = environmentMap
-})
+//     scene.background = environmentMap
+//     scene.environment = environmentMap
+// })
+
+//skybox
+textureLoader.load(
+    '/images/space-ship/space-ship-skymap.png',
+    (texture) => {
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.mapping =
+            THREE.EquirectangularReflectionMapping;
+
+        scene.background = texture;
+        scene.environment = texture;
+    }
+);
 
 
 //camera setup
@@ -48,7 +64,7 @@ camera.position.set(13, - 3, - 5)
 scene.add(camera)
 
 //renderer setup
-const renderer = new THREE.WebGLRenderer({antialias: true});
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.toneMapping = THREE.ACESFilmicToneMapping
@@ -64,10 +80,10 @@ document.body.appendChild(renderer.domElement);
  */
 
 //materials
-debugObject.colorA = "#0008ff";
+debugObject.colorA = "#7a7cc9";
 debugObject.colorB = "#ff00d0";
 const uniforms = {
-    uTime : new THREE.Uniform(0),
+    uTime: new THREE.Uniform(0),
     uPositionFrequency: new THREE.Uniform(0.5),
     uTimeFrequency: new THREE.Uniform(0.4),
     uStrenth: new THREE.Uniform(0.3),
@@ -76,13 +92,13 @@ const uniforms = {
     uWarpTimeFrequency: new THREE.Uniform(0.12),
     uWarpStrenth: new THREE.Uniform(1.7),
 
-    uColorA : new THREE.Uniform(new THREE.Color(debugObject.colorA)),
-    uColorB : new THREE.Uniform(new THREE.Color(debugObject.colorB)),
+    uColorA: new THREE.Uniform(new THREE.Color(debugObject.colorA)),
+    uColorB: new THREE.Uniform(new THREE.Color(debugObject.colorB)),
 }
 // Material
 const material = new CustomShaderMaterial({
     //CSM
-    baseMaterial : THREE.MeshPhysicalMaterial,
+    baseMaterial: THREE.MeshPhysicalMaterial,
     vertexShader: wobbleVertexShader,
     fragmentShader: wobbleFragmentShader,
     uniforms: uniforms,
@@ -100,20 +116,20 @@ const material = new CustomShaderMaterial({
 
 const depthMaterial = new CustomShaderMaterial({
     //CSM
-    baseMaterial : THREE.MeshDepthMaterial,
+    baseMaterial: THREE.MeshDepthMaterial,
     vertexShader: wobbleVertexShader,
     uniforms: uniforms,
     silent: true,
 
     //mesh depth packing
-    depthPacking : THREE.RGBADepthPacking
+    depthPacking: THREE.RGBADepthPacking
 })
 
 const audioInfluance = {
-    PositionFrequency : 0.005,
-    Strenth : 0.01,
-    WarpPositionFrequency : 0.005,
-    WarpStrenth : 0.05
+    PositionFrequency: 0.005,
+    Strenth: 0.01,
+    WarpPositionFrequency: 0.005,
+    WarpStrenth: 0.05
 }
 
 
@@ -121,11 +137,11 @@ const audioInfluance = {
 gui.add(uniforms.uTimeFrequency, 'value', 0, 2, 0.001).name('uTimeFrequency')
 gui.add(uniforms.uWarpTimeFrequency, 'value', 0, 2, 0.001).name('uWarpTimeFrequency')
 
-// gui.add(uniforms.uPositionFrequency, 'value', 0, 2, 0.001).name('uPositionFrequency')
-// gui.add(uniforms.uStrenth, 'value', 0, 2, 0.001).name('uStrenth')
+gui.add(uniforms.uPositionFrequency, 'value', 0, 2, 0.001).name('uPositionFrequency')
+gui.add(uniforms.uStrenth, 'value', 0, 2, 0.001).name('uStrenth')
 
-// gui.add(uniforms.uWarpPositionFrequency, 'value', 0, 2, 0.001).name('uWarpPositionFrequency')
-// gui.add(uniforms.uWarpStrenth, 'value', 0, 2, 0.001).name('uWarpStrenth')
+gui.add(uniforms.uWarpPositionFrequency, 'value', 0, 2, 0.001).name('uWarpPositionFrequency')
+gui.add(uniforms.uWarpStrenth, 'value', 0, 2, 0.001).name('uWarpStrenth')
 
 
 gui.add(audioInfluance, 'PositionFrequency', 0, 0.009, 0.0001).name('uPositionFrequency Audio')
@@ -166,38 +182,48 @@ scene.add(wobble)
 
 
 //model
-// let model = null;
-// gltfLoader.load("/models/suzanne/suzanne.glb", gltf => {
-//     console.log(gltf.scene);
-    
-//     model = gltf.scene;
-//     model.position.x = 10;
-    
-//     model.traverse((child) => {
-//         if (child.isMesh)
+let model = null;
+gltfLoader.load("/models/glass-container/glass-bottle.glb", gltf => {
+    console.log(gltf.scene);
 
-//             child.geometry = mergeVertices(child.geometry);
-//             child.receiveShadow = true
-//             child.castShadow = true
-//             child.material = material;
-//             child.customDepthMaterial = depthMaterial;
-//     })
-//     scene.add(model);
-// })
+    model = gltf.scene;
+    model.position.set(8.5, -8.5, 3.5);
+    model.rotation.x = 0.049;
+    model.rotation.y = 0.48;
+    model.rotation.z = 0;
+
+    model.traverse((child) => {
+        // if (child.isMesh)
+
+        // child.geometry = mergeVertices(child.geometry);
+        // child.receiveShadow = true
+        // child.castShadow = true
+        // child.material = material;
+        // child.customDepthMaterial = depthMaterial;
+    })
+    scene.add(model);
+    // gui.add(model.position, 'x').min(-20).max(20).step(0.5);
+    // gui.add(model.position, 'y').min(-20).max(20).step(0.5);
+    // gui.add(model.position, 'z').min(-20).max(20).step(0.5);
+    // gui.add(model.rotation, 'x').min(-3.14).max(3.14).step(0.01);
+    // gui.add(model.rotation, 'y').min(-3.14).max(3.14).step(0.01);
+    // gui.add(model.rotation, 'z').min(-3.14).max(3.14).step(0.01);
+})
+
 
 /**
  * Plane
  */
-const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(30, 15, 15),
-    new THREE.MeshStandardMaterial()
-)
-plane.receiveShadow = true
-plane.rotation.y = Math.PI
-plane.position.y = - 3
-plane.position.z = 5
-plane.position.x = 5
-scene.add(plane)
+// const plane = new THREE.Mesh(
+//     new THREE.PlaneGeometry(30, 15, 15),
+//     new THREE.MeshStandardMaterial()
+// )
+// plane.receiveShadow = true
+// plane.rotation.y = Math.PI
+// plane.position.y = - 3
+// plane.position.z = 5
+// plane.position.x = 5
+// scene.add(plane)
 
 /**
  * Lights
@@ -218,7 +244,7 @@ directionalLight1.shadow.mapSize.set(1024, 1024)
 directionalLight1.shadow.camera.far = 15
 directionalLight1.shadow.normalBias = 0.05
 directionalLight1.position.set(8, 2, -2.25)
-directionalLight1.target.position.set(10,-10,10);
+directionalLight1.target.position.set(10, -10, 10);
 scene.add(directionalLight1)
 scene.add(directionalLight1.target)
 
@@ -232,19 +258,36 @@ scene.add(directionalLight1.target)
  */
 // create an AudioListener and add it to the camera
 const listener = new THREE.AudioListener();
-camera.add( listener );
+camera.add(listener);
 // create an Audio source
-const sound = new THREE.Audio( listener );
+const sound = new THREE.Audio(listener);
+ const audioContext = THREE.AudioContext.getContext();
+console.log(audioContext);
+
+const soundCTrl = {
+    playPause: function () {
+        console.log("check play pause", sound);
+        if (!sound.isPlaying) {
+            sound.play();
+        } else {
+            
+            sound.pause();
+        }
+    }
+}
+
+gui.add(soundCTrl, 'playPause');
+
 // load a sound and set it as the Audio object's buffer
 const audioLoader = new THREE.AudioLoader();
-audioLoader.load( '/audio/audio1/audio3.mp3', function( buffer ) {
-	sound.setBuffer( buffer );
-	sound.setLoop(true);
-	sound.setVolume(0.5);
-	sound.play();
+audioLoader.load('/audio/audio1/audio3.mp3', function (buffer) {
+    sound.setBuffer(buffer);
+    sound.setLoop(true);
+    sound.setVolume(0.5);
+    sound.play();
 });
 // create an AudioAnalyser, passing in the sound and desired fftSize
-const analyser = new THREE.AudioAnalyser( sound, 32 );
+const analyser = new THREE.AudioAnalyser(sound, 32);
 // get the average frequency of the sound
 const data = analyser.getAverageFrequency();
 
@@ -262,17 +305,30 @@ function animate() {
     const elapsedTime = clock.getElapsedTime();
 
     uniforms.uTime.value = elapsedTime;
-  
+
     // console.log(analyser.getAverageFrequency());
-    uniforms.uPositionFrequency.value = analyser.getAverageFrequency() * audioInfluance.PositionFrequency;
-    uniforms.uStrenth.value = analyser.getAverageFrequency() * audioInfluance.Strenth;
-    uniforms.uWarpPositionFrequency.value = analyser.getAverageFrequency() * audioInfluance.WarpPositionFrequency;
-    uniforms.uWarpStrenth = analyser.getAverageFrequency() * audioInfluance.WarpStrenth;
+    // console.log("is playing", sound.isPlaying);
+    // console.log("sound duration", sound.duration);
+    
+    if (sound.isPlaying  && audioContext.state !== "suspended") {
 
-    // uniforms.uTimeFrequency.value = analyser.getAverageFrequency() * 0.001;
+        uniforms.uPositionFrequency.value = analyser.getAverageFrequency() * audioInfluance.PositionFrequency;
+        uniforms.uStrenth.value = analyser.getAverageFrequency() * audioInfluance.Strenth;
+        uniforms.uWarpPositionFrequency.value = analyser.getAverageFrequency() * audioInfluance.WarpPositionFrequency;
+        uniforms.uWarpStrenth = analyser.getAverageFrequency() * audioInfluance.WarpStrenth;
 
-//     uTimeFrequency
-// uWarpTimeFrequency
+    }
+
+    //rotate camera
+    if(debugObject.rotating){
+        camera.position.set(
+            Math.sin(elapsedTime * 0.05) * 26,
+            -3,
+            Math.cos(elapsedTime * 0.05) * 26,
+        )
+        camera.lookAt(wobble.position);
+    }
+
     //update controls
     controls.update();
 
@@ -286,7 +342,7 @@ window.addEventListener('resize', () => {
     // Update sizes
     sizes.width = window.innerWidth
     sizes.height = window.innerHeight
-     sizes.pixelRatio = Math.min(window.devicePixelRatio, 2)
+    sizes.pixelRatio = Math.min(window.devicePixelRatio, 2)
 
     // Update camera
     camera.aspect = sizes.width / sizes.height

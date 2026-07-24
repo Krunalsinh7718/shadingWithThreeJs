@@ -109,14 +109,32 @@ const depthMaterial = new CustomShaderMaterial({
     depthPacking : THREE.RGBADepthPacking
 })
 
-// Tweaks
-gui.add(uniforms.uPositionFrequency, 'value', 0, 2, 0.001).name('uPositionFrequency')
-gui.add(uniforms.uTimeFrequency, 'value', 0, 2, 0.001).name('uTimeFrequency')
-gui.add(uniforms.uStrenth, 'value', 0, 2, 0.001).name('uStrenth')
+const audioInfluance = {
+    PositionFrequency : 0.005,
+    Strenth : 0.01,
+    WarpPositionFrequency : 0.005,
+    WarpStrenth : 0.05
+}
 
-gui.add(uniforms.uWarpPositionFrequency, 'value', 0, 2, 0.001).name('uWarpPositionFrequency')
+
+// Tweaks
+gui.add(uniforms.uTimeFrequency, 'value', 0, 2, 0.001).name('uTimeFrequency')
 gui.add(uniforms.uWarpTimeFrequency, 'value', 0, 2, 0.001).name('uWarpTimeFrequency')
-gui.add(uniforms.uWarpStrenth, 'value', 0, 2, 0.001).name('uWarpStrenth')
+
+// gui.add(uniforms.uPositionFrequency, 'value', 0, 2, 0.001).name('uPositionFrequency')
+// gui.add(uniforms.uStrenth, 'value', 0, 2, 0.001).name('uStrenth')
+
+// gui.add(uniforms.uWarpPositionFrequency, 'value', 0, 2, 0.001).name('uWarpPositionFrequency')
+// gui.add(uniforms.uWarpStrenth, 'value', 0, 2, 0.001).name('uWarpStrenth')
+
+
+gui.add(audioInfluance, 'PositionFrequency', 0, 0.009, 0.0001).name('uPositionFrequency Audio')
+gui.add(audioInfluance, 'Strenth', 0, 0.05, 0.0001).name('uStrenth Audio')
+
+gui.add(audioInfluance, 'WarpPositionFrequency', 0, 2, 0.001).name('uWarpPositionFrequency Audio')
+gui.add(audioInfluance, 'WarpStrenth', 0, 2, 0.001).name('uWarpStrenth Audio')
+
+
 
 gui.add(material, 'metalness', 0, 1, 0.001)
 gui.add(material, 'roughness', 0, 1, 0.001)
@@ -148,26 +166,24 @@ scene.add(wobble)
 
 
 //model
-let model = null;
-gltfLoader.load("/models/suzanne/suzanne.glb", gltf => {
-    console.log(gltf.scene);
+// let model = null;
+// gltfLoader.load("/models/suzanne/suzanne.glb", gltf => {
+//     console.log(gltf.scene);
     
-    model = gltf.scene;
-    model.position.x = 10;
-    // model.scale.set(4, 4, 4)
+//     model = gltf.scene;
+//     model.position.x = 10;
     
-    model.traverse((child) => {
-        if (child.isMesh)
+//     model.traverse((child) => {
+//         if (child.isMesh)
 
-            child.geometry = mergeVertices(child.geometry);
-            // child.geometry.computeTangents();
-            child.receiveShadow = true
-            child.castShadow = true
-            child.material = material;
-            child.customDepthMaterial = depthMaterial;
-    })
-    scene.add(model);
-})
+//             child.geometry = mergeVertices(child.geometry);
+//             child.receiveShadow = true
+//             child.castShadow = true
+//             child.material = material;
+//             child.customDepthMaterial = depthMaterial;
+//     })
+//     scene.add(model);
+// })
 
 /**
  * Plane
@@ -211,6 +227,28 @@ scene.add(directionalLight1.target)
 // scene.add(shadowCameraHelper);
 
 
+/**
+ * audio
+ */
+// create an AudioListener and add it to the camera
+const listener = new THREE.AudioListener();
+camera.add( listener );
+// create an Audio source
+const sound = new THREE.Audio( listener );
+// load a sound and set it as the Audio object's buffer
+const audioLoader = new THREE.AudioLoader();
+audioLoader.load( '/audio/audio1/audio3.mp3', function( buffer ) {
+	sound.setBuffer( buffer );
+	sound.setLoop(true);
+	sound.setVolume(0.5);
+	sound.play();
+});
+// create an AudioAnalyser, passing in the sound and desired fftSize
+const analyser = new THREE.AudioAnalyser( sound, 32 );
+// get the average frequency of the sound
+const data = analyser.getAverageFrequency();
+
+
 //controls setup
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -225,7 +263,16 @@ function animate() {
 
     uniforms.uTime.value = elapsedTime;
   
+    // console.log(analyser.getAverageFrequency());
+    uniforms.uPositionFrequency.value = analyser.getAverageFrequency() * audioInfluance.PositionFrequency;
+    uniforms.uStrenth.value = analyser.getAverageFrequency() * audioInfluance.Strenth;
+    uniforms.uWarpPositionFrequency.value = analyser.getAverageFrequency() * audioInfluance.WarpPositionFrequency;
+    uniforms.uWarpStrenth = analyser.getAverageFrequency() * audioInfluance.WarpStrenth;
 
+    // uniforms.uTimeFrequency.value = analyser.getAverageFrequency() * 0.001;
+
+//     uTimeFrequency
+// uWarpTimeFrequency
     //update controls
     controls.update();
 

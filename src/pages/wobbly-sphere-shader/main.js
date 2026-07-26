@@ -6,9 +6,12 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js'
 import CustomShaderMaterial from 'three-custom-shader-material/vanilla'
 import GUI from 'lil-gui'
-import wobbleVertexShader from './shaders/vertex.vert'
-import wobbleFragmentShader from './shaders/fragment.frag'
+import wobbleVertexShader from './shaders/custom-material/vertex.vert'
+import wobbleFragmentShader from './shaders/custom-material/fragment.frag'
+import wobblePointsVertexShader from './shaders/points-material/vertex.vert'
+import wobblePointsFragmentShader from './shaders/points-material/fragment.frag'
 import { vec3 } from 'three/tsl';
+import { getMeshesByName } from "../../common-utility/common-functions.js";
 
 //gui
 const gui = new GUI({ width: 340 });
@@ -80,12 +83,12 @@ document.body.appendChild(renderer.domElement);
  */
 
 //materials
-debugObject.colorA = "#7a7cc9";
+debugObject.colorA = "#0008ff";
 debugObject.colorB = "#ff00d0";
 const uniforms = {
     uTime: new THREE.Uniform(0),
     uPositionFrequency: new THREE.Uniform(0.5),
-    uTimeFrequency: new THREE.Uniform(0.4),
+    uTimeFrequency: new THREE.Uniform(1.4),
     uStrenth: new THREE.Uniform(0.3),
 
     uWarpPositionFrequency: new THREE.Uniform(0.38),
@@ -105,7 +108,7 @@ const material = new CustomShaderMaterial({
     silent: true,
     //MeshPhysicalMaterial
     metalness: 0,
-    roughness: 0.5,
+    roughness: 0,
     color: '#ffffff',
     transmission: 0,
     ior: 1.5,
@@ -170,7 +173,14 @@ gui.addColor(debugObject, 'colorB').name('colorB').onChange(e => {
 let geometry = new THREE.IcosahedronGeometry(2.5, 50);
 geometry = mergeVertices(geometry);
 geometry.computeTangents();
-console.log(geometry);
+console.log("icosah geo",geometry);
+geometry.setAttribute(
+    'aPosInfluence',
+    new THREE.Float32BufferAttribute(
+        new Float32Array(geometry.attributes.position.count).fill(1.0),
+        1
+    )
+)
 
 
 // Mesh
@@ -179,28 +189,60 @@ wobble.customDepthMaterial = depthMaterial;
 wobble.receiveShadow = true
 wobble.castShadow = true
 scene.add(wobble)
+console.log(wobble);
+
+//other mesh
+const pointsGeo = new THREE.SphereGeometry(2,128, 128);
+pointsGeo.computeTangents();
+console.log("points geo",pointsGeo);
+
+const pointesMaterial = new THREE.ShaderMaterial({
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    vertexColors: true,
+    vertexShader: wobblePointsVertexShader,
+    fragmentShader: wobblePointsFragmentShader,
+    transparent: true,
+    uniforms: {
+        uSize: { value: 40 * renderer.getPixelRatio() },
+        uTime: { value: 0 },
+        ...uniforms
+    }
+})
+const pointWobble = new THREE.Points(pointsGeo, pointesMaterial);
+scene.add(pointWobble);
 
 
 //model
 let model = null;
 gltfLoader.load("/models/glass-container/glass-bottle.glb", gltf => {
-    console.log(gltf.scene);
+    // console.log(gltf.scene);
 
     model = gltf.scene;
-    model.position.set(8.5, -8.5, 3.5);
+    model.position.set(11, -8.5, 3.5);
     model.rotation.x = 0.049;
-    model.rotation.y = 0.48;
-    model.rotation.z = 0;
+    model.rotation.y = -0.1;
+    model.rotation.z = 0.48;
 
-    model.traverse((child) => {
-        // if (child.isMesh)
+    const poison = getMeshesByName(model, "poison");
+    poison.forEach(mesh => {
 
-        // child.geometry = mergeVertices(child.geometry);
-        // child.receiveShadow = true
-        // child.castShadow = true
-        // child.material = material;
-        // child.customDepthMaterial = depthMaterial;
+        mesh.material = material;
+        wobble.customDepthMaterial = depthMaterial;
+
+        mesh.geometry.setAttribute(
+            'aPosInfluence',
+            new THREE.Float32BufferAttribute(
+                new Float32Array(mesh.geometry.attributes.position.count).fill(0.0),
+                1
+            )
+        )
+
     })
+    // console.log(poison);
+
+
+
     scene.add(model);
     // gui.add(model.position, 'x').min(-20).max(20).step(0.5);
     // gui.add(model.position, 'y').min(-20).max(20).step(0.5);
@@ -261,26 +303,15 @@ const listener = new THREE.AudioListener();
 camera.add(listener);
 // create an Audio source
 const sound = new THREE.Audio(listener);
- const audioContext = THREE.AudioContext.getContext();
-console.log(audioContext);
+const audioContext = THREE.AudioContext.getContext();
+// console.log(audioContext);
 
-const soundCTrl = {
-    playPause: function () {
-        console.log("check play pause", sound);
-        if (!sound.isPlaying) {
-            sound.play();
-        } else {
-            
-            sound.pause();
-        }
-    }
-}
 
-gui.add(soundCTrl, 'playPause');
+
 
 // load a sound and set it as the Audio object's buffer
 const audioLoader = new THREE.AudioLoader();
-audioLoader.load('/audio/audio1/audio3.mp3', function (buffer) {
+audioLoader.load('/audio/audio1/audio4.mp3', function (buffer) {
     sound.setBuffer(buffer);
     sound.setLoop(true);
     sound.setVolume(0.5);
@@ -290,6 +321,51 @@ audioLoader.load('/audio/audio1/audio3.mp3', function (buffer) {
 const analyser = new THREE.AudioAnalyser(sound, 32);
 // get the average frequency of the sound
 const data = analyser.getAverageFrequency();
+
+
+function changeAudioSource(newUrl) {
+  if (sound.isPlaying) {
+    sound.stop();
+  }
+
+  audioLoader.load(newUrl, function(buffer) {
+    sound.setBuffer(buffer);
+    
+    sound.setLoop(true);
+    sound.setVolume(0.5);
+    
+    sound.play();
+  });
+}
+
+const soundCTrl = {
+    playPause: function () {
+        console.log(audioContext.state);
+
+        // console.log("check play pause", sound);
+        if (!sound.isPlaying) {
+            sound.play();
+        } else {
+
+            sound.pause();
+        }
+    },
+    changeAudio1 : function(){
+        changeAudioSource('/audio/audio1/audio2.mp3')
+    },
+    changeAudio2 : function(){
+        changeAudioSource('/audio/audio1/audio3.mp3')
+    }, 
+    changeAudio3 : function(){
+        changeAudioSource('/audio/audio1/audio4.mp3')
+    }  
+}
+
+gui.add(soundCTrl, 'playPause');
+gui.add(soundCTrl, 'changeAudio1');
+gui.add(soundCTrl, 'changeAudio2');
+gui.add(soundCTrl, 'changeAudio3');
+
 
 
 //controls setup
@@ -309,8 +385,8 @@ function animate() {
     // console.log(analyser.getAverageFrequency());
     // console.log("is playing", sound.isPlaying);
     // console.log("sound duration", sound.duration);
-    
-    if (sound.isPlaying  && audioContext.state !== "suspended") {
+
+    if (sound.isPlaying && audioContext.state !== "suspended") {
 
         uniforms.uPositionFrequency.value = analyser.getAverageFrequency() * audioInfluance.PositionFrequency;
         uniforms.uStrenth.value = analyser.getAverageFrequency() * audioInfluance.Strenth;
@@ -320,7 +396,7 @@ function animate() {
     }
 
     //rotate camera
-    if(debugObject.rotating){
+    if (debugObject.rotating) {
         camera.position.set(
             Math.sin(elapsedTime * 0.05) * 26,
             -3,

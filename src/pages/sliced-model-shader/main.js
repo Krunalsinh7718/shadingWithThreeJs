@@ -6,10 +6,8 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js'
 import CustomShaderMaterial from 'three-custom-shader-material/vanilla'
 import GUI from 'lil-gui'
-import wobbleVertexShader from './shaders/custom-material/vertex.vert'
-import wobbleFragmentShader from './shaders/custom-material/fragment.frag'
-import wobblePointsVertexShader from './shaders/points-material/vertex.vert'
-import wobblePointsFragmentShader from './shaders/points-material/fragment.frag'
+import slicedVertexShader from './shaders/sliced/vertex.vert'
+import slicedFragmentShader from './shaders/sliced/fragment.frag'
 import { vec3 } from 'three/tsl';
 import { getMeshesByName } from "../../common-utility/common-functions.js";
 
@@ -54,8 +52,7 @@ gltfLoader.setDRACOLoader(dracoLoader)
 /**
  * Environment map
  */
-rgbeLoader.load('/hdr/urban_alley_01_1k.hdr', (environmentMap) =>
-{
+rgbeLoader.load('/hdr/urban_alley_01_1k.hdr', (environmentMap) => {
     environmentMap.mapping = THREE.EquirectangularReflectionMapping
 
     scene.background = environmentMap
@@ -66,10 +63,28 @@ rgbeLoader.load('/hdr/urban_alley_01_1k.hdr', (environmentMap) =>
 /**
  * Sliced model
  */
-// Geometry
-const geometry = new THREE.IcosahedronGeometry(2.5, 5)
+
+
 
 // Material
+const uniforms = {
+    uSliceStart: new THREE.Uniform(1.75),
+    uSliceArc: new THREE.Uniform(1.25),
+}
+gui.add(uniforms.uSliceStart, 'value', - Math.PI, Math.PI, 0.001).name('uSliceStart')
+gui.add(uniforms.uSliceArc, 'value', 0, Math.PI * 2, 0.001).name('uSliceArc')
+
+const patchMap = {
+    csm_Slice:
+    {
+        '#include <colorspace_fragment>': 
+        `
+            #include <colorspace_fragment>
+            if(!gl_FrontFacing)
+                gl_FragColor = vec4(0.75, 0.15, 0.3, 1.0);
+        `
+    }
+};
 const material = new THREE.MeshStandardMaterial({
     metalness: 0.5,
     roughness: 0.25,
@@ -77,9 +92,39 @@ const material = new THREE.MeshStandardMaterial({
     color: '#858080'
 })
 
-// Mesh
-const mesh = new THREE.Mesh(geometry, material)
-scene.add(mesh)
+const slicedMaterial = new CustomShaderMaterial({
+    // CSM
+     baseMaterial: THREE.MeshStandardMaterial,
+    vertexShader: slicedVertexShader,
+    fragmentShader: slicedFragmentShader,
+
+    // MeshStandardMaterial
+    metalness: 0.5,
+    roughness: 0.25,
+    envMapIntensity: 0.5,
+    color: '#858080',
+     side: THREE.DoubleSide,
+
+     uniforms: uniforms,
+
+      patchMap: patchMap,
+
+})
+
+const slicedDepthMaterial = new CustomShaderMaterial({
+    // CSM
+     baseMaterial: THREE.MeshDepthMaterial,
+    vertexShader: slicedVertexShader,
+    fragmentShader: slicedFragmentShader,
+    uniforms: uniforms,
+     patchMap: patchMap,
+
+     // MeshDepthMaterial
+    depthPacking: THREE.RGBADepthPacking
+
+
+})
+
 
 /**
  * Plane
@@ -111,7 +156,27 @@ directionalLight.shadow.camera.bottom = -8
 directionalLight.shadow.camera.left = -8
 scene.add(directionalLight)
 
-
+// Model
+let model = null
+gltfLoader.load('/models/gears/gears.glb', (gltf) => {
+    model = gltf.scene;
+    model.traverse((child) => {
+        if (child.isMesh) {
+            if(child.name === 'outerHull')
+            {
+                child.material = slicedMaterial
+                 child.customDepthMaterial = slicedDepthMaterial
+            }
+            else
+            {
+                child.material = material
+            }
+            child.castShadow = true
+            child.receiveShadow = true
+        }
+    })
+    scene.add(model)
+})
 
 //camera setup
 const camera = new THREE.PerspectiveCamera(35, sizes.width / sizes.height, 0.1, 100)
@@ -124,13 +189,12 @@ renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.toneMapping = THREE.ACESFilmicToneMapping
 renderer.toneMappingExposure = 1
+// renderer.outputColorSpace = THREE.LinearSRGBColorSpace
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(sizes.pixelRatio)
 renderer.setAnimationLoop(animate);
 
 document.body.appendChild(renderer.domElement);
-
-
 
 //controls setup
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -144,9 +208,13 @@ function animate() {
 
     const elapsedTime = clock.getElapsedTime();
 
-  
     //update controls
     controls.update();
+
+    // Update model
+    if (model) {
+        model.rotation.y = elapsedTime * 0.1
+    }
 
     //render
     renderer.render(scene, camera);

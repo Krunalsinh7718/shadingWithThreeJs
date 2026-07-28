@@ -158,11 +158,11 @@ scene.add(directionalLight)
 
 // Model
 let model = null
-gltfLoader.load('/models/gears/gears.glb', (gltf) => {
+gltfLoader.load('/models/test-sphere/sphere.glb', (gltf) => {
     model = gltf.scene;
     model.traverse((child) => {
         if (child.isMesh) {
-            if(child.name === 'outerHull')
+            if(child.name === 'outerSphere')
             {
                 child.material = slicedMaterial
                  child.customDepthMaterial = slicedDepthMaterial

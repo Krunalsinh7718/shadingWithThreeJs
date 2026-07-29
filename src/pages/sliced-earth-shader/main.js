@@ -7,12 +7,13 @@ import earthFragmentShader from './shaders/earth/fragment.frag';
 import starsVertexShader from './shaders/stars/vertex.vert';
 import starsFragmentShader from './shaders/stars/fragment.frag';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { Lensflare, LensflareElement } from 'three/addons/objects/Lensflare.js';
 import CustomShaderMaterial from 'three-custom-shader-material/vanilla'
 
 import { getMeshesByName, applyMaterialByMeshName, applyMaterialByMaterialName, logSceneStructure } from "../../common-utility/common-functions.js";
 
-
+import gsap from 'gsap';
 
 //gui
 const gui = new GUI();
@@ -20,7 +21,10 @@ const parameters = {};
 
 //loaders
 const textureLoader = new THREE.TextureLoader();
-const gltfLoader = new GLTFLoader();
+const dracoLoader = new DRACOLoader()
+dracoLoader.setDecoderPath('/models/draco/')
+const gltfLoader = new GLTFLoader()
+gltfLoader.setDRACOLoader(dracoLoader)
 
 //sizes
 const sizes = {
@@ -52,9 +56,9 @@ const scene = new THREE.Scene();
 
 //camera setup
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.x = 3.5
+camera.position.x = 0
 camera.position.y = 2
-camera.position.z = 2
+camera.position.z = 4
 scene.add(camera)
 
 //renderer setup
@@ -83,19 +87,228 @@ earthSpecularCloudTexture.anisotropy = 8;
 
 // Sphere
 const debugParameters = {};
-const earthGeometry = new THREE.SphereGeometry(2, 64, 64)
-const earthMaterial = new THREE.ShaderMaterial({
+
+const earthUniforms = {
+    uSliceStart: new THREE.Uniform(0),
+    uSliceArc: new THREE.Uniform(0),
+};
+gui.add(earthUniforms.uSliceStart, 'value', - Math.PI, Math.PI, 0.001).name('eart uSliceStart')
+gui.add(earthUniforms.uSliceArc, 'value', 0, Math.PI * 2, 0.001).name('eart uSliceArc')
+
+const mantleUniform = {
+    uSliceStart: new THREE.Uniform(0),
+    uSliceArc: new THREE.Uniform(0),
+};
+gui.add(mantleUniform.uSliceStart, 'value', - Math.PI, Math.PI, 0.001).name('mantle uSliceStart')
+gui.add(mantleUniform.uSliceArc, 'value', 0, Math.PI * 2, 0.001).name('mantle uSliceArc')
+
+
+const outerCoreUniform = {
+    uSliceStart: new THREE.Uniform(0),
+    uSliceArc: new THREE.Uniform(0),
+};
+gui.add(outerCoreUniform.uSliceStart, 'value', - Math.PI, Math.PI, 0.001).name('outer core uSliceStart')
+gui.add(outerCoreUniform.uSliceArc, 'value', 0, Math.PI * 2, 0.001).name('outer core uSliceArc')
+
+
+// Model
+let model = null, crust = null, mantle = null, outerCore = null;
+gltfLoader.load('/models/earth/earth.glb', (gltf) => {
+    model = gltf.scene;
+    model.scale.set(0.25, 0.25, 0.25);
+
+    model.traverse((child) => {
+        if (child.isMesh) {
+            // console.log(child.name);
+
+
+            if (child.name === 'crust') {
+                crust = child;
+                const patchMap = {
+                    csm_Slice:
+                    {
+                        '#include <colorspace_fragment>':
+                            `
+                            #include <colorspace_fragment>
+                            if(!gl_FrontFacing)
+                                gl_FragColor = vec4(0.3, 0.2, 0.2, 1.0);
+                            `
+                    }
+                };
+
+                const originalMaterial = child.material;
+
+                const slicedMaterial = new CustomShaderMaterial({
+                    // CSM
+                    baseMaterial: THREE.MeshStandardMaterial,
+                    vertexShader: earthVertexShader,
+                    fragmentShader: earthFragmentShader,
+
+                    map: originalMaterial.map,
+                    normalMap: originalMaterial.normalMap,
+                    roughnessMap: originalMaterial.roughnessMap,
+                    metalnessMap: originalMaterial.metalnessMap,
+                    side: THREE.DoubleSide,
+
+                    uniforms: earthUniforms,
+
+                    patchMap: patchMap,
+
+                })
+
+                const slicedDepthMaterial = new CustomShaderMaterial({
+                    // CSM
+                    baseMaterial: THREE.MeshDepthMaterial,
+                    vertexShader: earthVertexShader,
+                    fragmentShader: earthFragmentShader,
+                    uniforms: earthUniforms,
+                     patchMap: patchMap,
+
+                    // MeshDepthMaterial
+                    depthPacking: THREE.RGBADepthPacking
+
+
+                })
+                child.material = slicedMaterial
+                child.customDepthMaterial = slicedDepthMaterial
+            }
+            if (child.name === 'mantle') {
+                mantle = child;
+                const patchMap = {
+                    csm_Slice:
+                    {
+                        '#include <colorspace_fragment>':
+                            `
+                            #include <colorspace_fragment>
+                            if(!gl_FrontFacing)
+                                gl_FragColor = vec4(0.3, 0.2, 0.2, 1.0);
+                            `
+                    }
+                };
+
+                const originalMaterial = child.material;
+                console.log(originalMaterial);
+                
+
+                const slicedMaterial = new CustomShaderMaterial({
+                    // CSM
+                    baseMaterial: THREE.MeshStandardMaterial,
+                    vertexShader: earthVertexShader,
+                    fragmentShader: earthFragmentShader,
+
+                    color: originalMaterial.color,
+                    map: originalMaterial.map,
+                    normalMap: originalMaterial.normalMap,
+                    roughnessMap: originalMaterial.roughnessMap,
+                    metalnessMap: originalMaterial.metalnessMap,
+                    side: THREE.DoubleSide,
+
+                    uniforms: mantleUniform,
+
+                    patchMap: patchMap,
+
+                })
+
+                const slicedDepthMaterial = new CustomShaderMaterial({
+                    // CSM
+                    baseMaterial: THREE.MeshDepthMaterial,
+                    vertexShader: earthVertexShader,
+                    fragmentShader: earthFragmentShader,
+                    uniforms: earthUniforms,
+                     patchMap: patchMap,
+
+                    // MeshDepthMaterial
+                    depthPacking: THREE.RGBADepthPacking
+
+
+                })
+                child.material = slicedMaterial
+                child.customDepthMaterial = slicedDepthMaterial
+            }
+            if (child.name === 'outerCore') {
+                outerCore = child;
+                const patchMap = {
+                    csm_Slice:
+                    {
+                        '#include <colorspace_fragment>':
+                            `
+                            #include <colorspace_fragment>
+                            if(!gl_FrontFacing)
+                                gl_FragColor = vec4(0.3, 0.2, 0.2, 1.0);
+                            `
+                    }
+                };
+
+                const originalMaterial = child.material;
+                console.log(originalMaterial);
+                
+
+                const slicedMaterial = new CustomShaderMaterial({
+                    // CSM
+                    baseMaterial: THREE.MeshStandardMaterial,
+                    vertexShader: earthVertexShader,
+                    fragmentShader: earthFragmentShader,
+
+                    color: originalMaterial.color,
+                    map: originalMaterial.map,
+                    normalMap: originalMaterial.normalMap,
+                    roughnessMap: originalMaterial.roughnessMap,
+                    metalnessMap: originalMaterial.metalnessMap,
+                    side: THREE.DoubleSide,
+
+                    uniforms: outerCoreUniform,
+
+                    patchMap: patchMap,
+
+                })
+
+                const slicedDepthMaterial = new CustomShaderMaterial({
+                    // CSM
+                    baseMaterial: THREE.MeshDepthMaterial,
+                    vertexShader: earthVertexShader,
+                    fragmentShader: earthFragmentShader,
+                    uniforms: earthUniforms,
+                     patchMap: patchMap,
+
+                    // MeshDepthMaterial
+                    depthPacking: THREE.RGBADepthPacking
+
+
+                })
+                child.material = slicedMaterial
+                child.customDepthMaterial = slicedDepthMaterial
+            }
+            
+
+            child.castShadow = true
+            child.receiveShadow = true
+        }
+    })
+    scene.add(model)
+
+    // console.log("mantle", mantle);
+    // mantle.position.y = 10;
     
-    vertexShader: earthVertexShader,
-    fragmentShader: earthFragmentShader,
-    uniforms:
-    {
-        uDayTexture: new THREE.Uniform(earthDayTexture),
-        uSpecularCloudTexture: new THREE.Uniform(earthSpecularCloudTexture),
-    }
+
+     let tl = gsap.timeline({})
+    tl.to(earthUniforms.uSliceArc,{
+        value : 3.14,
+        duration: 1,
+        ease: 'linear',
+    }).to(mantleUniform.uSliceArc,{
+        value : 3.14,
+        duration: 1,
+        ease: 'linear',
+    }).to(mantle.position.y,{
+        value : 10,
+        duration: 1,
+        ease: 'linear',
+    }).to(outerCoreUniform.uSliceArc,{
+        value : 3.14,
+        duration: 1,
+        ease: 'linear',
+    })
 })
-const earth = new THREE.Mesh(earthGeometry, earthMaterial)
-scene.add(earth)
 
 
 //stars 
@@ -111,16 +324,16 @@ for (let i = 0; i < starCounts; i++) {
     starPosAttrArr[i3 + 1] = (Math.random() - 0.5) * (200 + 150);
     starPosAttrArr[i3 + 2] = (Math.random() - 0.5) * (200 + 150);
 
-    pointsColorArr[i3    ] = 0.1 * radius;
+    pointsColorArr[i3] = 0.1 * radius;
     pointsColorArr[i3 + 1] = 1.0;
     pointsColorArr[i3 + 2] = 0.5 * radius;
-    
+
     scalesArr[i] = Math.random();
 }
 // console.log(starsGeomatry);
 
 const starsGeomatry = new THREE.BufferGeometry();
-starsGeomatry.setAttribute('position',new THREE.BufferAttribute(starPosAttrArr, 3));
+starsGeomatry.setAttribute('position', new THREE.BufferAttribute(starPosAttrArr, 3));
 starsGeomatry.setAttribute('color', new THREE.BufferAttribute(pointsColorArr, 3));
 starsGeomatry.setAttribute('scales', new THREE.BufferAttribute(scalesArr, 1));
 
@@ -133,13 +346,23 @@ const starsMaterial = new THREE.ShaderMaterial({
     vertexShader: starsVertexShader,
     fragmentShader: starsFragmentShader,
     uniforms: {
-        uSize : new THREE.Uniform(30 * renderer.getPixelRatio())
+        uSize: new THREE.Uniform(30 * renderer.getPixelRatio())
     }
 });
 const stars = new THREE.Points(starsGeomatry, starsMaterial);
 scene.add(stars);
 
+/**
+ * Lights
+ */
+// const ambiantLight = new THREE.AmbientLight("#fff", 10);
+// scene.add(ambiantLight);
 
+
+const directionalLight = new THREE.DirectionalLight('#ffffff', 10)
+directionalLight.position.set(0, 2, 4)
+
+scene.add(directionalLight)
 
 
 //animation loop
@@ -152,7 +375,7 @@ function animate() {
     // earth.rotation.y = elapsedTime * 0.1;
 
     stars.rotation.x = elapsedTime * 0.0005;
-   
+
 
     //update controls
     controls.update();

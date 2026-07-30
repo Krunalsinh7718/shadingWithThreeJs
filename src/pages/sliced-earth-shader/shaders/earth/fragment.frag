@@ -1,26 +1,22 @@
-// varying vec2 vUv;
+varying vec2 vUv;
+varying vec3 vNormalModel;
 varying vec3 vPosition;
 
 uniform sampler2D uDayTexture;
+uniform sampler2D uNightTexture;
 uniform sampler2D uSpecularCloudTexture;
+
+uniform vec3 uSunDirection;
+
+uniform vec3 uAtmosphereDayColor;
+uniform vec3 uAtmosphereTwilightColor;
 
 uniform float uSliceStart;
 uniform float uSliceArc;
 
 
 void main(){
-    // vec3 color = vec3(0.0);
-
-    // //day color
-    // vec3 dayColor = texture(uDayTexture, vUv).rgb;
-    // color = dayColor;
-
-    // //specular cloud color
-    // vec2 specularCloudTexture = texture(uSpecularCloudTexture, vUv).rg;
-
-    // //clouds
-    // float cloudsMix = smoothstep(0.5, 1.0, specularCloudTexture.g);
-    // color = mix(color, vec3(1.0), cloudsMix);
+    
 
     //slice
     float csm_Slice;
@@ -31,5 +27,4 @@ void main(){
         discard;
 
     // Final color
-    // csm_FragColor = vec4(color, 1.0);
 }

@@ -4,6 +4,11 @@ import GUI from 'lil-gui'
 import earthVertexShader from './shaders/earth/vertex.vert';
 import earthFragmentShader from './shaders/earth/fragment.frag';
 
+import coreWobbleVertexShader from './shaders/core-material/vertex.vert';
+import coreWobbleFragmentShader from './shaders/core-material/fragment.frag';
+
+
+
 import starsVertexShader from './shaders/stars/vertex.vert';
 import starsFragmentShader from './shaders/stars/fragment.frag';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -61,9 +66,6 @@ camera.position.x = 0
 camera.position.y = 2
 camera.position.z = 4
 
-// camera.position.x = 0
-// camera.position.y = 3
-// camera.position.z = 0
 scene.add(camera)
 
 //renderer setup
@@ -79,23 +81,49 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 
+
+// HOTSPOTS
+const hotspot1 = createHotspot({
+    position: new THREE.Vector3(-0.69, -0.24, 1.82),
+    label: 'Crust'
+});
+
+const hotspot2 = createHotspot({
+    position: new THREE.Vector3(0, 0, 1.5),
+    label: 'Mantle'
+});
+
+const hotspot3 = createHotspot({
+    position: new THREE.Vector3(0.71, 0.35, 0.49),
+    label: 'Outer Core'
+});
+
+const hotspot4 = createHotspot({
+    position: new THREE.Vector3(0, 1.53, 0),
+    label: 'Inner Core'
+});
+
+/**
+ * Lights
+ */
+const ambiantLight = new THREE.AmbientLight("#fff", 10);
+scene.add(ambiantLight);
+
 /**
  * Earth
  */
-//Textures
-const earthDayTexture = textureLoader.load("/images/earth/2k_earth_daymap.jpg");
-earthDayTexture.colorSpace = THREE.SRGBColorSpace;
-earthDayTexture.anisotropy = 8;
 
-const earthSpecularCloudTexture = textureLoader.load("/images/earth/specularClouds.jpg");
-earthSpecularCloudTexture.anisotropy = 8;
 
 // Sphere
 const debugParameters = {};
+debugParameters.atmosphereDayColor = "#0084ff";
+debugParameters.atmosphereTwilightColor = "#ff7b00";
+// console.log("",directionalLight.position);
 
 const earthUniforms = {
     uSliceStart: new THREE.Uniform(0),
     uSliceArc: new THREE.Uniform(0),
+    
 };
 gui.add(earthUniforms.uSliceStart, 'value', - Math.PI, Math.PI, 0.001).name('eart uSliceStart')
 gui.add(earthUniforms.uSliceArc, 'value', 0, Math.PI * 2, 0.001).name('eart uSliceArc')
@@ -114,6 +142,8 @@ const outerCoreUniform = {
 };
 gui.add(outerCoreUniform.uSliceStart, 'value', - Math.PI, Math.PI, 0.001).name('outer core uSliceStart')
 gui.add(outerCoreUniform.uSliceArc, 'value', 0, Math.PI * 2, 0.001).name('outer core uSliceArc')
+
+
 
 
 // Model
@@ -161,21 +191,8 @@ gltfLoader.load('/models/earth/earth.glb', (gltf) => {
 
                 })
 
-                const slicedDepthMaterial = new CustomShaderMaterial({
-                    // CSM
-                    baseMaterial: THREE.MeshDepthMaterial,
-                    vertexShader: earthVertexShader,
-                    fragmentShader: earthFragmentShader,
-                    uniforms: earthUniforms,
-                    patchMap: patchMap,
 
-                    // MeshDepthMaterial
-                    depthPacking: THREE.RGBADepthPacking
-
-
-                })
                 child.material = slicedMaterial
-                child.customDepthMaterial = slicedDepthMaterial
             }
             if (child.name === 'mantle') {
                 mantle = child;
@@ -214,24 +231,12 @@ gltfLoader.load('/models/earth/earth.glb', (gltf) => {
 
                 })
 
-                const slicedDepthMaterial = new CustomShaderMaterial({
-                    // CSM
-                    baseMaterial: THREE.MeshDepthMaterial,
-                    vertexShader: earthVertexShader,
-                    fragmentShader: earthFragmentShader,
-                    uniforms: earthUniforms,
-                    patchMap: patchMap,
 
-                    // MeshDepthMaterial
-                    depthPacking: THREE.RGBADepthPacking
-
-
-                })
                 child.material = slicedMaterial
-                child.customDepthMaterial = slicedDepthMaterial
             }
             if (child.name === 'outerCore') {
                 outerCore = child;
+                
                 const patchMap = {
                     csm_Slice:
                     {
@@ -239,7 +244,7 @@ gltfLoader.load('/models/earth/earth.glb', (gltf) => {
                             `
                             #include <colorspace_fragment>
                             if(!gl_FrontFacing)
-                                gl_FragColor = vec4(0.3, 0.2, 0.2, 1.0);
+                                gl_FragColor = vec4(0.82, 0.78, 0.00, 1.0);
                             `
                     }
                 };
@@ -267,24 +272,48 @@ gltfLoader.load('/models/earth/earth.glb', (gltf) => {
 
                 })
 
-                const slicedDepthMaterial = new CustomShaderMaterial({
-                    // CSM
-                    baseMaterial: THREE.MeshDepthMaterial,
-                    vertexShader: earthVertexShader,
-                    fragmentShader: earthFragmentShader,
-                    uniforms: earthUniforms,
-                    patchMap: patchMap,
-
-                    // MeshDepthMaterial
-                    depthPacking: THREE.RGBADepthPacking
-
-
-                })
                 child.material = slicedMaterial
-                child.customDepthMaterial = slicedDepthMaterial
             }
             if (child.name == 'innerCore') {
+                child.geometry.computeTangents();
+                
+                //uniforms
+                let debugObject = {};
+                debugObject.colorA = "#ff9900";
+                debugObject.colorB = "#ff1100";
+                const uniforms = {
+                    uTime: new THREE.Uniform(0),
+                    uPositionFrequency: new THREE.Uniform(0.5),
+                    uTimeFrequency: new THREE.Uniform(10),
+                    uStrenth: new THREE.Uniform(0.1),
+
+                    uWarpPositionFrequency: new THREE.Uniform(0.38),
+                    uWarpTimeFrequency: new THREE.Uniform(0.12),
+                    uWarpStrenth: new THREE.Uniform(1.7),
+
+                    uColorA: new THREE.Uniform(new THREE.Color(debugObject.colorA)),
+                    uColorB: new THREE.Uniform(new THREE.Color(debugObject.colorB)),
+                }
+                // Material
+                const material = new CustomShaderMaterial({
+                    //CSM
+                    baseMaterial: THREE.MeshPhysicalMaterial,
+                    vertexShader: coreWobbleVertexShader,
+                    fragmentShader: coreWobbleFragmentShader,
+                    uniforms: uniforms,
+                    silent: true,
+                    //MeshPhysicalMaterial
+                    metalness: 0,
+                    roughness: 0,
+                    color: '#ffffff',
+                    transmission: 0,
+                    ior: 1.5,
+                    thickness: 1.5,
+                    transparent: true,
+                    wireframe: false
+                })
                 innerCore = child;
+                child.material = material;
             }
 
 
@@ -301,8 +330,11 @@ gltfLoader.load('/models/earth/earth.glb', (gltf) => {
     let tl = gsap.timeline({})
     tl.to(earthUniforms.uSliceArc,
         { value: 3.14, duration: 1, ease: 'linear' }
+    ).to(hotspot1.element.style,
+        { opacity: 1, duration: 0.5, ease: 'linear' }
     ).to(mantleUniform.uSliceArc,
-        { value: 3.14, duration: 1, ease: 'linear' }
+        { value: 3.14, duration: 1, ease: 'linear' },
+        "<"
     ).to(mantle.position,
         { y: 1, duration: 1, ease: 'linear' }
     ).to(outerCore.position,
@@ -311,15 +343,23 @@ gltfLoader.load('/models/earth/earth.glb', (gltf) => {
     ).to(innerCore.position,
         { y: 1, duration: 1, ease: 'linear' },
         "<"
+    ).to(hotspot2.element.style,
+        { opacity: 1, duration: 0.5, ease: 'linear' }
     ).to(outerCoreUniform.uSliceArc,
-        { value: 3.14, duration: 1, ease: 'linear' }
+        { value: 3.14, duration: 1, ease: 'linear' },
+        "<"
     ).to(outerCore.position,
         { y: 2.5, duration: 1, ease: 'linear' },
     ).to(innerCore.position,
         { y: 2.5, duration: 1, ease: 'linear' },
         "<"
+    ).to(hotspot3.element.style,
+        { opacity: 1, duration: 0.5, ease: 'linear' }
     ).to(innerCore.position,
         { y: 3.5, duration: 1, ease: 'linear' },
+        "<"
+    ).to(hotspot4.element.style,
+        { opacity: 1, duration: 0.5, ease: 'linear' }
     )
 })
 
@@ -359,23 +399,13 @@ const starsMaterial = new THREE.ShaderMaterial({
     vertexShader: starsVertexShader,
     fragmentShader: starsFragmentShader,
     uniforms: {
-        uSize: new THREE.Uniform(30 * renderer.getPixelRatio())
+        uSize: new THREE.Uniform(100 * renderer.getPixelRatio())
     }
 });
 const stars = new THREE.Points(starsGeomatry, starsMaterial);
 scene.add(stars);
 
-/**
- * Lights
- */
-// const ambiantLight = new THREE.AmbientLight("#fff", 10);
-// scene.add(ambiantLight);
 
-
-const directionalLight = new THREE.DirectionalLight('#ffffff', 10)
-directionalLight.position.set(0, 2, 4)
-
-scene.add(directionalLight)
 
 // LABEL RENDERER
 const labelRenderer = new CSS2DRenderer();
@@ -391,34 +421,6 @@ labelRenderer.domElement.style.pointerEvents = 'none';
 
 document.body.appendChild(labelRenderer.domElement);
 
-// HOTSPOTS
-const hotspot1 = createHotspot({
-    position: new THREE.Vector3(-0.69, -0.24, 1.82),
-    label: 'Crust'
-});
-
-gui.add(hotspot1.position, 'x').min(-3).max(3).step(0.01).name('Crust x');
-gui.add(hotspot1.position, 'y').min(-3).max(3).step(0.01).name('Crust y');
-gui.add(hotspot1.position, 'z').min(-3).max(3).step(0.01).name('Crust z');
-
-const hotspot2 = createHotspot({
-    position: new THREE.Vector3(0, 0, 1.5),
-    label: 'Mantle'
-});
-
-const hotspot3 = createHotspot({
-    position: new THREE.Vector3(1.16, 0.35, 0.49),
-    label: 'Outer Core'
-});
-
-const hotspot4 = createHotspot({
-    position: new THREE.Vector3(0, 1.53, 0),
-    label: 'Inner Core'
-});
-
-console.log("hotspot1", hotspot1);
-
-
 
 //animation loop
 const clock = new THREE.Clock();
@@ -426,8 +428,12 @@ const clock = new THREE.Clock();
 function animate() {
 
     const elapsedTime = clock.getElapsedTime();
-
-    // earth.rotation.y = elapsedTime * 0.1;
+    if(model){
+        model.rotation.y = elapsedTime * 0.1;
+    }
+    if(innerCore){
+        innerCore.material.uniforms.uTime.value = elapsedTime * 0.1;
+    }
 
     stars.rotation.x = elapsedTime * 0.0005;
 

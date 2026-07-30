@@ -14,6 +14,7 @@ import CustomShaderMaterial from 'three-custom-shader-material/vanilla'
 import { getMeshesByName, applyMaterialByMeshName, applyMaterialByMaterialName, logSceneStructure } from "../../common-utility/common-functions.js";
 
 import gsap from 'gsap';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
 //gui
 const gui = new GUI();
@@ -59,6 +60,10 @@ const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 
 camera.position.x = 0
 camera.position.y = 2
 camera.position.z = 4
+
+// camera.position.x = 0
+// camera.position.y = 3
+// camera.position.z = 0
 scene.add(camera)
 
 //renderer setup
@@ -112,14 +117,14 @@ gui.add(outerCoreUniform.uSliceArc, 'value', 0, Math.PI * 2, 0.001).name('outer 
 
 
 // Model
-let model = null, crust = null, mantle = null, outerCore = null;
+let model = null, crust = null, mantle = null, outerCore = null, innerCore = null;
 gltfLoader.load('/models/earth/earth.glb', (gltf) => {
     model = gltf.scene;
     model.scale.set(0.25, 0.25, 0.25);
 
     model.traverse((child) => {
         if (child.isMesh) {
-            // console.log(child.name);
+            console.log(child.name);
 
 
             if (child.name === 'crust') {
@@ -162,7 +167,7 @@ gltfLoader.load('/models/earth/earth.glb', (gltf) => {
                     vertexShader: earthVertexShader,
                     fragmentShader: earthFragmentShader,
                     uniforms: earthUniforms,
-                     patchMap: patchMap,
+                    patchMap: patchMap,
 
                     // MeshDepthMaterial
                     depthPacking: THREE.RGBADepthPacking
@@ -188,7 +193,7 @@ gltfLoader.load('/models/earth/earth.glb', (gltf) => {
 
                 const originalMaterial = child.material;
                 console.log(originalMaterial);
-                
+
 
                 const slicedMaterial = new CustomShaderMaterial({
                     // CSM
@@ -215,7 +220,7 @@ gltfLoader.load('/models/earth/earth.glb', (gltf) => {
                     vertexShader: earthVertexShader,
                     fragmentShader: earthFragmentShader,
                     uniforms: earthUniforms,
-                     patchMap: patchMap,
+                    patchMap: patchMap,
 
                     // MeshDepthMaterial
                     depthPacking: THREE.RGBADepthPacking
@@ -241,7 +246,7 @@ gltfLoader.load('/models/earth/earth.glb', (gltf) => {
 
                 const originalMaterial = child.material;
                 console.log(originalMaterial);
-                
+
 
                 const slicedMaterial = new CustomShaderMaterial({
                     // CSM
@@ -268,7 +273,7 @@ gltfLoader.load('/models/earth/earth.glb', (gltf) => {
                     vertexShader: earthVertexShader,
                     fragmentShader: earthFragmentShader,
                     uniforms: earthUniforms,
-                     patchMap: patchMap,
+                    patchMap: patchMap,
 
                     // MeshDepthMaterial
                     depthPacking: THREE.RGBADepthPacking
@@ -278,7 +283,10 @@ gltfLoader.load('/models/earth/earth.glb', (gltf) => {
                 child.material = slicedMaterial
                 child.customDepthMaterial = slicedDepthMaterial
             }
-            
+            if (child.name == 'innerCore') {
+                innerCore = child;
+            }
+
 
             child.castShadow = true
             child.receiveShadow = true
@@ -288,26 +296,31 @@ gltfLoader.load('/models/earth/earth.glb', (gltf) => {
 
     // console.log("mantle", mantle);
     // mantle.position.y = 10;
-    
 
-     let tl = gsap.timeline({})
-    tl.to(earthUniforms.uSliceArc,{
-        value : 3.14,
-        duration: 1,
-        ease: 'linear',
-    }).to(mantleUniform.uSliceArc,{
-        value : 3.14,
-        duration: 1,
-        ease: 'linear',
-    }).to(mantle.position.y,{
-        value : 10,
-        duration: 1,
-        ease: 'linear',
-    }).to(outerCoreUniform.uSliceArc,{
-        value : 3.14,
-        duration: 1,
-        ease: 'linear',
-    })
+
+    let tl = gsap.timeline({})
+    tl.to(earthUniforms.uSliceArc,
+        { value: 3.14, duration: 1, ease: 'linear' }
+    ).to(mantleUniform.uSliceArc,
+        { value: 3.14, duration: 1, ease: 'linear' }
+    ).to(mantle.position,
+        { y: 1, duration: 1, ease: 'linear' }
+    ).to(outerCore.position,
+        { y: 1, duration: 1, ease: 'linear' },
+        "<"
+    ).to(innerCore.position,
+        { y: 1, duration: 1, ease: 'linear' },
+        "<"
+    ).to(outerCoreUniform.uSliceArc,
+        { value: 3.14, duration: 1, ease: 'linear' }
+    ).to(outerCore.position,
+        { y: 2.5, duration: 1, ease: 'linear' },
+    ).to(innerCore.position,
+        { y: 2.5, duration: 1, ease: 'linear' },
+        "<"
+    ).to(innerCore.position,
+        { y: 3.5, duration: 1, ease: 'linear' },
+    )
 })
 
 
@@ -364,6 +377,48 @@ directionalLight.position.set(0, 2, 4)
 
 scene.add(directionalLight)
 
+// LABEL RENDERER
+const labelRenderer = new CSS2DRenderer();
+
+labelRenderer.setSize(
+    window.innerWidth,
+    window.innerHeight
+);
+
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.top = '0px';
+labelRenderer.domElement.style.pointerEvents = 'none';
+
+document.body.appendChild(labelRenderer.domElement);
+
+// HOTSPOTS
+const hotspot1 = createHotspot({
+    position: new THREE.Vector3(-0.69, -0.24, 1.82),
+    label: 'Crust'
+});
+
+gui.add(hotspot1.position, 'x').min(-3).max(3).step(0.01).name('Crust x');
+gui.add(hotspot1.position, 'y').min(-3).max(3).step(0.01).name('Crust y');
+gui.add(hotspot1.position, 'z').min(-3).max(3).step(0.01).name('Crust z');
+
+const hotspot2 = createHotspot({
+    position: new THREE.Vector3(0, 0, 1.5),
+    label: 'Mantle'
+});
+
+const hotspot3 = createHotspot({
+    position: new THREE.Vector3(1.16, 0.35, 0.49),
+    label: 'Outer Core'
+});
+
+const hotspot4 = createHotspot({
+    position: new THREE.Vector3(0, 1.53, 0),
+    label: 'Inner Core'
+});
+
+console.log("hotspot1", hotspot1);
+
+
 
 //animation loop
 const clock = new THREE.Clock();
@@ -382,5 +437,32 @@ function animate() {
 
     //render
     renderer.render(scene, camera);
+    labelRenderer.render(scene, camera);
 }
 
+// -----------------------------------
+// HOTSPOT FUNCTION
+// -----------------------------------
+
+function createHotspot({
+    position,
+    label
+}) {
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'hotspot-wrapper';
+
+    const text = document.createElement('span');
+    text.className = 'label';
+    text.textContent = label;
+
+    wrapper.appendChild(text);
+
+    const hotspot = new CSS2DObject(wrapper);
+
+    hotspot.position.copy(position);
+
+    scene.add(hotspot);
+
+    return hotspot;
+}

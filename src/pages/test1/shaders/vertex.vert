@@ -3,35 +3,35 @@
 #include "../../includes/simplexNoise2d.glsl"
 
 float getElevation(vec2 position){
-    float evevation = simplexNoise2d(position * 2.0);
 
-    return evevation;
+    float uElevationFrequency = 0.2;
+
+    float elevation = 0.0;
+
+    elevation = simplexNoise2d(position * uElevationFrequency);
+    elevation = simplexNoise2d(position * uElevationFrequency * 2.0);
+    elevation = simplexNoise2d(position * uElevationFrequency * 4.0);
+
+    return elevation;
 }
 
 void main(){
-    vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+    
   
 
-    float distToPoint = 0.1;
+    float distToPoint = 0.01;
 
-    vec3 positionA = position + vec3(distToPoint, 0.0, 0.0);
-    vec3 positionB = position + vec3(0.0, 0.0, -distToPoint);
+    vec3 positionA = csm_Position + vec3(distToPoint, 0.0, 0.0);
+    vec3 positionB = csm_Position + vec3(0.0, 0.0, -distToPoint);
 
-    positionA.y +=  getElevation(positionA.xz);
-    positionB.y +=  getElevation(positionB.xz);
+    csm_Position.y += getElevation(csm_Position.xz);
+    positionA.y = getElevation(positionA.xz);
+    positionB.y = getElevation(positionB.xz);
 
-    vec3 toA = normalize(positionA - position);
-    vec3 toB = normalize(positionB - position);
+    vec3 toA = normalize(positionA - csm_Position);
+    vec3 toB = normalize(positionB - csm_Position);
 
-
-    normal +=  cross(toA, toB);
-
-    modelPosition.y += getElevation(modelPosition.xz);
-    vec4 viewPosition = viewMatrix * modelPosition;
-    vec4 projectedPosition = projectionMatrix * viewPosition;
-
-    gl_Position = projectedPosition;
-
+    csm_Normal =  cross(toA, toB);
 
 }
 

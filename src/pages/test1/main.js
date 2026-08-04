@@ -7,13 +7,15 @@ import surfaceFragmentShader from './shaders/surface/fragment.frag'
 import cloudVertexShader from './shaders/cloud/vertex.vert'
 import cloudFragmentShader from './shaders/cloud/fragment.frag'
 import CustomShaderMaterial from 'three-custom-shader-material/vanilla';
+import { INTERSECTION, SUBTRACTION, REVERSE_SUBTRACTION, DIFFERENCE,  Evaluator, Brush } from 'three-bvh-csg'
 
 //gui
 const gui = new GUI();
 
+
+
 //texture loader
 const textureLoader = new THREE.TextureLoader();
-const flagTexture = textureLoader.load("/images/flag/india-flag.png");
 const rgbeLoader = new RGBELoader();
 
 /**
@@ -137,21 +139,17 @@ const mesh = new THREE.Mesh(geometry, material);
 mesh.customDepthMaterial = depthMaterial;
 mesh.receiveShadow = true;
 mesh.castShadow = true;
-scene.add(mesh);
+// scene.add(mesh);
 
 //clouds
-const cloudsGeometry = new THREE.PlaneGeometry(10, 10, 500, 500);
+const cloudsGeometry = new THREE.PlaneGeometry(10, 10, 100, 100);
+const cloudsGeometry1 = new THREE.PlaneGeometry(10, 10, 100, 100);
+cloudsGeometry.translate(0, 0, -3);
+cloudsGeometry1.translate(0, 0, -2.8);
 
-const posArr = new Float32Array(cloudsGeometry.attributes.position.count * 3)
-for (let i = 0; i < cloudsGeometry.attributes.position.count; i++) {
-    const i3 = i * 3;
-    posArr[i3 + 0] = 0; 
-    posArr[i3 + 1] = 3; 
-    posArr[i3 + 2] = 3; 
-    
-}
-cloudsGeometry.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
-cloudsGeometry.rotateX(Math.PI / -2);
+
+cloudsGeometry.rotateX(Math.PI / 2);
+cloudsGeometry1.rotateX(Math.PI / 2);
 const cloudsMaterial = new CustomShaderMaterial({
     baseMaterial: THREE.MeshStandardMaterial,
     vertexShader: cloudVertexShader,
@@ -160,7 +158,8 @@ const cloudsMaterial = new CustomShaderMaterial({
      // MeshPhysicalMaterial
     metalness: 0,
     roughness: 0.5,
-    color: '#85d534'
+    color: '#85d534',
+    side: THREE.DoubleSide
 
 });
 
@@ -173,11 +172,28 @@ const cloudsDepthMaterial = new CustomShaderMaterial({
     // MeshDepthMaterial
     depthPacking: THREE.RGBADepthPacking,
 })
-const cloudsMesh = new THREE.Mesh(cloudsGeometry, cloudsMaterial);
-cloudsMesh.receiveShadow = true;
-cloudsMesh.castShadow = true;
-cloudsMesh.customDepthMaterial = cloudsDepthMaterial;
-scene.add(cloudsMesh);
+
+// scene.add(cloudsMesh);
+
+const cloudsMesh1 = new THREE.Mesh(cloudsGeometry1, cloudsMaterial);
+cloudsMesh1.rotateY(Math.PI / 2);
+// scene.add(cloudsMesh1);
+
+const cloudUp = new Brush(cloudsGeometry);
+cloudUp.material = cloudsMaterial;
+const cloudDown = new Brush(cloudsGeometry1)
+cloudDown.material = cloudsMaterial;
+cloudDown.rotation.y = Math.PI * 0.5 ;
+cloudDown.updateMatrixWorld(true);
+
+console.log(cloudDown);
+
+
+// Evaluate
+const evaluator = new Evaluator();
+const board = evaluator.evaluate(cloudUp, cloudDown, SUBTRACTION           );
+console.log(board)
+scene.add(board)
 
 //water
 const water = new THREE.Mesh(
@@ -236,7 +252,7 @@ function animate() {
     // );
 
     //update uTime material
-    uniforms.uTime.value = elapsedTime;
+    // uniforms.uTime.value = elapsedTime;
 
     //update controls
     controls.update();

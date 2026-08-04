@@ -4,10 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import GUI from 'lil-gui'
 import surfaceVertexShader from './shaders/surface/vertex.vert'
 import surfaceFragmentShader from './shaders/surface/fragment.frag'
-import cloudVertexShader from './shaders/cloud/vertex.vert'
-import cloudFragmentShader from './shaders/cloud/fragment.frag'
 import CustomShaderMaterial from 'three-custom-shader-material/vanilla';
-import { INTERSECTION, SUBTRACTION, REVERSE_SUBTRACTION, DIFFERENCE,  Evaluator, Brush } from 'three-bvh-csg'
 
 //gui
 const gui = new GUI();
@@ -57,6 +54,8 @@ renderer.toneMappingExposure = 1
 //mesh setup
 // Geometry
 const geometry = new THREE.PlaneGeometry(10, 10, 500, 500);
+geometry.deleteAttribute('uv');
+geometry.deleteAttribute('normal');
 
 geometry.rotateX(Math.PI / -2);
 // Material
@@ -132,72 +131,20 @@ const depthMaterial = new CustomShaderMaterial({
     depthPacking: THREE.RGBADepthPacking,
 })
 
-
-
 // Mesh
 const mesh = new THREE.Mesh(geometry, material);
 mesh.customDepthMaterial = depthMaterial;
 mesh.receiveShadow = true;
 mesh.castShadow = true;
-// scene.add(mesh);
-
-//clouds
-const cloudsGeometry = new THREE.PlaneGeometry(10, 10, 100, 100);
-const cloudsGeometry1 = new THREE.PlaneGeometry(10, 10, 100, 100);
-cloudsGeometry.translate(0, 0, -3);
-cloudsGeometry1.translate(0, 0, -2.8);
-
-
-cloudsGeometry.rotateX(Math.PI / 2);
-cloudsGeometry1.rotateX(Math.PI / 2);
-const cloudsMaterial = new CustomShaderMaterial({
-    baseMaterial: THREE.MeshStandardMaterial,
-    vertexShader: cloudVertexShader,
-    fragmentShader: cloudFragmentShader,
-    uniforms: uniforms,
-     // MeshPhysicalMaterial
-    metalness: 0,
-    roughness: 0.5,
-    color: '#85d534',
-    side: THREE.DoubleSide
-
-});
-
-const cloudsDepthMaterial = new CustomShaderMaterial({
-    // CSM
-    baseMaterial: THREE.MeshDepthMaterial,
-    vertexShader: cloudVertexShader,
-    uniforms: uniforms,
-
-    // MeshDepthMaterial
-    depthPacking: THREE.RGBADepthPacking,
-})
-
-// scene.add(cloudsMesh);
-
-const cloudsMesh1 = new THREE.Mesh(cloudsGeometry1, cloudsMaterial);
-cloudsMesh1.rotateY(Math.PI / 2);
-// scene.add(cloudsMesh1);
-
-const cloudUp = new Brush(cloudsGeometry);
-cloudUp.material = cloudsMaterial;
-const cloudDown = new Brush(cloudsGeometry1)
-cloudDown.material = cloudsMaterial;
-cloudDown.rotation.y = Math.PI * 0.5 ;
-cloudDown.updateMatrixWorld(true);
-
-console.log(cloudDown);
-
-
-// Evaluate
-const evaluator = new Evaluator();
-const board = evaluator.evaluate(cloudUp, cloudDown, SUBTRACTION           );
-console.log(board)
-scene.add(board)
+scene.add(mesh);
 
 //water
+const waterGeomatry = new THREE.PlaneGeometry(10, 10, 1, 1);
+waterGeomatry.deleteAttribute('uv');
+waterGeomatry.deleteAttribute('normal');
+waterGeomatry.deleteAttribute('normal');
 const water = new THREE.Mesh(
-    new THREE.PlaneGeometry(10, 10, 1, 1),
+    waterGeomatry,
     new THREE.MeshPhysicalMaterial({
         transmission: 1,
         roughness: 0.3
@@ -252,7 +199,7 @@ function animate() {
     // );
 
     //update uTime material
-    // uniforms.uTime.value = elapsedTime;
+    uniforms.uTime.value = elapsedTime;
 
     //update controls
     controls.update();

@@ -120,6 +120,7 @@ const material = new CustomShaderMaterial({
     vertexShader: cloud1Shader,
     fragmentShader: surfaceFragmentShader,
     uniforms: uniforms,
+    side: THREE.DoubleSide,
      // MeshPhysicalMaterial
     metalness: 0,
     roughness: 0.5,
@@ -151,32 +152,16 @@ const depthMaterial = new CustomShaderMaterial({
 
 
 // Brushes
-const plane1 = new THREE.BoxGeometry(10.2, 2, 10, 20, 20, 20);
-const plane2 = new THREE.BoxGeometry(10, 2, 10, 20, 20, 20);
-const cloudTop = new Brush(plane1);
-const cloudBottom = new Brush(plane2);
+const plane1 = new THREE.PlaneGeometry(10, 10, 500, 500);
+plane1.rotateX(Math.PI * 0.5);
+// plane1.updateProjectionMatrix();
+// const plane2 = new THREE.BoxGeometry(10, 2, 10, 20, 20, 20);
 
-// Flip 
-// cloudTop.geometry.rotateX(Math.PI * -0.5)
-// cloudBottom.geometry.rotateX(Math.PI * 0.5);
-cloudBottom.position.y = 1;
-
-// Move it so the tips meet (adjust this value)
-
-// Update matrices
-cloudTop.updateMatrixWorld(true);
-cloudBottom.updateMatrixWorld(true);
-
-cloudTop.material = material;
-cloudTop.material.side = THREE.DoubleSide;
-cloudBottom.material = material2;
-cloudBottom.material.side = THREE.DoubleSide;
-
-// Evaluate
-const evaluator = new Evaluator();
-const board = evaluator.evaluate(cloudBottom, cloudTop, INTERSECTION );
-scene.add(board)
-console.log(board);
+const mesh = new THREE.Mesh(plane1, material);
+mesh.receiveShadow = true;
+mesh.castShadow = true;
+mesh.depthMaterial = depthMaterial;
+scene.add(mesh);
 
 /**
  * Lights

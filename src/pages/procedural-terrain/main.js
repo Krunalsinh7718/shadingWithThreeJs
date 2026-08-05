@@ -56,8 +56,8 @@ renderer.toneMappingExposure = 1
 const geometry = new THREE.PlaneGeometry(10, 10, 500, 500);
 geometry.deleteAttribute('uv');
 geometry.deleteAttribute('normal');
-
 geometry.rotateX(Math.PI / -2);
+
 // Material
 const debugObject = {
     waterSurfaceColor : "#e65656",

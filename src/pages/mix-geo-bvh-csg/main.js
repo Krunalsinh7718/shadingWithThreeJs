@@ -1,26 +1,32 @@
 import * as THREE from 'three';
-import { RGBELoader } from 'three/addons/loaders/RGBELoader.js'
+import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import GUI from 'lil-gui'
-import surfaceVertexShader from './shaders/surface/vertex.vert'
-import surfaceFragmentShader from './shaders/surface/fragment.frag'
-import cloudVertexShader from './shaders/cloud/vertex.vert'
-import cloudFragmentShader from './shaders/cloud/fragment.frag'
+import { Brush, Evaluator,
+ADDITION,              // A ∪ B
+SUBTRACTION,           // A - B
+REVERSE_SUBTRACTION,   // B - A
+DIFFERENCE,            // A ⊕ B
+INTERSECTION           // A ∩ B
+} from 'three-bvh-csg';
+import cloud1Shader from './shaders/cloud/vertex.vert'
+import cloud2Shader from './shaders/cloud2/vertex.vert'
+import surfaceFragmentShader from './shaders/cloud/fragment.frag'
+
+
 import CustomShaderMaterial from 'three-custom-shader-material/vanilla';
 
 //gui
 const gui = new GUI();
 
-
-
 //texture loader
 const textureLoader = new THREE.TextureLoader();
-const rgbeLoader = new RGBELoader();
+const hdrLoader = new HDRLoader();
 
 /**
  * Environment map
  */
-rgbeLoader.load('/hdr/spruit_sunrise.hdr', (environmentMap) =>
+hdrLoader.load('/hdr/spruit_sunrise.hdr', (environmentMap) =>
 {
     environmentMap.mapping = THREE.EquirectangularReflectionMapping
 
@@ -40,7 +46,7 @@ const scene = new THREE.Scene();
 
 //camera setup
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.set(0, 5, 8);
+camera.position.set(0, 7.53, 12.05);
 scene.add(camera)
 
 //renderer setup
@@ -49,15 +55,15 @@ renderer.setSize(sizes.width, sizes.height)
 renderer.setAnimationLoop(animate);
 document.body.appendChild(renderer.domElement);
 renderer.shadowMap.enabled = true
-renderer.shadowMap.type = THREE.PCFSoftShadowMap
+renderer.shadowMap.type = THREE.PCFShadowMap
 renderer.toneMapping = THREE.ACESFilmicToneMapping
 renderer.toneMappingExposure = 1
 
-//mesh setup
-// Geometry
-const geometry = new THREE.PlaneGeometry(10, 10, 500, 500);
+/**
+ * Mix geomatry -----------------------------------------
+ */
 
-geometry.rotateX(Math.PI / -2);
+
 // Material
 const debugObject = {
     waterSurfaceColor : "#e65656",
@@ -111,7 +117,19 @@ gui.addColor(debugObject, 'snowColor').name('uSnowColor').onChange(e => {
 
 const material = new CustomShaderMaterial({
     baseMaterial: THREE.MeshStandardMaterial,
-    vertexShader: surfaceVertexShader,
+    vertexShader: cloud1Shader,
+    fragmentShader: surfaceFragmentShader,
+    uniforms: uniforms,
+     // MeshPhysicalMaterial
+    metalness: 0,
+    roughness: 0.5,
+    color: '#85d534'
+
+});
+
+const material2 = new CustomShaderMaterial({
+    baseMaterial: THREE.MeshStandardMaterial,
+    vertexShader: cloud2Shader,
     fragmentShader: surfaceFragmentShader,
     uniforms: uniforms,
      // MeshPhysicalMaterial
@@ -124,38 +142,41 @@ const material = new CustomShaderMaterial({
 const depthMaterial = new CustomShaderMaterial({
     // CSM
     baseMaterial: THREE.MeshDepthMaterial,
-    vertexShader: surfaceVertexShader,
+    vertexShader: cloud1Shader,
     uniforms: uniforms,
 
     // MeshDepthMaterial
     depthPacking: THREE.RGBADepthPacking,
 })
 
-// Mesh
-const mesh = new THREE.Mesh(geometry, material);
-mesh.customDepthMaterial = depthMaterial;
-mesh.receiveShadow = true;
-mesh.castShadow = true;
-scene.add(mesh);
 
-//water
-const water = new THREE.Mesh(
-    new THREE.PlaneGeometry(10, 10, 1, 1),
-    new THREE.MeshPhysicalMaterial({
-        transmission: 1,
-        roughness: 0.3
-    })
-)
-water.rotation.x = - Math.PI * 0.5
-water.position.y = - 0.1
-scene.add(water)
+// Brushes
+const plane1 = new THREE.BoxGeometry(10.2, 2, 10, 20, 20, 20);
+const plane2 = new THREE.BoxGeometry(10, 2, 10, 20, 20, 20);
+const cloudTop = new Brush(plane1);
+const cloudBottom = new Brush(plane2);
 
+// Flip 
+// cloudTop.geometry.rotateX(Math.PI * -0.5)
+// cloudBottom.geometry.rotateX(Math.PI * 0.5);
+cloudBottom.position.y = 1;
 
-gui.add(water.material, 'metalness', 0, 1, 0.001)
-gui.add(water.material, 'roughness', 0, 1, 0.001)
-gui.add(water.material, 'transmission', 0, 1, 0.001)
-gui.add(water.material, 'ior', 0, 10, 0.001)
-gui.add(water.material, 'thickness', 0, 10, 0.001)
+// Move it so the tips meet (adjust this value)
+
+// Update matrices
+cloudTop.updateMatrixWorld(true);
+cloudBottom.updateMatrixWorld(true);
+
+cloudTop.material = material;
+cloudTop.material.side = THREE.DoubleSide;
+cloudBottom.material = material2;
+cloudBottom.material.side = THREE.DoubleSide;
+
+// Evaluate
+const evaluator = new Evaluator();
+const board = evaluator.evaluate(cloudBottom, cloudTop, INTERSECTION );
+scene.add(board)
+console.log(board);
 
 /**
  * Lights
@@ -184,18 +205,11 @@ const clock = new THREE.Clock();
 
 //animation loop
 function animate() {
-
+    // console.log(camera.position);
+    
     const elapsedTime = clock.getElapsedTime();
 
-    //update light position
-    // pointLight.position.set(
-    //     Math.sin(elapsedTime * 0.1) * 10, 
-    //     2 ,
-    //     Math.cos(elapsedTime * 0.1) * 10
-    // );
-
-    //update uTime material
-    uniforms.uTime.value = elapsedTime;
+   uniforms.uTime.value = elapsedTime;
 
     //update controls
     controls.update();

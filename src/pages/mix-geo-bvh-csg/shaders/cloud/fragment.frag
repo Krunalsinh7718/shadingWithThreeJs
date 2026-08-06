@@ -43,7 +43,11 @@ void main(){
     vec3 mixSnow = mix(color, uSnowColor, snowMix);
     color = mixSnow;
 
+    if(vPosition.y < 0.0){
+        discard;
+    }
+
 
     // csm_DiffuseColor = vec4(color, 1.0);
-    csm_FragColor = vec4( vec3(1.0), 1.0);
+    csm_DiffuseColor = vec4( vec3(1.0), 1.0);
 }

@@ -9,9 +9,10 @@ REVERSE_SUBTRACTION,   // B - A
 DIFFERENCE,            // A ⊕ B
 INTERSECTION           // A ∩ B
 } from 'three-bvh-csg';
-import cloud1Shader from './shaders/cloud/vertex.vert'
-import cloud2Shader from './shaders/cloud2/vertex.vert'
-import surfaceFragmentShader from './shaders/cloud/fragment.frag'
+import cloud1VertexShader from './shaders/cloud/vertex.vert'
+import cloud2VertexShader from './shaders/cloud2/vertex.vert'
+import cloud1FragmentShader from './shaders/cloud/fragment.frag'
+import cloud2FragmentShader from './shaders/cloud2/fragment.frag'
 
 
 import CustomShaderMaterial from 'three-custom-shader-material/vanilla';
@@ -117,8 +118,8 @@ gui.addColor(debugObject, 'snowColor').name('uSnowColor').onChange(e => {
 
 const material = new CustomShaderMaterial({
     baseMaterial: THREE.MeshStandardMaterial,
-    vertexShader: cloud1Shader,
-    fragmentShader: surfaceFragmentShader,
+    vertexShader: cloud1VertexShader,
+    fragmentShader: cloud1FragmentShader,
     uniforms: uniforms,
     side: THREE.DoubleSide,
      // MeshPhysicalMaterial
@@ -130,9 +131,10 @@ const material = new CustomShaderMaterial({
 
 const material2 = new CustomShaderMaterial({
     baseMaterial: THREE.MeshStandardMaterial,
-    vertexShader: cloud2Shader,
-    fragmentShader: surfaceFragmentShader,
+    vertexShader: cloud2VertexShader,
+    fragmentShader: cloud2FragmentShader,
     uniforms: uniforms,
+    side: THREE.DoubleSide,
      // MeshPhysicalMaterial
     metalness: 0,
     roughness: 0.5,
@@ -143,7 +145,7 @@ const material2 = new CustomShaderMaterial({
 const depthMaterial = new CustomShaderMaterial({
     // CSM
     baseMaterial: THREE.MeshDepthMaterial,
-    vertexShader: cloud1Shader,
+    vertexShader: cloud1VertexShader,
     uniforms: uniforms,
 
     // MeshDepthMaterial
@@ -152,16 +154,24 @@ const depthMaterial = new CustomShaderMaterial({
 
 
 // Brushes
+const plane = new THREE.PlaneGeometry(10, 10, 500, 500);
 const plane1 = new THREE.PlaneGeometry(10, 10, 500, 500);
+plane.rotateX(Math.PI * -0.5);
 plane1.rotateX(Math.PI * 0.5);
 // plane1.updateProjectionMatrix();
 // const plane2 = new THREE.BoxGeometry(10, 2, 10, 20, 20, 20);
 
-const mesh = new THREE.Mesh(plane1, material);
+const mesh = new THREE.Mesh(plane, material);
+const mesh1 = new THREE.Mesh(plane1, material2);
 mesh.receiveShadow = true;
+mesh1.receiveShadow = true;
 mesh.castShadow = true;
+mesh1.castShadow = true;
 mesh.depthMaterial = depthMaterial;
-scene.add(mesh);
+mesh1.depthMaterial = depthMaterial;
+
+scene.add(mesh, mesh1);
+mesh1.position.y = -1;
 
 /**
  * Lights

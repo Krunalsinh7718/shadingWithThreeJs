@@ -43,7 +43,7 @@ void main(){
     vec3 mixSnow = mix(color, uSnowColor, snowMix);
     color = mixSnow;
 
-    if(vPosition.y > 1.0){
+    if(vPosition.y > 0.0){
         discard;
     }
     // color = vec3(1.0, 0.0, 0.0);

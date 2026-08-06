@@ -1,6 +1,6 @@
 
 #include "../../../includes/simplexNoise2d.glsl"
-
+#include "../cloud-functions.glsl"
 
 uniform float uPositionFrequency;
 uniform float uStrength;
@@ -12,28 +12,7 @@ uniform float uTimeFrequency;
 varying vec3 vPosition;
 varying float vUpDot;
 
-float getElevation(vec2 position){
 
-    // float uPositionFrequency = 0.2;
-    // float uStrength = 2.0;
-    // float uWarpFrequency = 5.0;
-    // float uWarpStrength = 0.5;
-
-    vec2 warpedPosition = position;
-    warpedPosition += uTime * uTimeFrequency;
-    warpedPosition += simplexNoise2d(warpedPosition * uPositionFrequency * uWarpFrequency )  * uWarpStrength ;
-
-    float elevation = 0.0;
-    elevation += simplexNoise2d(warpedPosition * uPositionFrequency      ) / 2.0;
-    elevation += simplexNoise2d(warpedPosition * uPositionFrequency * 2.0) / 4.0;
-    elevation += simplexNoise2d(warpedPosition * uPositionFrequency * 4.0) / 8.0;
-    
-    float elevationSign = sign(elevation);
-    elevation = pow(abs(elevation), 2.0) * elevationSign; 
-    elevation *= uStrength;
-
-    return elevation;
-}
 
 void main(){
     
@@ -44,9 +23,9 @@ void main(){
     vec3 positionA = csm_Position + vec3(distToPoint, 0.0, 0.0);
     vec3 positionB = csm_Position + vec3(0.0, 0.0, -distToPoint);
 
-    csm_Position.y += getElevation(csm_Position.xz);
-    positionA.y = getElevation(positionA.xz);
-    positionB.y = getElevation(positionB.xz);
+    csm_Position.y += getElevation(csm_Position.xz, uPositionFrequency, uWarpFrequency, uWarpStrength, uStrength, uTime, uTimeFrequency);
+    positionA.y = getElevation(positionA.xz, uPositionFrequency, uWarpFrequency, uWarpStrength, uStrength, uTime, uTimeFrequency);
+    positionB.y = getElevation(positionB.xz, uPositionFrequency, uWarpFrequency, uWarpStrength, uStrength, uTime, uTimeFrequency);
 
     vec3 toA = normalize(positionA - csm_Position);
     vec3 toB = normalize(positionB - csm_Position);

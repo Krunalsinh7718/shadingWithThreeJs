@@ -116,11 +116,29 @@ gui.addColor(debugObject, 'snowColor').name('uSnowColor').onChange(e => {
     uniforms.uSnowColor.value.set(debugObject.snowColor);
 });
 
+
+
+const uniformsCloud = {
+    uPositionFrequency: new THREE.Uniform(0.263),
+    uStrength: new THREE.Uniform(1.273),
+    uWarpFrequency: new THREE.Uniform(2.011),
+    uWarpStrength: new THREE.Uniform(0.078),
+    uTime: new THREE.Uniform(0),
+    uTimeFrequency: new THREE.Uniform(0.2),
+    
+    uWaterSurfaceColor: new THREE.Uniform(new THREE.Color(debugObject.waterSurfaceColor)),
+    uWaterDeepColor: new THREE.Uniform(new THREE.Color(debugObject.waterDeepColor)),
+    uSandColor: new THREE.Uniform(new THREE.Color(debugObject.sandColor)),
+    uGrassColor: new THREE.Uniform(new THREE.Color(debugObject.grassColor)),
+    uRockColor: new THREE.Uniform(new THREE.Color(debugObject.rockColor)),
+    uSnowColor: new THREE.Uniform(new THREE.Color(debugObject.snowColor)),
+}
+
 const material = new CustomShaderMaterial({
     baseMaterial: THREE.MeshStandardMaterial,
     vertexShader: cloud1VertexShader,
     fragmentShader: cloud1FragmentShader,
-    uniforms: uniforms,
+    uniforms: uniformsCloud,
     side: THREE.DoubleSide,
      // MeshPhysicalMaterial
     metalness: 0,
@@ -133,7 +151,7 @@ const material2 = new CustomShaderMaterial({
     baseMaterial: THREE.MeshStandardMaterial,
     vertexShader: cloud2VertexShader,
     fragmentShader: cloud2FragmentShader,
-    uniforms: uniforms,
+    uniforms: uniformsCloud,
     side: THREE.DoubleSide,
      // MeshPhysicalMaterial
     metalness: 0,
@@ -146,7 +164,7 @@ const depthMaterial = new CustomShaderMaterial({
     // CSM
     baseMaterial: THREE.MeshDepthMaterial,
     vertexShader: cloud1VertexShader,
-    uniforms: uniforms,
+    uniforms: uniformsCloud,
 
     // MeshDepthMaterial
     depthPacking: THREE.RGBADepthPacking,
@@ -171,7 +189,7 @@ mesh.depthMaterial = depthMaterial;
 mesh1.depthMaterial = depthMaterial;
 
 scene.add(mesh, mesh1);
-mesh1.position.y = -1;
+mesh1.position.y = 5;
 
 /**
  * Lights
@@ -205,6 +223,7 @@ function animate() {
     const elapsedTime = clock.getElapsedTime();
 
    uniforms.uTime.value = elapsedTime;
+   uniformsCloud.uTime.value = elapsedTime;
 
     //update controls
     controls.update();

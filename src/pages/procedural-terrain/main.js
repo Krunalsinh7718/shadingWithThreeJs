@@ -5,10 +5,14 @@ import GUI from 'lil-gui'
 import surfaceVertexShader from './shaders/surface/vertex.vert'
 import surfaceFragmentShader from './shaders/surface/fragment.frag'
 import CustomShaderMaterial from 'three-custom-shader-material/vanilla';
+import cloud1VertexShader from './shaders/cloud/vertex.vert'
+import cloud2VertexShader from './shaders/cloud2/vertex.vert'
+import cloud1FragmentShader from './shaders/cloud/fragment.frag'
+import cloud2FragmentShader from './shaders/cloud2/fragment.frag'
 
 //gui
 const gui = new GUI();
-
+const surfaceFolder = gui.addFolder( 'Surface' );
 
 
 //texture loader
@@ -38,8 +42,9 @@ const scene = new THREE.Scene();
 
 //camera setup
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.set(0, 5, 8);
+camera.position.set(-3.12,0.77,-3.95);
 scene.add(camera)
+
 
 //renderer setup
 const renderer = new THREE.WebGLRenderer();
@@ -54,8 +59,8 @@ renderer.toneMappingExposure = 1
 //mesh setup
 // Geometry
 const geometry = new THREE.PlaneGeometry(10, 10, 500, 500);
-geometry.deleteAttribute('uv');
-geometry.deleteAttribute('normal');
+// geometry.deleteAttribute('uv');
+// geometry.deleteAttribute('normal');
 geometry.rotateX(Math.PI / -2);
 
 // Material
@@ -65,14 +70,15 @@ const debugObject = {
     sandColor: "#a781fd",
     grassColor: "#a9d0f9",
     rockColor: "#930173",
-    snowColor: "#01f45e"
+    snowColor: "#01f45e",
+    cloudColor: "#fff"
 }
 
 const uniforms = {
     uPositionFrequency: new THREE.Uniform(0.2),
-    uStrength: new THREE.Uniform(2.0),
+    uStrength: new THREE.Uniform(2.94),
     uWarpFrequency: new THREE.Uniform(5.0),
-    uWarpStrength: new THREE.Uniform(0.5),
+    uWarpStrength: new THREE.Uniform(0.16),
     uTime: new THREE.Uniform(0),
     uTimeFrequency: new THREE.Uniform(0.2),
     
@@ -84,28 +90,29 @@ const uniforms = {
     uSnowColor: new THREE.Uniform(new THREE.Color(debugObject.snowColor)),
 }
 
-gui.add(uniforms.uPositionFrequency, 'value', 0, 1, 0.001).name('uPositionFrequency')
-gui.add(uniforms.uStrength, 'value', 0, 10, 0.001).name('uStrength')
-gui.add(uniforms.uWarpFrequency, 'value', 0, 10, 0.001).name('uWarpFrequency')
-gui.add(uniforms.uWarpStrength, 'value', 0, 1, 0.001).name('uWarpStrength')
-gui.add(uniforms.uTimeFrequency, 'value', 0, 1, 0.001).name('uTimeFrequency')
 
-gui.addColor(debugObject, 'waterSurfaceColor').name('uWaterSurfaceColor').onChange(e => {
+surfaceFolder.add(uniforms.uPositionFrequency, 'value', 0, 1, 0.001).name('uPositionFrequency')
+surfaceFolder.add(uniforms.uStrength, 'value', 0, 10, 0.001).name('uStrength')
+surfaceFolder.add(uniforms.uWarpFrequency, 'value', 0, 10, 0.001).name('uWarpFrequency')
+surfaceFolder.add(uniforms.uWarpStrength, 'value', 0, 1, 0.001).name('uWarpStrength')
+surfaceFolder.add(uniforms.uTimeFrequency, 'value', 0, 1, 0.001).name('uTimeFrequency')
+
+surfaceFolder.addColor(debugObject, 'waterSurfaceColor').name('uWaterSurfaceColor').onChange(e => {
     uniforms.uWaterSurfaceColor.value.set(debugObject.waterSurfaceColor);
 });
-gui.addColor(debugObject, 'waterDeepColor').name('uWaterDeepColor').onChange(e => {
+surfaceFolder.addColor(debugObject, 'waterDeepColor').name('uWaterDeepColor').onChange(e => {
     uniforms.uWaterDeepColor.value.set(debugObject.waterDeepColor);
 });
-gui.addColor(debugObject, 'sandColor').name('uSandColor').onChange(e => {
+surfaceFolder.addColor(debugObject, 'sandColor').name('uSandColor').onChange(e => {
     uniforms.uSandColor.value.set(debugObject.sandColor);
 });
-gui.addColor(debugObject, 'grassColor').name('uGrassColor').onChange(e => {
+surfaceFolder.addColor(debugObject, 'grassColor').name('uGrassColor').onChange(e => {
     uniforms.uGrassColor.value.set(debugObject.grassColor);
 });
-gui.addColor(debugObject, 'rockColor').name('uRockColor').onChange(e => {
+surfaceFolder.addColor(debugObject, 'rockColor').name('uRockColor').onChange(e => {
     uniforms.uRockColor.value.set(debugObject.rockColor);
 });
-gui.addColor(debugObject, 'snowColor').name('uSnowColor').onChange(e => {
+surfaceFolder.addColor(debugObject, 'snowColor').name('uSnowColor').onChange(e => {
     uniforms.uSnowColor.value.set(debugObject.snowColor);
 });
 
@@ -138,6 +145,104 @@ mesh.receiveShadow = true;
 mesh.castShadow = true;
 scene.add(mesh);
 
+//clouds
+
+
+const uniformsCloud = {
+    uPositionFrequency: new THREE.Uniform(0.263),
+    uStrength: new THREE.Uniform(0.7),
+    uWarpFrequency: new THREE.Uniform(2.011),
+    uWarpStrength: new THREE.Uniform(0.078),
+    uTime: new THREE.Uniform(0),
+    uTimeFrequency: new THREE.Uniform(0.2),
+    
+    uCloudColor: new THREE.Uniform(new THREE.Color(debugObject.cloudColor)),
+}
+
+const cloudFolder = gui.addFolder( 'Clouds' );
+cloudFolder.add(uniformsCloud.uPositionFrequency, 'value', 0, 1, 0.001).name('uPositionFrequency')
+cloudFolder.add(uniformsCloud.uStrength, 'value', 0, 10, 0.001).name('uStrength')
+cloudFolder.add(uniformsCloud.uWarpFrequency, 'value', 0, 10, 0.001).name('uWarpFrequency')
+cloudFolder.add(uniformsCloud.uWarpStrength, 'value', 0, 1, 0.001).name('uWarpStrength')
+cloudFolder.add(uniformsCloud.uTimeFrequency, 'value', 0, 1, 0.001).name('uTimeFrequency')
+
+
+
+cloudFolder.addColor(debugObject, 'cloudColor').name('uCloudColor').onChange(e => {
+    uniformsCloud.uCloudColor.value.set(debugObject.cloudColor);
+});
+
+const cloudMaterial = new CustomShaderMaterial({
+    baseMaterial: THREE.MeshPhysicalMaterial,
+    vertexShader: cloud1VertexShader,
+    fragmentShader: cloud1FragmentShader,
+    uniforms: uniformsCloud,
+    // side: THREE.DoubleSide,
+    // MeshPhysicalMaterial
+    metalness: 0,
+    roughness: 0.5,
+    color: '#85d534'
+    
+});
+cloudFolder.add(cloudMaterial, 'metalness', 0, 1, 0.001).onChange(e => cloudMaterial2.metalness = cloudMaterial.metalness)
+cloudFolder.add(cloudMaterial, 'roughness', 0, 1, 0.001).onChange(e => cloudMaterial2.roughness = cloudMaterial.roughness)
+cloudFolder.add(cloudMaterial, 'ior', 0, 10, 0.001).onChange(e => cloudMaterial2.ior = cloudMaterial.ior)
+cloudFolder.add(cloudMaterial, 'thickness', 0, 10, 0.001).onChange(e => cloudMaterial2.thickness = cloudMaterial.thickness)
+cloudFolder.add(cloudMaterial, 'transmission', 0, 10, 0.001).onChange(e => cloudMaterial2.transmission = cloudMaterial.transmission)
+
+const cloudMaterial2 = new CustomShaderMaterial({
+    baseMaterial: THREE.MeshPhysicalMaterial,
+    vertexShader: cloud2VertexShader,
+    fragmentShader: cloud2FragmentShader,
+    uniforms: uniformsCloud,
+    // side: THREE.DoubleSide,
+     // MeshPhysicalMaterial
+    metalness: 0,
+    roughness: 0.5,
+    color: '#85d534'
+
+});
+
+const cloudDepthMaterial = new CustomShaderMaterial({
+    // CSM
+    baseMaterial: THREE.MeshDepthMaterial,
+    vertexShader: cloud1VertexShader,
+    uniforms: uniformsCloud,
+
+    // MeshDepthMaterial
+    depthPacking: THREE.RGBADepthPacking,
+})
+
+const cloudDepthMaterial1 = new CustomShaderMaterial({
+    // CSM
+    baseMaterial: THREE.MeshDepthMaterial,
+    vertexShader: cloud2VertexShader,
+    uniforms: uniformsCloud,
+
+    // MeshDepthMaterial
+    depthPacking: THREE.RGBADepthPacking,
+})
+
+const plane = new THREE.PlaneGeometry(10, 10, 500, 500);
+const plane1 = new THREE.PlaneGeometry(10, 10, 500, 500);
+plane.rotateX(Math.PI * -0.5);
+plane1.rotateX(Math.PI * 0.5);
+// plane1.updateProjectionMatrix();
+// const plane2 = new THREE.BoxGeometry(10, 2, 10, 20, 20, 20);
+
+const cloudMesh = new THREE.Mesh(plane, cloudMaterial);
+const cloudMesh1 = new THREE.Mesh(plane1, cloudMaterial2);
+cloudMesh.receiveShadow = true;
+cloudMesh1.receiveShadow = true;
+cloudMesh.castShadow = true;
+cloudMesh1.castShadow = true;
+cloudMesh.depthMaterial = cloudDepthMaterial;
+cloudMesh1.depthMaterial = cloudDepthMaterial1;
+
+scene.add(cloudMesh, cloudMesh1);
+cloudMesh.position.y = 3;
+cloudMesh1.position.y = 3;
+
 //water
 const waterGeomatry = new THREE.PlaneGeometry(10, 10, 1, 1);
 waterGeomatry.deleteAttribute('uv');
@@ -154,12 +259,12 @@ water.rotation.x = - Math.PI * 0.5
 water.position.y = - 0.1
 scene.add(water)
 
-
-gui.add(water.material, 'metalness', 0, 1, 0.001)
-gui.add(water.material, 'roughness', 0, 1, 0.001)
-gui.add(water.material, 'transmission', 0, 1, 0.001)
-gui.add(water.material, 'ior', 0, 10, 0.001)
-gui.add(water.material, 'thickness', 0, 10, 0.001)
+const waterFolder = gui.addFolder( 'Water' );
+waterFolder.add(water.material, 'metalness', 0, 1, 0.001)
+waterFolder.add(water.material, 'roughness', 0, 1, 0.001)
+waterFolder.add(water.material, 'transmission', 0, 1, 0.001)
+waterFolder.add(water.material, 'ior', 0, 10, 0.001)
+waterFolder.add(water.material, 'thickness', 0, 10, 0.001)
 
 /**
  * Lights
@@ -170,7 +275,7 @@ gui.add(water.material, 'thickness', 0, 10, 0.001)
 const directionalLight = new THREE.DirectionalLight('#ffffff', 2)
 directionalLight.position.set(6.25, 3, 4)
 directionalLight.castShadow = true
-directionalLight.shadow.mapSize.set(2048, 2048)
+directionalLight.shadow.mapSize.set(4000, 4000)
 directionalLight.shadow.camera.near = 0.1
 directionalLight.shadow.camera.far = 30
 directionalLight.shadow.camera.top = 8
@@ -188,7 +293,7 @@ const clock = new THREE.Clock();
 
 //animation loop
 function animate() {
-
+    
     const elapsedTime = clock.getElapsedTime();
 
     //update light position
@@ -200,6 +305,7 @@ function animate() {
 
     //update uTime material
     uniforms.uTime.value = elapsedTime;
+    uniformsCloud.uTime.value = elapsedTime;
 
     //update controls
     controls.update();

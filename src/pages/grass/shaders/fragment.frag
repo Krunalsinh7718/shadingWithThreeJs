@@ -1,17 +1,12 @@
-varying vec3 vRandom;
-varying vec2 vUv;
-varying float vElevation;
-
-
-uniform vec3 uColor;
-uniform sampler2D uTexture;
+varying vec3 vPosition;
 
 void main(){
-    vec3 color = vec3(0.5, vRandom.r , 0.7 );
+    vec3 colorTop = vec3(0.18, 0.91, 0.00);
+    vec3 colorBottom = vec3(0.07, 0.33, 0.01);
 
-    vec4 textureColor = texture2D(uTexture, vUv );
-    textureColor.rgb *= vElevation * 2.0 + 0.5;
-    // gl_FragColor = vec4(uColor, 1.0);
-    gl_FragColor = textureColor;
+    
+    vec3 color = mix(colorBottom, colorTop, vPosition.y);
+
+    csm_DiffuseColor = vec4(color, 1.0);
     #include <colorspace_fragment>
 }

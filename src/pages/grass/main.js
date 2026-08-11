@@ -2,8 +2,13 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import GUI from 'lil-gui'
 import CustomShaderMaterial from 'three-custom-shader-material/vanilla'
-import testVertexShader from './shaders/vertex.vert'
-import testFragmentShader from './shaders/fragment.frag'
+
+import grassVertexShader from './shaders/grass/vertex.vert'
+import grassFragmentShader from './shaders/grass/fragment.frag'
+
+import surfaceVertexShader from './shaders/surface/vertex.vert'
+import surfaceFragmentShader from './shaders/surface/fragment.frag'
+
 import { Uniform } from 'three/webgpu';
 
 /**
@@ -116,9 +121,11 @@ grassGeo.setAttribute(
     'position',
     new THREE.BufferAttribute(positions, 3)
 );
+console.log("grassGeo.attributes.position.count", grassGeo.attributes.position.count);
+
 const posArr = new Float32Array(grassGeo.attributes.position.count);
 for (let i = 0; i < grassGeo.attributes.position.count; i++) {
-    posArr[i] = Math.random();
+    posArr[i] = Math.random() * 10;
 }
 grassGeo.setAttribute(
     'aRandom',
@@ -128,13 +135,17 @@ grassGeo.setAttribute(
 grassGeo.setIndex(indices);
 
 grassGeo.computeVertexNormals();
-console.log(grassGeo);
 
 
 // const grassMaterial = new THREE.MeshPhysicalMaterial({
 //     color: "#ffffff",
 //     side: THREE.DoubleSide
 // });
+
+const grassColor = {
+    colorTop : "#8134f4",
+    colorBottom : "#2c0467",
+}
 const uniforms = {
     uHeight: new THREE.Uniform(1),
     uWidth: new THREE.Uniform(0.5),
@@ -144,6 +155,12 @@ const uniforms = {
     uWindStrength: new THREE.Uniform(0.3),
     uWindSpeed: new THREE.Uniform(0.5),
     uWindScale: new THREE.Uniform(0.5),
+
+    uGrassRotation: new THREE.Uniform(0),
+
+    uGrassColorTop : new THREE.Uniform(new THREE.Color(grassColor.colorTop)),
+    uGrassColorBottom : new THREE.Uniform(new THREE.Color(grassColor.colorBottom)),
+
 };
 
 gui.add(uniforms.uHeight, 'value', 0 , 3, 0.01).name("Height");
@@ -154,10 +171,20 @@ gui.add(uniforms.uWindStrength, 'value', 0 , 1, 0.01).name("uWindStrength");
 gui.add(uniforms.uWindSpeed, 'value',  0 , 1, 0.01).name("uWindSpeed");
 gui.add(uniforms.uWindScale, 'value',  0 , 5, 0.01).name("uWindScale");
 
+gui.add(uniforms.uGrassRotation, 'value',  -Math.PI * 2 , Math.PI * 2, 0.1).name("uGrassRotation").listen();
+
+
+gui.addColor(grassColor, 'colorTop').onChange(e => {
+    uniforms.uGrassColorTop.value.set(grassColor.colorTop);
+})
+gui.addColor(grassColor, 'colorBottom').onChange(e => {
+    uniforms.uGrassColorBottom.value.set(grassColor.colorBottom);
+})
+
 const grassMaterial = new CustomShaderMaterial({
      baseMaterial: THREE.MeshPhysicalMaterial,
-    vertexShader: testVertexShader,
-    fragmentShader: testFragmentShader,
+    vertexShader: grassVertexShader,
+    fragmentShader: grassFragmentShader,
     side: THREE.DoubleSide,
     // wireframe: true,
     uniforms: uniforms
@@ -177,24 +204,80 @@ const grassMesh = new THREE.InstancedMesh(
 )
 
 const dummy = new THREE.Object3D();
-console.log(dummy);
 for (let i = 0; i < count; i++) {
     dummy.position.set(
         (Math.random() - 0.5) * area,
-        0,
+        Math.random() * 0.5,
         (Math.random() - 0.5) * area
     );
-    dummy.scale.set(
-        1,
-        Math.random() * 1 + 0.7,
-        1
-    );
+     const scale = 0.8 + Math.random() * 0.4;
+    dummy.scale.set(scale, scale, scale);
     
     dummy.updateMatrix();
     grassMesh.setMatrixAt(i, dummy.matrix);
 }
+console.log(grassMesh);
 grassMesh.instanceMatrix.needsUpdate = true;
 scene.add(grassMesh);
+
+/**
+ * Terrain
+ */
+// Geometry
+const terrainGeo = new THREE.PlaneGeometry(30, 30, 500, 500);
+terrainGeo.rotateX(Math.PI / -2);
+
+// Material
+
+
+const uniforms_surface = {
+    uPositionFrequency: new THREE.Uniform(0.2),
+    uStrength: new THREE.Uniform(2.94),
+    uWarpFrequency: new THREE.Uniform(5.0),
+    uWarpStrength: new THREE.Uniform(0.16),
+    uTime: new THREE.Uniform(0),
+    uTimeFrequency: new THREE.Uniform(0.2),
+    
+}
+
+
+gui.add(uniforms_surface.uPositionFrequency, 'value', 0, 1, 0.001).name('uPositionFrequency')
+gui.add(uniforms_surface.uStrength, 'value', 0, 10, 0.001).name('uStrength')
+gui.add(uniforms_surface.uWarpFrequency, 'value', 0, 10, 0.001).name('uWarpFrequency')
+gui.add(uniforms_surface.uWarpStrength, 'value', 0, 1, 0.001).name('uWarpStrength')
+gui.add(uniforms_surface.uTimeFrequency, 'value', 0, 1, 0.001).name('uTimeFrequency')
+
+
+
+const terrainMaterial = new CustomShaderMaterial({
+    baseMaterial: THREE.MeshStandardMaterial,
+    vertexShader: surfaceVertexShader,
+    fragmentShader: surfaceFragmentShader,
+    uniforms: uniforms_surface,
+     // MeshPhysicalMaterial
+    metalness: 0,
+    roughness: 0.5,
+    color: '#85d534'
+
+});
+
+const depthMaterial = new CustomShaderMaterial({
+    // CSM
+    baseMaterial: THREE.MeshDepthMaterial,
+    vertexShader: surfaceVertexShader,
+    uniforms: uniforms_surface,
+
+    // MeshDepthMaterial
+    depthPacking: THREE.RGBADepthPacking,
+})
+
+// Mesh
+const mesh = new THREE.Mesh(terrainGeo, terrainMaterial);
+mesh.customDepthMaterial = depthMaterial;
+mesh.receiveShadow = true;
+mesh.castShadow = true;
+scene.add(mesh);
+
 
 /**
  * Light
@@ -202,6 +285,13 @@ scene.add(grassMesh);
 const amibiantLight = new THREE.AmbientLight("#fff", 2);
 scene.add(amibiantLight);
 
+const directionalLight = new THREE.DirectionalLight('#ffffff', 3)
+directionalLight.castShadow = true
+directionalLight.shadow.mapSize.set(1024, 1024)
+directionalLight.shadow.camera.far = 15
+directionalLight.shadow.normalBias = 0.05
+directionalLight.position.set(0.25, 3, - 2.25)
+scene.add(directionalLight)
 
 /**
  * animation loop
@@ -213,6 +303,19 @@ function animate() {
     
     //update uTime
     uniforms.uTime.value = elapsedTime;
+
+    //update grass angle
+
+    const cameraDirection = new THREE.Vector3();
+
+camera.getWorldDirection(cameraDirection);
+
+const cameraAngle = Math.atan2(
+    cameraDirection.x,
+    cameraDirection.z
+);
+
+grassMaterial.uniforms.uGrassRotation.value = cameraAngle;
 
     //update controls
     controls.update();

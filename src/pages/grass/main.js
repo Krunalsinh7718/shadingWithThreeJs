@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
 import GUI from 'lil-gui'
 import CustomShaderMaterial from 'three-custom-shader-material/vanilla'
 
@@ -20,7 +21,8 @@ const gui = new GUI();
  * texture loader
  */
 const textureLoader = new THREE.TextureLoader();
-const flagTexture = textureLoader.load("/images/flag/india-flag.png");
+const hdrLoader = new HDRLoader();
+
 
 /**
  * sizes
@@ -39,7 +41,9 @@ const scene = new THREE.Scene();
  * camera setup
  */
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.set(0, 3, 8)
+camera.position.set(1.16, 2.40, -8.11)
+
+
 scene.add(camera)
 
 /**
@@ -58,10 +62,15 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 
 /**
- * group
+ * Environment map
  */
-const group = new THREE.Group();
-scene.add( group );
+hdrLoader.load('/hdr/spruit_sunrise.hdr', (environmentMap) => {
+    environmentMap.mapping = THREE.EquirectangularReflectionMapping
+
+    scene.background = environmentMap
+    scene.backgroundBlurriness = 0.5
+    scene.environment = environmentMap
+})
 
 /**
  * GRASS
@@ -143,52 +152,64 @@ grassGeo.computeVertexNormals();
 // });
 
 const grassColor = {
-    colorTop : "#aed100",
-    colorBottom : "#227c19",
+    colorTop: "#aed100",
+    colorBottom: "#227c19",
 }
 const uniforms = {
     uHeight: new THREE.Uniform(1),
     uWidth: new THREE.Uniform(0.5),
     uBend: new THREE.Uniform(0.1),
 
-    uTime : new THREE.Uniform(0),
+    uTime: new THREE.Uniform(0),
     uWindStrength: new THREE.Uniform(0.3),
     uWindSpeed: new THREE.Uniform(0.5),
     uWindScale: new THREE.Uniform(0.5),
 
     uGrassRotation: new THREE.Uniform(0),
 
-    uGrassColorTop : new THREE.Uniform(new THREE.Color(grassColor.colorTop)),
-    uGrassColorBottom : new THREE.Uniform(new THREE.Color(grassColor.colorBottom)),
+    uGrassColorTop: new THREE.Uniform(new THREE.Color(grassColor.colorTop)),
+    uGrassColorBottom: new THREE.Uniform(new THREE.Color(grassColor.colorBottom)),
 
 };
+const grassFolder = gui.addFolder( 'Grass' );
+grassFolder.add(uniforms.uHeight, 'value', 0, 3, 0.01).name("Height");
+grassFolder.add(uniforms.uWidth, 'value', 0, 3, 0.01).name("Width");
+grassFolder.add(uniforms.uBend, 'value', -0.5, 0.5, 0.01).name("Bend");
 
-gui.add(uniforms.uHeight, 'value', 0 , 3, 0.01).name("Height");
-gui.add(uniforms.uWidth, 'value', 0 , 3, 0.01).name("Width");
-gui.add(uniforms.uBend, 'value', -0.5 , 0.5, 0.01).name("Bend");
+grassFolder.add(uniforms.uWindStrength, 'value', 0, 1, 0.01).name("uWindStrength");
+grassFolder.add(uniforms.uWindSpeed, 'value', 0, 1, 0.01).name("uWindSpeed");
+grassFolder.add(uniforms.uWindScale, 'value', 0, 5, 0.01).name("uWindScale");
 
-gui.add(uniforms.uWindStrength, 'value', 0 , 1, 0.01).name("uWindStrength");
-gui.add(uniforms.uWindSpeed, 'value',  0 , 1, 0.01).name("uWindSpeed");
-gui.add(uniforms.uWindScale, 'value',  0 , 5, 0.01).name("uWindScale");
-
-gui.add(uniforms.uGrassRotation, 'value',  -Math.PI * 2 , Math.PI * 2, 0.1).name("uGrassRotation").listen();
+grassFolder.add(uniforms.uGrassRotation, 'value', -Math.PI * 2, Math.PI * 2, 0.1).name("uGrassRotation").listen();
 
 
-gui.addColor(grassColor, 'colorTop').onChange(e => {
+grassFolder.addColor(grassColor, 'colorTop').onChange(e => {
     uniforms.uGrassColorTop.value.set(grassColor.colorTop);
 })
-gui.addColor(grassColor, 'colorBottom').onChange(e => {
+grassFolder.addColor(grassColor, 'colorBottom').onChange(e => {
     uniforms.uGrassColorBottom.value.set(grassColor.colorBottom);
 })
 
 const grassMaterial = new CustomShaderMaterial({
-     baseMaterial: THREE.MeshPhysicalMaterial,
+    baseMaterial: THREE.MeshPhysicalMaterial,
     vertexShader: grassVertexShader,
     fragmentShader: grassFragmentShader,
     side: THREE.DoubleSide,
     // wireframe: true,
-    uniforms: uniforms
+    uniforms: uniforms,
+
+    metalness: 0, 
+    roughness:0.619,
+    transmission: 0.385,
+    ior: 1.273,
+    thickness: 8.402
 })
+
+grassFolder.add(grassMaterial, 'metalness', 0, 1, 0.001)
+grassFolder.add(grassMaterial, 'roughness', 0, 1, 0.001)
+grassFolder.add(grassMaterial, 'transmission', 0, 1, 0.001)
+grassFolder.add(grassMaterial, 'ior', 0, 10, 0.001)
+grassFolder.add(grassMaterial, 'thickness', 0, 10, 0.001)
 
 // const grassMesh = new THREE.Mesh(
 //     geometry,
@@ -210,13 +231,13 @@ for (let i = 0; i < count; i++) {
         Math.random() * 0.5,
         (Math.random() - 0.5) * area
     );
-     const scale = 0.8 + Math.random() * 0.4;
+    const scale = 0.8 + Math.random() * 0.4;
     dummy.scale.set(scale, scale, scale);
-    
+
     dummy.updateMatrix();
     grassMesh.setMatrixAt(i, dummy.matrix);
 }
-console.log(grassMesh);
+// console.log(grassMesh);
 grassMesh.instanceMatrix.needsUpdate = true;
 scene.add(grassMesh);
 
@@ -228,8 +249,6 @@ const terrainGeo = new THREE.PlaneGeometry(30, 30, 500, 500);
 terrainGeo.rotateX(Math.PI / -2);
 
 // Material
-
-
 const uniforms_surface = {
     uPositionFrequency: new THREE.Uniform(0.2),
     uStrength: new THREE.Uniform(2.94),
@@ -237,15 +256,15 @@ const uniforms_surface = {
     uWarpStrength: new THREE.Uniform(0.16),
     uTime: new THREE.Uniform(0),
     uTimeFrequency: new THREE.Uniform(0.2),
-    
+
 }
 
-
-gui.add(uniforms_surface.uPositionFrequency, 'value', 0, 1, 0.001).name('uPositionFrequency')
-gui.add(uniforms_surface.uStrength, 'value', 0, 10, 0.001).name('uStrength')
-gui.add(uniforms_surface.uWarpFrequency, 'value', 0, 10, 0.001).name('uWarpFrequency')
-gui.add(uniforms_surface.uWarpStrength, 'value', 0, 1, 0.001).name('uWarpStrength')
-gui.add(uniforms_surface.uTimeFrequency, 'value', 0, 1, 0.001).name('uTimeFrequency')
+const terrainFolder = gui.addFolder( 'Terrain' );
+terrainFolder.add(uniforms_surface.uPositionFrequency, 'value', 0, 1, 0.001).name('uPositionFrequency')
+terrainFolder.add(uniforms_surface.uStrength, 'value', 0, 10, 0.001).name('uStrength')
+terrainFolder.add(uniforms_surface.uWarpFrequency, 'value', 0, 10, 0.001).name('uWarpFrequency')
+terrainFolder.add(uniforms_surface.uWarpStrength, 'value', 0, 1, 0.001).name('uWarpStrength')
+terrainFolder.add(uniforms_surface.uTimeFrequency, 'value', 0, 1, 0.001).name('uTimeFrequency')
 
 
 
@@ -254,7 +273,7 @@ const terrainMaterial = new CustomShaderMaterial({
     vertexShader: surfaceVertexShader,
     fragmentShader: surfaceFragmentShader,
     uniforms: uniforms_surface,
-     // MeshPhysicalMaterial
+    // MeshPhysicalMaterial
     metalness: 0,
     roughness: 0.9,
     color: '#490419'
@@ -282,16 +301,16 @@ scene.add(mesh);
 /**
  * Light
  */
-const amibiantLight = new THREE.AmbientLight("#fff", 2);
+const amibiantLight = new THREE.AmbientLight("#fff", 0.5);
 scene.add(amibiantLight);
 
-const directionalLight = new THREE.DirectionalLight('#ffffff', 3)
-directionalLight.castShadow = true
-directionalLight.shadow.mapSize.set(1024, 1024)
-directionalLight.shadow.camera.far = 15
-directionalLight.shadow.normalBias = 0.05
-directionalLight.position.set(0.25, 3, - 2.25)
-scene.add(directionalLight)
+// const directionalLight = new THREE.DirectionalLight('#ffffff', 3)
+// directionalLight.castShadow = true
+// directionalLight.shadow.mapSize.set(1024, 1024)
+// directionalLight.shadow.camera.far = 15
+// directionalLight.shadow.normalBias = 0.05
+// directionalLight.position.set(0.25, 3, - 2.25)
+// scene.add(directionalLight)
 
 /**
  * animation loop
@@ -299,8 +318,11 @@ scene.add(directionalLight)
 const clock = new THREE.Clock();
 function animate() {
 
-    const elapsedTime = clock.getElapsedTime();
+    // console.log(camera.position);
     
+
+    const elapsedTime = clock.getElapsedTime();
+
     //update uTime
     uniforms.uTime.value = elapsedTime;
 
@@ -308,14 +330,14 @@ function animate() {
 
     const cameraDirection = new THREE.Vector3();
 
-camera.getWorldDirection(cameraDirection);
+    camera.getWorldDirection(cameraDirection);
 
-const cameraAngle = Math.atan2(
-    cameraDirection.x,
-    cameraDirection.z
-);
+    const cameraAngle = Math.atan2(
+        cameraDirection.x,
+        cameraDirection.z
+    );
 
-grassMaterial.uniforms.uGrassRotation.value = cameraAngle;
+    grassMaterial.uniforms.uGrassRotation.value = cameraAngle;
 
     //update controls
     controls.update();

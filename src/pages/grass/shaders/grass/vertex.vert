@@ -36,7 +36,7 @@ void main(){
 
     //bend
     float height = newPos.y ;
-    float bend = pow(height, 2.0) ;
+    float bend = pow(height, 2.0) + (sin(float(gl_InstanceID)) * newPos.y * 1.5) ;
 
     //apply wind
     float wind = simplexNoise2d(

@@ -147,31 +147,38 @@ const renderTarget = new THREE.WebGLRenderTarget(
     }
 )
 
+//effect composer
 const effectComposer = new EffectComposer(renderer, renderTarget);
 effectComposer.setSize(sizes.width, sizes.height);
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+//1) render pass ------------------------
 const renderPass = new RenderPass(scene, camera);
 effectComposer.addPass(renderPass);
 
+//2) dot screen pass ------------------------
 const dotScreenPass = new DotScreenPass();
 dotScreenPass.enabled = false;
 effectComposer.addPass(dotScreenPass);
 
+//3) glitch pass ------------------------
 const glitchPass = new GlitchPass();
 glitchPass.enabled = false;
 effectComposer.addPass(glitchPass);
 // gui.add(glitchPass.uniforms.amount, 'value', 0, 0.004, 0.000001).name("glitch pass amount");
 
+//4) rgb shift pass ------------------------
 const rgbShiftPass = new ShaderPass(RGBShiftShader);
 rgbShiftPass.enabled = false;
 effectComposer.addPass(rgbShiftPass)
 
+//5) gamma correction pass ------------------------
 const gammaCorrectionPass = new ShaderPass(GammaCorrectionShader)
 // gammaCorrectionPass.enabled = false;
 effectComposer.addPass(gammaCorrectionPass)
 // console.log(gammaCorrectionPass);
 
+//6) SMAA pass ------------------------
 if(renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2)
 {
 const smaaPass = new SMAAPass()
@@ -179,6 +186,7 @@ effectComposer.addPass(smaaPass)
 console.log('Using SMAA')
 }
 
+//7) unreal bloom pass ------------------------
 const unrealBloomPass = new UnrealBloomPass();
 unrealBloomPass.enabled = false;
 effectComposer.addPass(unrealBloomPass)
@@ -194,7 +202,7 @@ effectComposer.addPass(unrealBloomPass)
 // gui.add(unrealBloomPass, 'threshold').min(0).max(1).step(0.001)
 
 
-
+//8) tint pass ------------------------
 const TintShader = {
     uniforms:
     {
@@ -234,7 +242,7 @@ effectComposer.addPass(tintPass)
 // gui.add(tintPass.material.uniforms.uTint.value, 'y').min(- 1).max(1).step(0.001).name('green')
 // gui.add(tintPass.material.uniforms.uTint.value, 'z').min(- 1).max(1).step(0.001).name('blue')
 
-
+//9) displacement pass ------------------------
 const DisplacementShader = {
     uniforms:
     {
@@ -312,7 +320,9 @@ const DisplacementShader1 = {
 }
 
 const displacementPass1 = new ShaderPass(DisplacementShader);
-displacementPass1.enabled = true;
+console.log(displacementPass);
+
+displacementPass1.enabled = false;
 displacementPass1.material.uniforms.uTime.value = 0
 effectComposer.addPass(displacementPass1)
 

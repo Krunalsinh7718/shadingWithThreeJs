@@ -34,6 +34,8 @@ void main(){
     newPos.y *= uHeight;
     newPos.x *= uWidth;
 
+    newPos.x = newPos.x - abs(sin( newPos.y  * 2.0)  * 0.1);
+
     //bend
     float height = newPos.y ;
     float bend = pow(height, 2.0) + (sin(float(gl_InstanceID)) * newPos.y * 1.5) ;

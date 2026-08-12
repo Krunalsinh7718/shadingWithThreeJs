@@ -157,7 +157,7 @@ const grassColor = {
 }
 const uniforms = {
     uHeight: new THREE.Uniform(1),
-    uWidth: new THREE.Uniform(0.5),
+    uWidth: new THREE.Uniform(0.79),
     uBend: new THREE.Uniform(0.1),
 
     uTime: new THREE.Uniform(0),
@@ -200,7 +200,7 @@ const grassMaterial = new CustomShaderMaterial({
 
     metalness: 0, 
     roughness:0.619,
-    transmission: 0.385,
+    transmission: 0.066,
     ior: 1.273,
     thickness: 8.402
 })
@@ -249,6 +249,10 @@ const terrainGeo = new THREE.PlaneGeometry(30, 30, 500, 500);
 terrainGeo.rotateX(Math.PI / -2);
 
 // Material
+const terrainColor = {
+    colorTop: "#848371",
+    colorBottom: "#0a5200",
+}
 const uniforms_surface = {
     uPositionFrequency: new THREE.Uniform(0.2),
     uStrength: new THREE.Uniform(2.94),
@@ -256,6 +260,9 @@ const uniforms_surface = {
     uWarpStrength: new THREE.Uniform(0.16),
     uTime: new THREE.Uniform(0),
     uTimeFrequency: new THREE.Uniform(0.2),
+
+    uSurfaceColorTop: new THREE.Uniform(new THREE.Color(terrainColor.colorTop)),
+    uSurfaceColorBottom: new THREE.Uniform(new THREE.Color(terrainColor.colorBottom)),
 
 }
 
@@ -266,10 +273,15 @@ terrainFolder.add(uniforms_surface.uWarpFrequency, 'value', 0, 10, 0.001).name('
 terrainFolder.add(uniforms_surface.uWarpStrength, 'value', 0, 1, 0.001).name('uWarpStrength')
 terrainFolder.add(uniforms_surface.uTimeFrequency, 'value', 0, 1, 0.001).name('uTimeFrequency')
 
-
+terrainFolder.addColor(terrainColor, 'colorTop').onChange(e => {
+    uniforms_surface.uSurfaceColorTop.value.set(terrainColor.colorTop);
+})
+terrainFolder.addColor(terrainColor, 'colorBottom').onChange(e => {
+    uniforms_surface.uSurfaceColorBottom.value.set(terrainColor.colorBottom);
+})
 
 const terrainMaterial = new CustomShaderMaterial({
-    baseMaterial: THREE.MeshStandardMaterial,
+    baseMaterial: THREE.MeshPhysicalMaterial,
     vertexShader: surfaceVertexShader,
     fragmentShader: surfaceFragmentShader,
     uniforms: uniforms_surface,
@@ -279,6 +291,12 @@ const terrainMaterial = new CustomShaderMaterial({
     color: '#490419'
 
 });
+
+terrainFolder.add(terrainMaterial, 'metalness', 0, 1, 0.001)
+terrainFolder.add(terrainMaterial, 'roughness', 0, 1, 0.001)
+terrainFolder.add(terrainMaterial, 'transmission', 0, 1, 0.001)
+terrainFolder.add(terrainMaterial, 'ior', 0, 10, 0.001)
+terrainFolder.add(terrainMaterial, 'thickness', 0, 10, 0.001)
 
 const depthMaterial = new CustomShaderMaterial({
     // CSM

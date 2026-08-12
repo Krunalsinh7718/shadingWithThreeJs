@@ -143,8 +143,8 @@ grassGeo.computeVertexNormals();
 // });
 
 const grassColor = {
-    colorTop : "#8134f4",
-    colorBottom : "#2c0467",
+    colorTop : "#aed100",
+    colorBottom : "#227c19",
 }
 const uniforms = {
     uHeight: new THREE.Uniform(1),
@@ -256,8 +256,8 @@ const terrainMaterial = new CustomShaderMaterial({
     uniforms: uniforms_surface,
      // MeshPhysicalMaterial
     metalness: 0,
-    roughness: 0.5,
-    color: '#85d534'
+    roughness: 0.9,
+    color: '#490419'
 
 });
 

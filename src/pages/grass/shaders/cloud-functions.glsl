@@ -10,8 +10,10 @@ float getElevation(vec2 position, float uPositionFrequency, float uWarpFrequency
     elevation += simplexNoise2d(warpedPosition * uPositionFrequency * 4.0) / 8.0;
     
     float elevationSign = sign(elevation);
-    elevation = pow(abs(elevation), 2.0) * elevationSign; 
+    elevation = pow(elevation, 2.0) * elevationSign; 
     elevation *= uStrength;
+
+    elevation = max(elevation, 0.0);
 
     return elevation;
 }

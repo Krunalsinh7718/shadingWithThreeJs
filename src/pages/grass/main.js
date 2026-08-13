@@ -49,7 +49,7 @@ scene.add(camera)
 /**
  * renderer setup
  */
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setSize(sizes.width, sizes.height)
 renderer.setAnimationLoop(animate);
 document.body.appendChild(renderer.domElement);
@@ -200,7 +200,7 @@ const grassMaterial = new CustomShaderMaterial({
 
     metalness: 0, 
     roughness:0.619,
-    transmission: 0.066,
+    transmission: 0,
     ior: 1.273,
     thickness: 8.402
 })

@@ -283,6 +283,8 @@ displacementPass.enabled = false;
 displacementPass.material.uniforms.uTime.value = 0
 effectComposer.addPass(displacementPass)
 
+
+//10) displacement pass 2------------------------
 const DisplacementShader1 = {
     uniforms:
     {
@@ -319,12 +321,59 @@ const DisplacementShader1 = {
     `
 }
 
-const displacementPass1 = new ShaderPass(DisplacementShader);
-console.log(displacementPass);
+const displacementPass1 = new ShaderPass(DisplacementShader1);
 
 displacementPass1.enabled = false;
 displacementPass1.material.uniforms.uTime.value = 0
 effectComposer.addPass(displacementPass1)
+
+
+//11) displacement pass 3------------------------
+const DisplacementShader2 = {
+    uniforms:
+    {
+        tDiffuse: { value: null },
+         uTime: { value: null },
+         uNormalMap: { value: null }
+    },
+    vertexShader: `
+        varying vec2 vUv;
+
+        void main()
+        {
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+
+            vUv = uv;
+        }
+    `,
+     fragmentShader: `
+        uniform sampler2D tDiffuse;
+        uniform float uTime;
+        uniform sampler2D uNormalMap;
+
+        varying vec2 vUv;
+
+        void main()
+        {
+            vec3 normalColor = texture2D(uNormalMap, vUv).xyz * 2.0 - 1.0;
+            vec2 newUv = vUv + normalColor.xy * 0.1;
+            vec4 color = texture2D(tDiffuse, newUv);
+
+            vec3 lightDirection = normalize(vec3(- 1.0, 1.0, 0.0));
+            float lightness = clamp(dot(normalColor, lightDirection), 0.0, 1.0);
+            color.rgb += lightness * 2.0;
+
+            gl_FragColor = color;
+        }
+    `
+}
+
+const displacementPass2 = new ShaderPass(DisplacementShader2);
+displacementPass2.material.uniforms.uNormalMap.value = textureLoader.load('/images/floor/cracked_concrete_nor_gl_1k.png')
+
+displacementPass2.enabled = true;
+displacementPass2.material.uniforms.uTime.value = 0
+effectComposer.addPass(displacementPass2)
 
 
 

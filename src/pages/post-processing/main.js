@@ -380,7 +380,7 @@ effectComposer.addPass(displacementPass2)
 //animation loop
 const clock = new THREE.Clock();
 function animate() {
-
+    
     const elapsedTime = clock.getElapsedTime();
 
     displacementPass1.uniforms.uTime.value = elapsedTime;

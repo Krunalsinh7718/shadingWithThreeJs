@@ -58,7 +58,8 @@ gltfLoader.setDRACOLoader(dracoLoader)
 /**
  * Textures
  */
-const bakedTexture = textureLoader.load('/images/portal/baked.jpg');
+// const bakedTexture = textureLoader.load('/images/portal/baked.jpg');
+const bakedTexture = textureLoader.load('/images/house/baked-house.jpg');
 bakedTexture.flipY = false
 
 /**
@@ -70,7 +71,8 @@ const bakedMaterial = new THREE.MeshBasicMaterial({ map: bakedTexture });
 
 // Model
 let model = null
-gltfLoader.load('/models/portal/portal.glb', (gltf) => {
+// gltfLoader.load('/models/portal/portal.glb', (gltf) => {
+gltfLoader.load('/models/house/house1.glb', (gltf) => {
     model = gltf.scene;
     model.traverse((child) => {
         // gltf.scene.scale.set(2, 2, 2)

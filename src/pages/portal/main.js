@@ -5,6 +5,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import firefliesVertexShader from './shaders/fireflies/vertex.vert'
 import firefliesFragmentShader from './shaders/fireflies/fragment.frag'
+import portalVertexShader from './shaders/portal/vertex.vert'
+import portalFragmentShader from './shaders/portal/fragment.frag'
 
 
 
@@ -58,11 +60,13 @@ gltfLoader.setDRACOLoader(dracoLoader)
 
 //camera setup
 const camera = new THREE.PerspectiveCamera(45, sizes.width / sizes.height, 0.1, 100)
-camera.position.set(4, 2, 4)
+camera.position.set(-7.1, 1, 0)
+
 scene.add(camera)
 
 //renderer setup
-const rendererParameters = { color : "#241100"}
+const rendererParameters = { color: "#2c380a" }
+// const rendererParameters = { color : "#241100"}
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setClearColor(rendererParameters.color);
 renderer.setSize(sizes.width, sizes.height)
@@ -70,7 +74,7 @@ renderer.setPixelRatio(sizes.pixelRatio)
 renderer.setAnimationLoop(animate);
 
 document.body.appendChild(renderer.domElement);
-gui.addColor(rendererParameters, 'color').onChange( e => {
+gui.addColor(rendererParameters, 'color').onChange(e => {
     renderer.setClearColor(rendererParameters.color);
 })
 
@@ -83,8 +87,8 @@ controls.dampingFactor = 0.05;
 /**
  * Textures
  */
-// const bakedTexture = textureLoader.load('/images/portal/baked.jpg');
-const bakedTexture = textureLoader.load('/images/house/baked-house.jpg');
+const bakedTexture = textureLoader.load('/images/portal/baked.jpg');
+// const bakedTexture = textureLoader.load('/images/house/baked-house.jpg');
 bakedTexture.colorSpace = THREE.SRGBColorSpace;
 bakedTexture.flipY = false
 
@@ -99,17 +103,49 @@ const bakedMaterial = new THREE.MeshBasicMaterial({ map: bakedTexture });
 //house out light #FF4E00FF
 //house in light #D7FF0BFF
 //house door light #D7FF0BFF
-//inset light #FF4900FF
-const lampLightMaterial = new THREE.MeshBasicMaterial({ color: "#FF9F4CFF" });
-const houseInLightMaterial = new THREE.MeshBasicMaterial({ color: "#D7FF0BFF" });
-const houseOutLightMaterial = new THREE.MeshBasicMaterial({ color: "#FF4E00FF" });
-const houseDoorLightMaterial = new THREE.MeshBasicMaterial({ color: "#D7FF0BFF" });
-const insectLightMaterial = new THREE.MeshBasicMaterial({ color: "#FF4900FF" });
+//insect light #FF4900FF
+//portal color #D7FF0BFF
+const materialColor = {
+    lampLightColor: "#FF9F4CFF",
+    houseInLightColor: "#D7FF0BFF",
+    houseOutLightColor: "#FF4E00FF",
+    houseDoorLightColor: "#D7FF0BFF",
+    insectLightColor: "#FF4900FF",
+    portalColorStart : "rgb(98, 0, 255)",
+    portalColorEnd : "rgb(253, 208, 9)",
+
+}
+const lampLightMaterial = new THREE.MeshBasicMaterial({ color: materialColor.lampLightColor });
+const houseInLightMaterial = new THREE.MeshBasicMaterial({ color: materialColor.houseInLightColor });
+const houseOutLightMaterial = new THREE.MeshBasicMaterial({ color: materialColor.houseOutLightColor });
+const houseDoorLightMaterial = new THREE.MeshBasicMaterial({ color: materialColor.houseDoorLightColor });
+const insectLightMaterial = new THREE.MeshBasicMaterial({ color: materialColor.insectLightColor });
+const portalLightMaterial = new THREE.ShaderMaterial({
+    vertexShader: portalVertexShader,
+    fragmentShader: portalFragmentShader,
+    // depthWrite: false,
+    // blending: THREE.AdditiveBlending,
+    vertexColors: true,
+    // transparent: true,
+    side: THREE.DoubleSide,
+    uniforms: {
+        uTime: new THREE.Uniform(0),
+        uColorStart: new THREE.Uniform(new THREE.Color(materialColor.portalColorStart)),
+        uColorEnd: new THREE.Uniform(new THREE.Color(materialColor.portalColorEnd)),
+    }
+})
+
+gui.addColor(materialColor, 'portalColorStart').onChange(e => {
+    portalLightMaterial.uniforms.uColorStart.value.set(materialColor.portalColorStart);
+})
+gui.addColor(materialColor, 'portalColorEnd').onChange(e => {
+    portalLightMaterial.uniforms.uColorEnd.value.set(materialColor.portalColorEnd);
+})
 
 // Model
-let model = null
-// gltfLoader.load('/models/portal/portal.glb', (gltf) => {
-gltfLoader.load('/models/house/house.glb', (gltf) => {
+let model = null;
+gltfLoader.load('/models/portal/portal.glb', (gltf) => {
+    // gltfLoader.load('/models/house/house.glb', (gltf) => {
     model = gltf.scene;
     model.traverse((child) => {
         // gltf.scene.scale.set(2, 2, 2)
@@ -120,29 +156,32 @@ gltfLoader.load('/models/house/house.glb', (gltf) => {
     })
     const lampLight1 = model.children.find(child => child.name === "lampLight1");
     const lampLight2 = model.children.find(child => child.name === "lampLight2");
-    const houseInLight = model.children.find(child => child.name === "houseInLight");
-    const houseOutLight = model.children.find(child => child.name === "houseOutLight");
-    const doorLight = model.children.find(child => child.name === "doorLight");
-    const insectLight1 = model.children.find(child => child.name === "insectLight1");
-    const insectLight2 = model.children.find(child => child.name === "insectLight2");
-    const insectLight3 = model.children.find(child => child.name === "insectLight3");
-    const insectLight4 = model.children.find(child => child.name === "insectLight4");
-    const insectLight5 = model.children.find(child => child.name === "insectLight5");
-    const house = model.children.find(child => child.name === "house");
-    console.log(house);
+    // const houseInLight = model.children.find(child => child.name === "houseInLight");
+    // const houseOutLight = model.children.find(child => child.name === "houseOutLight");
+    // const doorLight = model.children.find(child => child.name === "doorLight");
+    // const insectLight1 = model.children.find(child => child.name === "insectLight1");
+    // const insectLight2 = model.children.find(child => child.name === "insectLight2");
+    // const insectLight3 = model.children.find(child => child.name === "insectLight3");
+    // const insectLight4 = model.children.find(child => child.name === "insectLight4");
+    // const insectLight5 = model.children.find(child => child.name === "insectLight5");
+    // const house = model.children.find(child => child.name === "house");
+    const portalLight = model.children.find(child => child.name === "portalLight");
+
+    console.log(portalLight.geometry);
 
 
     lampLight1.material = lampLightMaterial;
     lampLight2.material = lampLightMaterial;
-    houseInLight.material = houseInLightMaterial;
-    houseOutLight.material = houseOutLightMaterial;
-    doorLight.material = houseDoorLightMaterial;
-    insectLight1.material = insectLightMaterial;
-    insectLight2.material = insectLightMaterial;
-    insectLight3.material = insectLightMaterial;
-    insectLight4.material = insectLightMaterial;
-    insectLight5.material = insectLightMaterial;
-    house.material.side = THREE.DoubleSide;
+    // houseInLight.material = houseInLightMaterial;
+    // houseOutLight.material = houseOutLightMaterial;
+    // doorLight.material = houseDoorLightMaterial;
+    // insectLight1.material = insectLightMaterial;
+    // insectLight2.material = insectLightMaterial;
+    // insectLight3.material = insectLightMaterial;
+    // insectLight4.material = insectLightMaterial;
+    // insectLight5.material = insectLightMaterial;
+    // house.material.side = THREE.DoubleSide;
+    portalLight.material = portalLightMaterial;
 
     scene.add(model)
 })
@@ -155,7 +194,7 @@ for (let i = 0; i < firefliesCount; i++) {
     const i3 = i * 3;
 
     firefliesArr[i3 + 0] = (Math.random() - 0.1) * 2;
-    firefliesArr[i3 + 1] = Math.random() * 1.5 + 0.1;
+    firefliesArr[i3 + 1] = Math.random() * 2 + 0.1;
     firefliesArr[i3 + 2] = (Math.random() - 0.5) * 2;
 
     fireRandSizeArr[i] = Math.random();
@@ -173,16 +212,18 @@ const fireFliesMaterial = new THREE.ShaderMaterial({
     vertexColors: true,
     transparent: true,
     uniforms: {
-        uSize: new THREE.Uniform(30 * renderer.getPixelRatio()),
+        uSize: new THREE.Uniform(100 * renderer.getPixelRatio()),
         uTime: new THREE.Uniform(0)
     }
 })
 const firefliesMesh = new THREE.Points(fireFliesGeo, fireFliesMaterial);
 scene.add(firefliesMesh)
 
-gui.add(fireFliesMaterial.uniforms.uSize, 'value').min(10).max(50).onChange(e => {
+gui.add(fireFliesMaterial.uniforms.uSize, 'value').min(10).max(150).name("Fire Flies Size").onChange(e => {
     fireFliesMaterial.uniforms.uSize.value = e * renderer.getPixelRatio();
 })
+
+// portal
 
 //animation loop
 const clock = new THREE.Clock();
@@ -191,10 +232,12 @@ function animate() {
     const elapsedTime = clock.getElapsedTime();
 
     fireFliesMaterial.uniforms.uTime.value = elapsedTime;
+    portalLightMaterial.uniforms.uTime.value = elapsedTime;
 
     //update controls
     controls.update();
 
+    // console.log(camera.position);
 
     // Render
     renderer.render(scene, camera)

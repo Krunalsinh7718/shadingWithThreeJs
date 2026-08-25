@@ -111,8 +111,8 @@ const materialColor = {
     houseOutLightColor: "#FF4E00FF",
     houseDoorLightColor: "#D7FF0BFF",
     insectLightColor: "#FF4900FF",
-    portalColorStart : "rgb(98, 0, 255)",
-    portalColorEnd : "rgb(253, 208, 9)",
+    portalColorStart : "#2c380a",
+    portalColorEnd : "#e4ffbd",
 
 }
 const lampLightMaterial = new THREE.MeshBasicMaterial({ color: materialColor.lampLightColor });

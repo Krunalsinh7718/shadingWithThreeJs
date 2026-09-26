@@ -7,6 +7,7 @@ uniform float uCtrl2;
 uniform float uCtrl3;
 uniform float uCtrl4;
 uniform float uCtrl5;
+uniform vec2 uResolution;
 
 varying vec2 vUv;
 #include ../../includes/functions.glsl
@@ -14,6 +15,16 @@ varying vec2 vUv;
 void main(){
 
      vec2 uv = vUv;
+     if(uResolution.x > uResolution.y){
+     float aspect = uResolution.x / uResolution.y;
+        uv.x *= aspect;
+     }else{
+        float aspect = uResolution.y / uResolution.x;
+        uv.y *= aspect;
+     }
+
+
+
 
      vec3 blackColor = vec3(0.0);
      vec3 uvColor = vec3(uv, 1.0);
@@ -31,10 +42,10 @@ void main(){
 
 
     //pattern 15
-    // uv.x +=  uTime * 0.06;
-    // uv.y +=  uTime * 0.06;
-    // float strength = plusPattern(uCtrl4, uv);
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+    uv.x +=  uTime * 0.06;
+    uv.y +=  uTime * 0.06;
+    float strength = plusPattern(uCtrl4, uv);
+    gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 16
     // float strength = min(abs(uv.x - uCtrl1), abs(uv.y - uCtrl1)) ;
@@ -132,10 +143,10 @@ void main(){
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 50
-    float strength = step(0.9, sin(cnoise(vUv * 10.0) * uCtrl5));
-    strength = clamp(strength, 0.0, 1.0);
-    vec3 mixedColor = mix(blackColor, uvColor, strength);
-    gl_FragColor = vec4(mixedColor, 1.0);
+    // float strength = step(0.9, sin(cnoise(uv * 10.0) * uCtrl5));
+    // strength = clamp(strength, 0.0, 1.0);
+    // vec3 mixedColor = mix(blackColor, uvColor, strength);
+    // gl_FragColor = vec4(mixedColor, 1.0);
 
     #include <colorspace_fragment>
 }

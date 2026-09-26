@@ -33,23 +33,29 @@ document.body.appendChild(renderer.domElement);
 
 //mesh setup
 // Geometry
-const geometry = new THREE.PlaneGeometry(1, 1, 64, 64);
+const planeSize = {width: 2, height: 1};
+const geometry = new THREE.PlaneGeometry(planeSize.width, planeSize.height, 64, 64);
 console.log(geometry);
 
 // Material
 const material = new THREE.ShaderMaterial({
     vertexShader: testVertexShader,
     fragmentShader: testFragmentShader,
-     transparent: true,
-     uniforms : {
-        uTime : {value: 0},
-        uCtrl1 : {value : 0.4},
-        uCtrl2 : {value : 0.8},
-        uCtrl3 : {value : 0.2},
-        uCtrl4 : {value : 5},
-        uCtrl5 : {value : 30},
-     
-     }
+    transparent: true,
+    uniforms: {
+        uTime: { value: 0 },
+        uResolution: new THREE.Uniform(new THREE.Vector2(
+            planeSize.width,
+            planeSize.height
+        )),
+        
+        uCtrl1: { value: 0.4 },
+        uCtrl2: { value: 0.8 },
+        uCtrl3: { value: 0.2 },
+        uCtrl4: { value: 5 },
+        uCtrl5: { value: 30 },
+
+    }
 });
 
 gui.add(material.uniforms.uCtrl1, "value").min(0).max(1).step(0.01).name("ctrl1");
@@ -94,6 +100,9 @@ window.addEventListener('resize', () => {
     // Update camera
     camera.aspect = sizes.width / sizes.height
     camera.updateProjectionMatrix()
+
+    
+    
 
     // Update renderer
     renderer.setSize(sizes.width, sizes.height)

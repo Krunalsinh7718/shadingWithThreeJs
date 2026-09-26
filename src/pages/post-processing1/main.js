@@ -83,7 +83,7 @@ const updateAllMaterials = () => {
 /**
  * Environment map
  */
-rgbeLoader.load('/hdr/urban_alley_01_1k.hdr', (environmentMap) => {
+rgbeLoader.load('/hdr/spruit_sunrise.hdr', (environmentMap) => {
     environmentMap.mapping = THREE.EquirectangularReflectionMapping
 
     scene.background = environmentMap
@@ -231,8 +231,8 @@ const DisplacementShader1 = {
                 vUv.y + sin(vUv.x * 10.0 + uTime) * 0.1
             );
 
-            float strenth = smoothstep(0.3, 0.51, 1.0 - distance(newUv1, vec2(0.5))) ;
-            vec4 patternColor = vec4(vec3(strenth) , 1.0);
+            float strength = smoothstep(0.3, 0.51, 1.0 - distance(newUv1, vec2(0.5))) * 1.05;
+            vec4 patternColor = vec4(vec3(strength) , 1.0);
 
             //3) dot pattern
             float aspect = uResolution.x / uResolution.y;
@@ -248,10 +248,10 @@ const DisplacementShader1 = {
 
             float radius = 0.21;
 
-            float dot = 1.0 - step(radius - (strenth * 0.2), d);
+            float dot = max(1.0 - step(radius - (strength * 0.3), d), 0.0) ;
             vec3 dotColor1 = vec3(1.0, 0.9, 0.2);
             vec3 dotColor2 = vec3(1.0, 0.0, 0.0);
-            vec3 dotColorMix = mix(dotColor1, dotColor2, strenth);
+            vec3 dotColorMix = mix(dotColor1, dotColor2, strength);
             vec3 dotColorMixFinal = dotColorMix * dot;
 
             vec4 patternColor1 = vec4(dotColorMixFinal  , 1.0);

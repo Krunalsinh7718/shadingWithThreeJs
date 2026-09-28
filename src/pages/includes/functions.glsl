@@ -60,18 +60,21 @@ float cnoise(vec2 P)
     return 2.3 * n_xy;
 }
 
-float plusPattern(float patternSize, vec2 uv){
-    float boxX = step(0.4, mod(uv.x * patternSize - 0.2, 1.0)) *  step(0.8, mod(uv.y * patternSize, 1.0));
-    float boxY = step(0.8, mod(uv.x * patternSize, 1.0)) *  step(0.4, mod(uv.y * patternSize - 0.2, 1.0));
+float plusShape( vec2 uv){
+    float boxX = step(0.4, mod(uv.x  - 0.2, 1.0)) *  step(0.8, mod(uv.y , 1.0));
+    float boxY = step(0.8, mod(uv.x , 1.0)) *  step(0.4, mod(uv.y  - 0.2, 1.0));
     float strength = boxX + boxY;
     return strength;
 }
 
 
-float cornerPattern(float patternSize, vec2 uv){
-    float boxX = step(0.4, mod(uv.x * patternSize, 1.0)) *  step(0.8, mod(uv.y * patternSize, 1.0));
-    float boxY = step(0.8, mod(uv.x * patternSize, 1.0)) *  step(0.4, mod(uv.y * patternSize, 1.0));
-    float strength = boxX + boxY;
+float cornerShape(vec2 uv, float inverse){
+    if(inverse == 1.0){
+       uv = 1.0 - uv; 
+    }
+    float boxX = step(0.4, mod( uv.x , 1.0)) *  step(0.8, mod( uv.y , 1.0));
+    float boxY = step(0.8, mod( uv.x , 1.0)) *  step(0.4, mod( uv.y , 1.0));
+    float strength = boxX + boxY ;
     return strength;
 }
 
@@ -86,9 +89,7 @@ float shades(float shadeSize, vec2 uv){
 }
 
 float randomShades(float shadeSize, vec2 uv, float rotation){
-    // vec2 gridUv = vec2(floor(uv.x * shadeSize) * 0.1 , floor(uv.y * shadeSize) * 0.1);
-
-    vec2 gridUv = vec2(floor(uv.x * 5.0) / 5.0 , floor( (uv.y + uv.x * rotation) * 5.0) / 5.0);
+    vec2 gridUv = vec2(floor(uv.x * shadeSize) / shadeSize , floor( (uv.y + uv.x * rotation) * shadeSize) / shadeSize);
     float strength = random(gridUv);
     return strength;
 }
@@ -99,6 +100,10 @@ float starDot(float intensity, vec2 uv, vec2 centerPoint, float sqX, float sqY){
 
 float starShape(float intensity, vec2 uv, vec2 centerPoint, float sqX, float sqY){
    return starDot(intensity, uv, centerPoint, sqX, sqY) * starDot(intensity, uv, centerPoint, sqY, sqX );
+}
+
+float starShape1(vec2 uv){
+   return smoothstep(0.01, 0.99, max(abs(uv.x), abs(uv.y))) ;
 }
 
 float borderCircle(float borderSize, float circleSize, vec2 circlePos, vec2 uv){

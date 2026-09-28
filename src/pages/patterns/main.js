@@ -35,7 +35,6 @@ document.body.appendChild(renderer.domElement);
 // Geometry
 const planeSize = {width: 2, height: 1};
 const geometry = new THREE.PlaneGeometry(planeSize.width, planeSize.height, 64, 64);
-console.log(geometry);
 
 // Material
 const material = new THREE.ShaderMaterial({

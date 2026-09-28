@@ -27,93 +27,125 @@ void main(){
 
 
      vec3 blackColor = vec3(0.0);
+     vec3 color1 = vec3(1.0, 0.0, 0.0);
+     vec3 color2 = vec3(0.0, 0.0, 1.0);
      vec3 uvColor = vec3(uv, 1.0);
 
     //pattern 9
-    // float strength = stripe(uv, 10.0, 0.5);
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+   //  uv = uv * 5.0;
+   //  float strength = stripe(uv, 10.0, 0.5);
+   //  gl_FragColor = vec4(vec3(strength), 1.0);
    
     //pattern 14
-    // float strength = step(uCtrl1, mod(uv.x * 10.0, 1.0) * step(uCtrl2, mod(uv.y * 10.0, 1.0)));
-    // strength += step(uCtrl2, mod(uv.x * 10.0, 1.0) * step(uCtrl1, mod(uv.y * 10.0, 1.0)));
-
-    // float strength = cornerPattern(uCtrl4, uv);
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+   //  uv = uv * 5.0;
+   //  float strength = cornerShape(uv, 0.0); // cornerShape(uv, inverse = 1.0 : true)
+   //  gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
 
 
     //pattern 15
-    uv.x +=  uTime * 0.06;
-    uv.y +=  uTime * 0.06;
-    float strength = plusPattern(uCtrl4, uv);
-    gl_FragColor = vec4(vec3(strength), 1.0);
+   //  uv = uv - 0.5;
+   //  uv = uv * 5.0;
+   //  uv.x +=  uTime * 0.6;
+   //  uv.y +=  uTime * 0.6;
+   //  float strength = plusShape(uv);
+   //   gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
 
     //pattern 16
-    // float strength = min(abs(uv.x - uCtrl1), abs(uv.y - uCtrl1)) ;
-    // float strength = max(abs(uv.x - uCtrl1), abs(uv.y - uCtrl1)) ;
-    // float strength =  min(abs(uv.y - 0.5),abs(uv.x - 0.5) );
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+   //  uv = uv - 0.5;
+   //  uv = uv * 5.0;
+   //  float strength = min(abs(uv.x - uCtrl1), abs(uv.y - uCtrl1)) ;
+   //  float strength = max(abs(uv.x - uCtrl1), abs(uv.y - uCtrl1)) ;
+   //  float strength = starShape1(uv);
+   //  gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
 
     //pattern 17
-    // float strength = borderBox(uCtrl3, uv, uCtrl1, uCtrl2);
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+   //  uv = uv - 0.5;
+   //  uv = uv * 5.0;
+   //  uv = fract(uv);
+   //  float strength = borderBox(uCtrl3, uv, uCtrl1, uCtrl2); //borderBox(size, uv, posX, posY)
+   //  gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
 
 
     //pattern 18
-    // float strength = shades(uCtrl4, uv);
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+      //  uv = uv - 0.5;
+   //  uv = uv * 5.0;
+   //  uv = fract(uv);
+   //  float strength = shades(uCtrl4, uv); //shades(size, uv)
+   //  gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
 
      //pattern 23
-    // float strength = random(vUv);
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+   //       uv = uv - 0.5;
+   //  uv = uv * 5.0;
+   //  uv = fract(uv);
+   //  float strength = random(uv);
+   //   gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
 
      //pattern 24
-    // float strength = randomShades(uCtrl4, uv, uCtrl1);
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+   //  uv = uv - 0.5;
+   //  uv = uv * 5.0;
+   //  uv = fract(uv);
+   //  float strength = randomShades(uCtrl4, uv , uCtrl1); // randomShades(size, uv, rotation)
+   //  gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
 
     //pattern 26
-    // uv -= 0.5;
-    // float strength = length(uv );
-    // float strength = distance(vUv, vec2(0.5));
-    // gl_FragColor = vec4(vec3(strength), 1.0);   
+   //  uv = uv * 5.0;
+   //  uv = fract(uv);
+   //  float strength = length(uv);
+   //  float strength = length(uv) * length(1.0 - uv) ;
+   //  float strength = distance(uv, vec2(0.5));
+   //  gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
 
-     //pattern 28
-    // float strength = 1.0 - distance(vUv, vec2(0.5));
-    // gl_FragColor = vec4(vec3(strength), 1.0);   
 
      //pattern 29
-    // float strength =  starDot(0.15, uv, vec2(0.5), 5.0, 1.0);
-    // gl_FragColor = vec4(vec3(strength), 1.0);   
+    // uv = uv * 5.0;
+    // uv = fract(uv);
+    // float strength =  starDot(0.15, uv, vec2(0.5),uCtrl1 , uCtrl2); // starDot(intensity, centerPoint, squeeze X, squeeze Y)
+    // gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
 
     //pattern 31
-    // vec2 rotatedUv = rotate(vUv, PI * uCtrl1, vec2(0.5));
+    //  uv = uv - 0.5;
+    // uv = uv * 5.0;
+    // uv = fract(uv);
+    // vec2 rotatedUv = rotate(uv, PI * uTime * 0.06, vec2(0.5));
     // float strength =  starShape(0.15, rotatedUv, vec2(0.5), uCtrl4, 1.0);
-    // vec3 mixedColor = mix(blackColor, uvColor, strength);
+    // vec3 mixedColor = mix(blackColor, color1, strength);
     // gl_FragColor = vec4(mixedColor, 1.0);   
 
 
-    //pattern 33
-    // float strength =  abs(distance(vUv, vec2(0.5)) - 0.25 );
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+ 
 
     //pattern 35
-    // float strength =  step(0.02, abs(distance(vUv, vec2(0.5)) - 0.25 ));
+    // uv = uv - 0.5;
+    // uv = uv * 5.0;
+    // uv = fract(uv);
+    // // float strength =  step(0.02, 
+    // //                     abs(
+    // //                       distance(uv, vec2(0.5)) - 0.25 
+    // //                     )
+    // //                   );
     // float strength =  1.0 - borderCircle(0.01, 0.3, vec2(0.5), uv) ;
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+    // gl_FragColor = vec4(mix(uvColor, blackColor, strength), 1.0);
 
     //pattern 37
+    //     uv = uv - 0.5;
+    // uv = uv * 5.0 + uTime * 0.06;
+    // uv = fract(uv);
     // vec2 wavedUv = vec2(
-    //     vUv.x + sin(vUv.y * uCtrl5) * 0.1,
-    //     vUv.y + sin(vUv.x * uCtrl5) * 0.1
+    //     uv.x + sin(uv.y * uCtrl5) * 0.1,
+    //     uv.y + sin(uv.x * uCtrl5) * 0.1
     // );
     // float strength = 1.0 - borderCircle(0.01, 0.3, vec2(0.5), wavedUv);
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+    // gl_FragColor = vec4(mix(uvColor, blackColor, strength), 1.0);
 
     //pattern 40
     //learn atan using graph => https://www.desmos.com/calculator/fjaz7sv20l
     // desmos formula => A=A_{rctan2}\left(p,q\right)
-    // float angle = atan(vUv.x, vUv.y);
-    // float strength = angle;
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+
+    uv = uv * 5.0 ;
+    uv = fract(uv);
+    float angle = atan(uv.x - 0.5, uv.y - 0.5);
+    float strength = angle;
+     gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
 
     //pattern 41
     //learn atan using graph => https://www.desmos.com/calculator/fjaz7sv20l

@@ -141,18 +141,18 @@ void main(){
     //learn atan using graph => https://www.desmos.com/calculator/fjaz7sv20l
     // desmos formula => A=A_{rctan2}\left(p,q\right)
 
-    uv = uv * 5.0 ;
-    uv = fract(uv);
-    float angle = atan(uv.x - 0.5, uv.y - 0.5);
-    float strength = angle;
-     gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
+    // uv = uv * 5.0 ;
+    // uv = fract(uv);
+    // float angle = atan( uv.y - 0.5, uv.x - 0.5) ;
+    // float strength = angle / (PI * 2.0) + 0.5 ;
+    //  gl_FragColor = vec4(mix(uvColor,color2,strength), 1.0);
 
     //pattern 41
     //learn atan using graph => https://www.desmos.com/calculator/fjaz7sv20l
     // desmos formula => A=\frac{A_{rctan2}\left(p,q\right)}{3.14\ \cdot2}+0.5\ 
-    // float angle = angleCircle(vec2(0.5), uCtrl5, uv);
-    // float strength = angle ;
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+    float angle = angleCircle(vec2(0.5), uCtrl5, uv);
+    float strength = angle ;
+    gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 45
     // float angle = angleCircle(vec2(0.5), 1.0, uv);

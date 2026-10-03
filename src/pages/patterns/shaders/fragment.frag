@@ -88,12 +88,16 @@ void main(){
    //  gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
 
     //pattern 26
-   //  uv = uv * 5.0;
-   //  uv = fract(uv);
-   //  float strength = length(uv);
-   //  float strength = length(uv) * length(1.0 - uv) ;
-   //  float strength = distance(uv, vec2(0.5));
-   //  gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
+    uv = uv * 2.0;
+    uv = fract(uv);
+    // float strength = length(uv);
+    // float strength = length(uv) * length(1.0 - uv) ;
+    // float strength = distance(uv, vec2(0.5));
+   
+    float strength = borderCircle(0.01, uCtrl1, vec2(0.5), uv);
+    // float strength = borderCircle(0.0, 0.5, vec2(0.5), uv);
+    
+    gl_FragColor = vec4(mix(blackColor, color2, strength), 1.0);
 
 
      //pattern 29
@@ -141,18 +145,18 @@ void main(){
     //learn atan using graph => https://www.desmos.com/calculator/fjaz7sv20l
     // desmos formula => A=A_{rctan2}\left(p,q\right)
 
-    // uv = uv * 5.0 ;
+    // uv = uv  ;
     // uv = fract(uv);
     // float angle = atan( uv.y - 0.5, uv.x - 0.5) ;
     // float strength = angle / (PI * 2.0) + 0.5 ;
-    //  gl_FragColor = vec4(mix(uvColor,color2,strength), 1.0);
+    //  gl_FragColor = vec4(mix(blackColor,color2,strength), 1.0);
 
     //pattern 41
     //learn atan using graph => https://www.desmos.com/calculator/fjaz7sv20l
     // desmos formula => A=\frac{A_{rctan2}\left(p,q\right)}{3.14\ \cdot2}+0.5\ 
-    float angle = angleCircle(vec2(0.5), uCtrl5, uv);
-    float strength = angle ;
-    gl_FragColor = vec4(vec3(strength), 1.0);
+    // float angle = angleCircle(vec2(0.5), uCtrl5, uv);
+    // float strength = angle ;
+    // gl_FragColor = vec4(mix(color2, uvColor, strength), 1.0);
 
     //pattern 45
     // float angle = angleCircle(vec2(0.5), 1.0, uv);

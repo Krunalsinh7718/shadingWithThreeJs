@@ -107,7 +107,9 @@ float starShape1(vec2 uv){
 }
 
 float borderCircle(float borderSize, float circleSize, vec2 circlePos, vec2 uv){
-    return step(borderSize,abs(distance(uv, circlePos) - circleSize));
+    float dist = distance(uv, circlePos);
+    return step(circleSize - borderSize, dist) * step(dist, circleSize );
+    
 }
 
 float angleCircle(vec2 centerPoint, float stripesCount, vec2 uv){

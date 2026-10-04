@@ -88,16 +88,15 @@ void main(){
    //  gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
 
     //pattern 26
-    uv = uv * 2.0;
-    uv = fract(uv);
+    // uv = fract(uv);
     // float strength = length(uv);
     // float strength = length(uv) * length(1.0 - uv) ;
     // float strength = distance(uv, vec2(0.5));
    
-    float strength = borderCircle(0.01, uCtrl1, vec2(0.5), uv);
+    // float strength = borderCircle(0.01, uCtrl1, vec2(0.5), uv);
     // float strength = borderCircle(0.0, 0.5, vec2(0.5), uv);
     
-    gl_FragColor = vec4(mix(blackColor, color2, strength), 1.0);
+    // gl_FragColor = vec4(mix(blackColor, color2, strength), 1.0);
 
 
      //pattern 29
@@ -146,10 +145,17 @@ void main(){
     // desmos formula => A=A_{rctan2}\left(p,q\right)
 
     // uv = uv  ;
-    // uv = fract(uv);
+    // uv = vec2(uv.x - 0.5, uv.y);
     // float angle = atan( uv.y - 0.5, uv.x - 0.5) ;
-    // float strength = angle / (PI * 2.0) + 0.5 ;
-    //  gl_FragColor = vec4(mix(blackColor,color2,strength), 1.0);
+    // float strength = angle / (PI * 2.0) + 0.5  + uTime  * 0.02;
+    // strength = fract(strength * 10.0 )  ;
+    // uv = uv - 0.5;
+    // float strength1 = fract(length(uv) * 10.0 + uTime * -0.2) ;
+
+
+    // float mixStrength = strength * strength1 ;
+
+    //  gl_FragColor = vec4(mix(blackColor,color2, mixStrength), 1.0);
 
     //pattern 41
     //learn atan using graph => https://www.desmos.com/calculator/fjaz7sv20l
@@ -159,12 +165,16 @@ void main(){
     // gl_FragColor = vec4(mix(color2, uvColor, strength), 1.0);
 
     //pattern 45
-    // float angle = angleCircle(vec2(0.5), 1.0, uv);
-    // float radius = 0.25 + sin(angle * 100.0) * 0.02;
+    float angle = angleCircle(vec2(0.5), 1.0, uv);
+    float radius = 0.25 + sin(angle * 100.0) * 0.01;
 
-    // float circle = wavedCircle(0.01, uCtrl1, vec2(0.5), uv,  100.0, 0.02 );
-    // float strength = 1.0 -  circle;
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+    float circle = wavedCircle(0.01, uCtrl1, vec2(0.5), uv,  100.0, 0.02 );
+    float strength = circle;
+    float strength1 =  step(fract(length(uv - 0.5) * 10.0 + uTime  * -0.2) ,radius);
+    float strength2 =  step(radius,
+    fract(length(uv - 0.5)) * 10.0
+    ) ;
+    gl_FragColor = vec4(vec3(strength2), 1.0);
 
     //pattern 47
     // float strength = step(0.0, cnoise(vUv * 10.0));
@@ -179,7 +189,7 @@ void main(){
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 50
-    // float strength = step(0.9, sin(cnoise(uv * 10.0) * uCtrl5));
+    // float strength = step(0.9, sin(cnoise(uv * 10.0  ) * uCtrl5) );
     // strength = clamp(strength, 0.0, 1.0);
     // vec3 mixedColor = mix(blackColor, uvColor, strength);
     // gl_FragColor = vec4(mixedColor, 1.0);

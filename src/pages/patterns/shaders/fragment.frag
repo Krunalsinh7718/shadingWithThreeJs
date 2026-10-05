@@ -168,13 +168,21 @@ void main(){
     float angle = angleCircle(vec2(0.5), 1.0, uv);
     float radius = 0.25 + sin(angle * 100.0) * 0.01;
 
-    float circle = wavedCircle(0.01, uCtrl1, vec2(0.5), uv,  100.0, 0.02 );
+    float circle = wavedRings(
+        0.21,       // border
+        vec2(0.5),  // center
+        vec2(uv.x - 0.5,uv.y),
+       7.8,       // number of rings
+        11.0,       // waves around each ring
+        0.14,         // wave amount,
+        uTime
+    );
     float strength = circle;
     float strength1 =  step(fract(length(uv - 0.5) * 10.0 + uTime  * -0.2) ,radius);
     float strength2 =  step(radius,
-    fract(length(uv - 0.5)) * 10.0
+    fract(length(uv - 0.5)) * 1.0
     ) ;
-    gl_FragColor = vec4(vec3(strength2), 1.0);
+    gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 47
     // float strength = step(0.0, cnoise(vUv * 10.0));

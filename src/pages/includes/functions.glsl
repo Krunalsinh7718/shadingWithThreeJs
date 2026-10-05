@@ -124,6 +124,37 @@ float wavedCircle(float borderSize, float circleSize, vec2 circlePos, vec2 uv, f
     return circle;
 }
 
+float wavedRings(
+    float borderSize,
+    vec2 circlePos,
+    vec2 uv,
+    float ringCount,
+    float waveCount,
+    float waveHeight,
+    float uTime
+) {
+    vec2 p = uv - circlePos;
+
+    float dist = length(p) + uTime * -0.04;
+
+    float angle = atan(p.x, p.y) ;
+
+    float angle01 =
+        angle / (PI * 2.0) + 0.5;
+
+    // Wave offset
+    float wave =
+        sin(angle01 * PI * 2.0 * waveCount)
+        * waveHeight ;
+
+    // Move the repeating rings according to the wave
+    float ring = fract(
+        dist * ringCount + wave
+    ) ;
+
+    return step(ring, borderSize) ;
+}
+
 vec2 rotate2D(vec2 value, float angle)
 {
     float s = sin(angle);

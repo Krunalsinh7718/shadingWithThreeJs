@@ -177,30 +177,30 @@ void main(){
         0.14,         // wave amount,
         uTime
     );
-    float strength = circle;
-    float strength1 =  step(fract(length(uv - 0.5) * 10.0 + uTime  * -0.2) ,radius);
-    float strength2 =  step(radius,
-    fract(length(uv - 0.5)) * 1.0
-    ) ;
-    gl_FragColor = vec4(vec3(strength), 1.0);
+    // float strength = circle;
+    // float strength1 =  step(fract(length(uv - 0.5) * 10.0 + uTime  * -0.2) ,radius);
+    // float strength2 =  step(radius,
+    // fract(length(uv - 0.5)) * 1.0
+    // ) ;
+    // gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 47
-    // float strength = step(0.0, cnoise(vUv * 10.0));
+    // float strength = step(0.0,cnoise(uv * uCtrl5));
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 48
-    // float strength = 1.0 - abs(cnoise(uv * 10.0));
+    // float strength = 1.0 -   abs(cnoise(uv * 10.0  )) ;
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 49
-    // float strength = sin(cnoise(vUv * 10.0) * uCtrl5);
+    // float strength = step(0.0, sin(cnoise(uv * 10.0) * uCtrl5 + uTime * 2.0)) ;
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
     //pattern 50
-    // float strength = step(0.9, sin(cnoise(uv * 10.0  ) * uCtrl5) );
-    // strength = clamp(strength, 0.0, 1.0);
-    // vec3 mixedColor = mix(blackColor, uvColor, strength);
-    // gl_FragColor = vec4(mixedColor, 1.0);
+    float strength = step(uCtrl1, sin(cnoise(uv * 10.0  ) * uCtrl5 + uTime * 2.0) );
+    strength = clamp(strength, 0.0, 1.0);
+    vec3 mixedColor = mix(blackColor, uvColor, strength);
+    gl_FragColor = vec4(mixedColor, 1.0);
 
     #include <colorspace_fragment>
 }

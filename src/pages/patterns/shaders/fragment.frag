@@ -41,9 +41,9 @@ void main(){
     // uv = uv * 1.0;
     //-------------------------------
       //verticalStripes function returns float values for vertical stripe shape. 
-      //@param {vec2} uv - texture uv
-      //@param {float} stripeCount  
-      //@returns {float} stripeWidth
+      //@param {vec2} uv : texture uv
+      //@param {float} stripCount : stripe Count  
+      //@returns {float} stripeSize : stripe Width
     //--------------------------------
     // float strength = verticalStripes(uv, uCtrl4, uCtrl1);
     // gl_FragColor = vec4(vec3(strength), 1.0);
@@ -52,8 +52,8 @@ void main(){
     // uv = uv * 1.0;
     //-------------------------------
       //cornerShape function returns float values for rop right and bottom right corner shape pattern. 
-      //@param {vec2} uv - texture uv
-      //@param {float} 0.0 = top right corner, 1.0 = bottom left corner  
+      //@param {vec2} uv : texture uv
+      //@param {float} inverse : 0.0 = top right corner, 1.0 = bottom left corner  
     //--------------------------------
     // float strength = cornerShape(uv, 0.0); 
     // gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
@@ -66,7 +66,7 @@ void main(){
     // uv.y +=  uTime * 0.6;
     //-------------------------------
       //plusShape function returns float values for plus shape. 
-      //@param {vec2} uv - texture uv
+      //@param {vec2} uv : texture uv
     //--------------------------------
     // float strength = plusShape(uv);
     //  gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
@@ -79,120 +79,168 @@ void main(){
 
     //-------------------------------
       //starShape1 function returns float values for star shape. 
-      //@param {vec2} uv - texture uv
+      //@param {vec2} uv : texture uv
     //--------------------------------
     // float strength = starShape1(uv) ;
     // gl_FragColor = vec4(mix(whiteColor, color2, strength), 1.0);
 
-    //pattern 17
+    //********pattern 17
     // uv = uv - 0.5;
     // uv = uv * 5.0;
     // uv = fract(uv);
-    float strength = borderBox( uv, uCtrl3, vec2(uCtrl1, uCtrl2)); 
-    gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
+    //-------------------------------
+      //borderBoxShape function returns float values for border box shape. 
+      //@param {vec2} uv : texture uv
+      //@param {float} boxSize: box size
+      //@param {vec2}  pos : box position X,Y
+      //@param {float} borderWidth:  border width
+    //--------------------------------
+    // float strength = borderBoxShape( uv, uCtrl3, vec2(uCtrl1, uCtrl2), 0.01); 
+    // gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
 
 
-    //pattern 18
-      //  uv = uv - 0.5;
-   //  uv = uv * 5.0;
-   //  uv = fract(uv);
-   //  float strength = shades(uCtrl4, uv); //shades(size, uv)
-   //  gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
+    //********pattern 18
+    // uv = uv - 0.5;
+    // uv = uv * 5.0;
+    // uv = fract(uv);
+     //-------------------------------
+      //shades function returns float values for X and Y dark light shades. 
+      //@param {vec2} uv : texture uv
+      //@param {float} shadeSize : shade size
+    //--------------------------------
+    // float strength = shades(uv, uCtrl4); 
+    // gl_FragColor = vec4(mix(blackColor, uvColor, strength), 1.0);
 
-     //pattern 23
-   //       uv = uv - 0.5;
-   //  uv = uv * 5.0;
-   //  uv = fract(uv);
-   //  float strength = random(uv);
-   //   gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
+     //********pattern 23
+    //-------------------------------
+      //randomUV function returns float values for dark light noise. 
+      //@param {vec2} uv : texture uv
+    //--------------------------------
+    // float strength = randomUV(uv);
+    // gl_FragColor = vec4(mix(blackColor, color2, strength), 1.0);
 
-     //pattern 24
-   //  uv = uv - 0.5;
-   //  uv = uv * 5.0;
-   //  uv = fract(uv);
-   //  float strength = randomShades(uCtrl4, uv , uCtrl1); // randomShades(size, uv, rotation)
-   //  gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
+     //********pattern 24
+    // uv = uv - 0.5;
+    // uv = uv * 5.0;
+    // uv = fract(uv);
+     //-------------------------------
+      //randomShades function returns random dark light shades value with Y axis rotation. 
+      //@param {vec2} uv : texture uv
+      //@param {float} shadeSize: shade size
+      //@param {float} rotationY: rotation Y
+    //--------------------------------
+    // float strength = randomShades(uv, uCtrl4, uCtrl1); 
+    // gl_FragColor = vec4(mix(whiteColor, color2, strength), 1.0);
 
-    //pattern 26
+    //********pattern 26
     // uv = fract(uv);
     // float strength = length(uv);
     // float strength = length(uv) * length(1.0 - uv) ;
     // float strength = distance(uv, vec2(0.5));
-   
-    // float strength = borderCircle(0.01, uCtrl1, vec2(0.5), uv);
-    // float strength = borderCircle(0.0, 0.5, vec2(0.5), uv);
-    
+    //-------------------------------
+      //borderCircle function returns border circle shape. 
+      //@param {vec2} uv : texture uv
+      //@param {float} borderSize: border size
+      //@param {float} circleSize: circle radius
+      //@param {vec2} circlePos: circle position on X and Y axsis
+    //--------------------------------
+    // float strength = borderCircle(uv, 0.01, uCtrl1, vec2(0.5));
     // gl_FragColor = vec4(mix(blackColor, color2, strength), 1.0);
 
 
-     //pattern 29
+     //********pattern 29
     // uv = uv * 5.0;
     // uv = fract(uv);
-    // float strength =  starDot(0.15, uv, vec2(0.5),uCtrl1 , uCtrl2); // starDot(intensity, centerPoint, squeeze X, squeeze Y)
+    //-------------------------------
+      //starDot function returns float value for glowing dot shape. 
+      //@param {vec2} uv : texture uv
+      //@param {float} intensity: glow amount
+      //@param {vec2} centerPoint: dot position X Y
+      //@param {float} sqX: strech on X axis
+      //@param {float} sqY: strech on Y axis
+    //--------------------------------
+    // float strength =  starDot(uv, uCtrl3, vec2(0.5),uCtrl1 , uCtrl2); // starDot(intensity, centerPoint, squeeze X, squeeze Y)
     // gl_FragColor = vec4(mix(color1, color2, strength), 1.0);
 
-    //pattern 31
-    //  uv = uv - 0.5;
+    //********pattern 31
+    // uv = uv - 0.5;
     // uv = uv * 5.0;
     // uv = fract(uv);
-    // vec2 rotatedUv = rotate(uv, PI * uTime * 0.06, vec2(0.5));
-    // float strength =  starShape(0.15, rotatedUv, vec2(0.5), uCtrl4, 1.0);
+    //-------------------------------
+      //rotateUV function returns vec2 value for rotated UV. 
+      //@param {vec2} uv : texture uv
+      //@param {float} rotation: aotation angle
+      //@param {vec2} mid: rotate oriantion of X and Y
+    //--------------------------------
+    // vec2 rotatedUv = rotateUV(uv, PI * uCtrl2, vec2(0.5));
+
+    //-------------------------------
+      //starShape function returns float value for star shape. 
+      //@param {vec2} uv : texture uv
+      //@param {float} intensity: glow amout of star
+      //@param {vec2} centerPoint: position of star X and Y
+      //@param {float} sqX: help to increase length of their coner
+      //@param {float} sqY: help to increase radius of center
+    //--------------------------------
+    // float strength =  starShape(rotatedUv, uCtrl1, vec2(0.5), uCtrl4, uCtrl5);
     // vec3 mixedColor = mix(blackColor, color1, strength);
     // gl_FragColor = vec4(mixedColor, 1.0);   
 
 
- 
 
-    //pattern 35
-    // uv = uv - 0.5;
-    // uv = uv * 5.0;
+    //********pattern 37
+    // uv = uv * 1.0 ;
     // uv = fract(uv);
-    // // float strength =  step(0.02, 
-    // //                     abs(
-    // //                       distance(uv, vec2(0.5)) - 0.25 
-    // //                     )
-    // //                   );
-    // float strength =  1.0 - borderCircle(0.01, 0.3, vec2(0.5), uv) ;
+    //-------------------------------
+      //wavedUv function returns vec2 value for waved uv. 
+      //@param {vec2} uv : texture uv
+      //@param {float} wavelength: wavelength of wave
+      //@param {vec2} amplitude: amplitude of wave
+    //--------------------------------
+    // vec2 wavedUv = wavedUv(uv, uCtrl5, uCtrl1);
+    // float strength = 1.0 - borderCircle(wavedUv, 0.01, 0.3, vec2(0.5));
     // gl_FragColor = vec4(mix(uvColor, blackColor, strength), 1.0);
 
-    //pattern 37
-    //     uv = uv - 0.5;
-    // uv = uv * 5.0 + uTime * 0.06;
-    // uv = fract(uv);
-    // vec2 wavedUv = vec2(
-    //     uv.x + sin(uv.y * uCtrl5) * 0.1,
-    //     uv.y + sin(uv.x * uCtrl5) * 0.1
-    // );
-    // float strength = 1.0 - borderCircle(0.01, 0.3, vec2(0.5), wavedUv);
-    // gl_FragColor = vec4(mix(uvColor, blackColor, strength), 1.0);
-
-    //pattern 40
+    //********pattern 40
     //learn atan using graph => https://www.desmos.com/calculator/fjaz7sv20l
     // desmos formula => A=A_{rctan2}\left(p,q\right)
 
-    // uv = uv  ;
     // uv = vec2(uv.x - 0.5, uv.y);
-    // float angle = atan( uv.y - 0.5, uv.x - 0.5) ;
-    // float strength = angle / (PI * 2.0) + 0.5  + uTime  * 0.02;
-    // strength = fract(strength * 10.0 )  ;
-    // uv = uv - 0.5;
-    // float strength1 = fract(length(uv) * 10.0 + uTime * -0.2) ;
+    //-------------------------------
+      //getOrignatedAngle function returns angle value for angled circle.
+      //valus at 0 angle is near to 0 and values at to 6.28 angle is near to 1 
+      //@param {vec2} uv : texture uv
+      //@param {vec2} centerPoint: X Y position of circle origin
+    //--------------------------------
+    // float angle = getOrignatedAngle(uv, vec2(uCtrl1,uCtrl2)) + uTime * -0.01;
 
 
+
+   //-------------------------------
+      //angle360dStripe function returns float value for angled circle.
+      //valus at 0 angle is near to 0 and values at to 6.28 angle is near to 1 
+      //@param {vec2} uv : texture uv
+      //@param {vec2} angle: angle value
+      //@param {float} stripeCount: devide ciecle according to stripeCount
+    //--------------------------------
+
+    // float strength = angle360dStripe(uv, angle, uCtrl5);
+    
+    //-------------------------------
+      //circularStripes function returns float values for circular Stripes stripe shape. 
+      //@param {vec2} uv : texture uv
+      //@param {vec2} centerPoint : stripe origin X Y
+      //@param {float} stripCount : stripe Count  
+      //@returns {float} stripeSize : stripe Width
+      //@returns {float} adjuct : adjuct stripe position
+    //--------------------------------
+    // float strength1 = circularStripes(uv , vec2(uCtrl1,uCtrl2), uCtrl4, uCtrl3, uTime * -0.1) ;
     // float mixStrength = strength * strength1 ;
-
     //  gl_FragColor = vec4(mix(blackColor,color2, mixStrength), 1.0);
 
-    //pattern 41
-    //learn atan using graph => https://www.desmos.com/calculator/fjaz7sv20l
-    // desmos formula => A=\frac{A_{rctan2}\left(p,q\right)}{3.14\ \cdot2}+0.5\ 
-    // float angle = angleCircle(vec2(0.5), uCtrl5, uv);
-    // float strength = angle ;
-    // gl_FragColor = vec4(mix(color2, uvColor, strength), 1.0);
+    
 
-    //pattern 45
-    // float angle = angleCircle(vec2(0.5), 1.0, uv);
-    // float radius = 0.25 + sin(angle * 100.0) * 0.01;
+    //********pattern 45
 
     // float circle = wavedRings(
     //     0.21,       // border
@@ -203,26 +251,29 @@ void main(){
     //     0.14,         // wave amount,
     //     uTime
     // );
-    // float strength = circle;
-    // float strength1 =  step(fract(length(uv - 0.5) * 10.0 + uTime  * -0.2) ,radius);
-    // float strength2 =  step(radius,
-    // fract(length(uv - 0.5)) * 1.0
-    // ) ;
-    // gl_FragColor = vec4(vec3(strength), 1.0);
 
-    //pattern 47
+    float angle = getOrignatedAngle(uv, vec2(0.5));
+    float dist = length(uv - 0.5);
+    float sinedAngle = sin(angle * PI * 2.0 * uCtrl5) * uCtrl1;
+    float ring = dist * sinedAngle;
+    float circle = step(ring, 0.2) ;
+    
+   
+    gl_FragColor = vec4(vec3(circle), 1.0);
+
+    //********pattern 47
     // float strength = step(0.0,cnoise(uv * uCtrl5));
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
-    //pattern 48
+    //********pattern 48
     // float strength = 1.0 -   abs(cnoise(uv * 10.0  )) ;
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
-    //pattern 49
+    //********pattern 49
     // float strength = step(0.0, sin(cnoise(uv * 10.0) * uCtrl5 + uTime * 2.0)) ;
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
-    //pattern 50
+    //********pattern 50
     // float strength = step(uCtrl1, sin(cnoise(uv * 10.0  ) * uCtrl5 + uTime * 2.0) );
     // strength = clamp(strength, 0.0, 1.0);
     // vec3 mixedColor = mix(blackColor, uvColor, strength);

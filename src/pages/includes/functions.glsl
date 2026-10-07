@@ -1,6 +1,12 @@
 #define PI 3.1415926535897932384626433832795
 
-float stripe(vec2 data, float stripCount, float stripeSze){
+float verticalStripes(vec2 data, float stripCount, float stripeSze){
+    //-------------------------------
+    //verticalStripes function returns float values for vertical stripe shape. 
+    //@param {vec2} uv - texture uv
+    //@param {float} stripeCount  
+    //@returns {float} stripeWidth
+    //--------------------------------
     float strength = step(stripeSze, mod(data.y * stripCount, 1.0));
     return strength;
 }
@@ -61,6 +67,10 @@ float cnoise(vec2 P)
 }
 
 float plusShape( vec2 uv){
+    //-------------------------------
+      //plusShape function returns float values for plus shape. 
+      //@param {vec2} uv - texture uv
+    //--------------------------------
     float boxX = step(0.4, mod(uv.x  - 0.2, 1.0)) *  step(0.8, mod(uv.y , 1.0));
     float boxY = step(0.8, mod(uv.x , 1.0)) *  step(0.4, mod(uv.y  - 0.2, 1.0));
     float strength = boxX + boxY;
@@ -69,6 +79,11 @@ float plusShape( vec2 uv){
 
 
 float cornerShape(vec2 uv, float inverse){
+    //-------------------------------
+      //cornerShape function returns float values for rop right and bottom right corner shape pattern. 
+      //@param {vec2} uv - texture uv
+      //@param {float} 0.0 = top right corner, 1.0 = bottom left corner  
+    //--------------------------------
     if(inverse == 1.0){
        uv = 1.0 - uv; 
     }
@@ -78,9 +93,9 @@ float cornerShape(vec2 uv, float inverse){
     return strength;
 }
 
-float borderBox(float boxSize, vec2 uv, float posX, float posY){
-    float strength = step(boxSize, max(abs(uv.x - posX), abs(uv.y - posY))) ;
-    strength *= 1.0 - step(boxSize + 0.05, max(abs(uv.x - posX), abs(uv.y - posY)));
+float borderBox(vec2 uv, float boxSize, vec2 pos){
+    float strength = step(boxSize, max(abs(uv.x - pos.x), abs(uv.y - pos.y))) ;
+    strength *= 1.0 - step(boxSize + 0.05, max(abs(uv.x - pos.x), abs(uv.y - pos.y)));
     return strength;
 }
 
@@ -103,7 +118,11 @@ float starShape(float intensity, vec2 uv, vec2 centerPoint, float sqX, float sqY
 }
 
 float starShape1(vec2 uv){
-   return smoothstep(0.01, 0.99, max(abs(uv.x), abs(uv.y))) ;
+    //-------------------------------
+      //starShape1 function returns float values for star shape. 
+      //@param {vec2} uv - texture uv
+    //--------------------------------
+   return smoothstep(0.001, 0.99,  max(abs(uv.x), abs(uv.y)) * 0.5) ;
 }
 
 float borderCircle(float borderSize, float circleSize, vec2 circlePos, vec2 uv){

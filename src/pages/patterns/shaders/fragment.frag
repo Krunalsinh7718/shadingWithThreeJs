@@ -252,14 +252,16 @@ void main(){
     //     uTime
     // );
 
-    float angle = getOrignatedAngle(uv, vec2(0.5));
-    float dist = length(uv - 0.5);
-    float sinedAngle = sin(angle * PI * 2.0 * uCtrl5) * uCtrl1;
-    float ring = dist * sinedAngle;
-    float circle = step(ring, 0.2) ;
-    
+    float angle = getOrignatedAngle(uv, vec2(0.5)) ;
+    float dist = length(uv - 0.5) - uCtrl1;
+    float sinedAngle = sin(angle * PI * 2.0 * uCtrl4) * 0.15;
+    float ring = dist * 9.8 + sinedAngle;
+    float circle = step(ring, uCtrl2) * step(uCtrl2, ring + 0.04);
+
+    float strength = wavedCircle(uv, 0.04, 0.4, vec2(0.5), 11.0, uCtrl1, angle);
+    // strength = step(strength, uCtrl2) * step(uCtrl2, strength + 0.04);
    
-    gl_FragColor = vec4(vec3(circle), 1.0);
+    gl_FragColor = vec4(vec3(strength), 1.0);
 
     //********pattern 47
     // float strength = step(0.0,cnoise(uv * uCtrl5));

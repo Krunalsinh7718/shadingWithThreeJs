@@ -205,15 +205,20 @@ float borderCircle(vec2 uv, float borderSize, float circleSize, vec2 circlePos){
     
 }
 
-float angleCircle(vec2 centerPoint, float stripesCount, vec2 uv){
-    float angle = atan(uv.x - centerPoint.x, uv.y - centerPoint.y) / (PI * 2.0) + 0.5;
-    return mod(angle * stripesCount, 1.0);
-}
 
-float wavedCircle(float borderSize, float circleSize, vec2 circlePos, vec2 uv, float waveCount, float waveHeight){
-    float angle = getOrignatedAngle(uv, circlePos);
-    float radius = circleSize + sin(angle * waveCount) * waveHeight;
-    float circle = borderCircle( uv, borderSize,  radius,  circlePos);
+
+float wavedCircle( 
+    vec2 uv, 
+    float borderSize, 
+    float circleSize, 
+    vec2 circlePos, 
+    float waveCount, 
+    float waveHeight,
+    float angle
+){
+    float dist = length(uv - circlePos) - circleSize;
+    float radius =  sin(angle * PI * 2.0 * waveCount) * max(waveHeight, 0.01);
+    float circle = dist / max(waveHeight, 0.01) + radius;
     return circle;
 }
 

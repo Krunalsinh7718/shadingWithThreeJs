@@ -223,8 +223,11 @@ float wavedCircle(
      //-------------------------------
       //wavedCircle function returns float value for waved circle shape. 
       //@param {vec2} uv : texture uv
-      //@param {float} circleSize: wavelength of wave
-      //@param {vec2} amplitude: amplitude of wave
+      //@param {float} circleSize: circle size
+      //@param {vec2} circlePos: circle position X Y
+      //@param {float} waveCount: how much waves
+      //@param {float} waveHeight: height of waves
+      //@param {float} angle: circle angle
     //--------------------------------
     float dist = length(uv - circlePos) - circleSize;
     float radius =  sin(angle * PI * 2.0 * waveCount) * max(waveHeight, 0.01);

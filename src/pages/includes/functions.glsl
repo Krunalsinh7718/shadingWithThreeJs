@@ -70,13 +70,13 @@ float cnoise(vec2 P)
 {
     vec4 Pi = floor(P.xyxy) + vec4(0.0, 0.0, 1.0, 1.0);
     vec4 Pf = fract(P.xyxy) - vec4(0.0, 0.0, 1.0, 1.0);
-    Pi = mod(Pi, 289.0); // To avoid truncation effects in permutation
+    Pi = mod(Pi, 289.0); 
     vec4 ix = Pi.xzxz;
     vec4 iy = Pi.yyww;
     vec4 fx = Pf.xzxz;
     vec4 fy = Pf.yyww;
     vec4 i = permute(permute(ix) + iy);
-    vec4 gx = 2.0 * fract(i * 0.0243902439) - 1.0; // 1/41 = 0.024...
+    vec4 gx = 2.0 * fract(i * 0.0243902439) - 1.0; 
     vec4 gy = abs(gx) - 0.5;
     vec4 tx = floor(gx + 0.5);
     gx = gx - tx;
@@ -189,7 +189,7 @@ float starShape1(vec2 uv){
       //starShape1 function returns float values for star shape. 
       //@param {vec2} uv : texture uv
     //--------------------------------
-   return smoothstep(0.001, 0.99,  max(abs(uv.x), abs(uv.y)) * 0.5) ;
+   return smoothstep(0.001, 0.99,  max(abs(uv.x), abs(uv.y)) ) ;
 }
 float circleShape(vec2 uv, vec2 circlePos){
     //-------------------------------
@@ -235,36 +235,6 @@ float wavedCircle(
     return circle;
 }
 
-float wavedRings(
-    float borderSize,
-    vec2 circlePos,
-    vec2 uv,
-    float ringCount,
-    float waveCount,
-    float waveHeight,
-    float uTime
-) {
-    vec2 p = uv - circlePos;
-
-    float dist = length(p) + uTime * -0.04;
-
-    float angle = atan(p.x, p.y) ;
-
-    float angle01 =
-        angle / (PI * 2.0) + 0.5;
-
-    // Wave offset
-    float wave =
-        sin(angle01 * PI * 2.0 * waveCount)
-        * waveHeight ;
-
-    // Move the repeating rings according to the wave
-    float ring = fract(
-        dist * ringCount + wave
-    ) ;
-
-    return step(ring, borderSize) ;
-}
 
 vec2 rotate2D(vec2 value, float angle)
 {
@@ -309,3 +279,13 @@ float angle360dStripe(vec2 uv, float angle, float stripeCount){
 
 }
 
+float stripedStrenth(float strength, float stripeSize, float stripeCount, float adjuct){
+    //-------------------------------
+      //stripedStrenth function returns float value for stripe shape of provided strength.
+      //@param {float} strength : strength of any shape
+      //@param {float} stripeSize: stripe size
+      //@param {float} stripeCount: amount of stripes
+      //@param {float} adjuct: stripe adjuct value (may use for forward or backward animation)
+    //--------------------------------
+    return step(stripeSize,fract(strength * stripeCount + adjuct));
+}

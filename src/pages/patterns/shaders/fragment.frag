@@ -137,14 +137,19 @@ void main(){
     // float strength = length(uv);
     // float strength = length(uv) * length(1.0 - uv) ;
     // float strength = distance(uv, vec2(0.5));
-    //-------------------------------
-      //borderCircle function returns border circle shape. 
+     //-------------------------------
+      //circleShape function returns circle shape. 
       //@param {vec2} uv : texture uv
-      //@param {float} borderSize: border size
-      //@param {float} circleSize: circle radius
-      //@param {vec2} circlePos: circle position on X and Y axsis
+      //@param {vec2} circlePos: circle position X Y
     //--------------------------------
-    // float strength = borderCircle(uv, 0.01, uCtrl1, vec2(0.5));
+    // float circleStrength = circleShape(uv, vec2(0.5));
+    //-------------------------------
+      //borderShape function returns border version of shape. 
+      //@param {float} shapeStrength : shape values
+      //@param {float} borderSize: border size
+      //@param {float} shapeSize: shape size
+    //--------------------------------
+    // float strength = borderShape( circleStrength, uCtrl3, uCtrl1);
     // gl_FragColor = vec4(mix(blackColor, color2, strength), 1.0);
 
 
@@ -198,7 +203,19 @@ void main(){
       //@param {vec2} amplitude: amplitude of wave
     //--------------------------------
     // vec2 wavedUv = wavedUv(uv, uCtrl5, uCtrl1);
-    // float strength = 1.0 - borderCircle(wavedUv, 0.01, 0.3, vec2(0.5));
+      //-------------------------------
+      //circleShape function returns circle shape. 
+      //@param {vec2} uv : texture uv
+      //@param {vec2} circlePos: circle position X Y
+    //--------------------------------
+    // float circleStrength = circleShape(wavedUv, vec2(0.5));
+    //-------------------------------
+      //borderShape function returns border version of shape. 
+      //@param {float} shapeStrength : shape values
+      //@param {float} borderSize: border size
+      //@param {float} shapeSize: shape size
+    //--------------------------------
+    // float strength = 1.0 - borderShape(circleStrength,0.01, 0.3);
     // gl_FragColor = vec4(mix(uvColor, blackColor, strength), 1.0);
 
     //********pattern 40
@@ -252,16 +269,25 @@ void main(){
     //     uTime
     // );
 
-    float angle = getOrignatedAngle(uv, vec2(0.5)) ;
-    float dist = length(uv - 0.5) - uCtrl1;
-    float sinedAngle = sin(angle * PI * 2.0 * uCtrl4) * 0.15;
-    float ring = dist * 9.8 + sinedAngle;
-    float circle = step(ring, uCtrl2) * step(uCtrl2, ring + 0.04);
-
-    float strength = wavedCircle(uv, 0.04, 0.4, vec2(0.5), 11.0, uCtrl1, angle);
-    // strength = step(strength, uCtrl2) * step(uCtrl2, strength + 0.04);
+    float angle = getOrignatedAngle(uv, vec2(0.5)) + uTime * 0.01;
+    // float dist = length(uv - 0.5) - uCtrl1;
+    // float sinedAngle = sin(angle * PI * 2.0 * uCtrl4) * 0.15;
+    // float ring = dist * 9.8 + sinedAngle;
+    // float circle = step(ring, uCtrl2) * step(uCtrl2, ring + 0.04);
+     //-------------------------------
+      //wavedCircle function returns float value for waved circle shape. 
+      //@param {vec2} uv : texture uv
+      //@param {float} circleSize: circle size
+      //@param {vec2} circlePos: circle position X Y
+      //@param {float} waveCount: how much waves
+      //@param {float} waveHeight: height of waves
+      //@param {float} angle: circle angle
+    //--------------------------------
+    float circle = wavedCircle(uv,  uCtrl2, vec2(0.5), 11.0, uCtrl1, angle);
+    float strength1 = borderShape(circle, uCtrl3, uCtrl2);
+    float strength2 = step(0.5,fract(circle * 0.6 + uTime * -0.2)  );
    
-    gl_FragColor = vec4(vec3(strength), 1.0);
+    gl_FragColor = vec4(vec3(strength1), 1.0);
 
     //********pattern 47
     // float strength = step(0.0,cnoise(uv * uCtrl5));

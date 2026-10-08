@@ -191,17 +191,22 @@ float starShape1(vec2 uv){
     //--------------------------------
    return smoothstep(0.001, 0.99,  max(abs(uv.x), abs(uv.y)) * 0.5) ;
 }
-
-float borderCircle(vec2 uv, float borderSize, float circleSize, vec2 circlePos){
+float circleShape(vec2 uv, vec2 circlePos){
     //-------------------------------
-      //borderCircle function returns border circle shape. 
+      //circleShape function returns circle shape. 
       //@param {vec2} uv : texture uv
-      //@param {float} borderSize: border size
-      //@param {float} circleSize: circle radius
-      //@param {vec2} circlePos: circle position on X and Y axsis
+      //@param {vec2} circlePos: circle position X Y
     //--------------------------------
-    float dist = distance(uv, circlePos);
-    return step(circleSize - borderSize, dist) * step(dist, circleSize );
+    return distance(uv, circlePos);
+}
+float borderShape(float shapeStrength, float borderSize, float shapeSize){
+    //-------------------------------
+      //borderShape function returns border version of shape. 
+      //@param {float} shapeStrength : shape values
+      //@param {float} borderSize: border size
+      //@param {float} shapeSize: shape size
+    //--------------------------------
+    return step(shapeSize - borderSize, shapeStrength) * step(shapeStrength, shapeSize );
     
 }
 
@@ -209,13 +214,18 @@ float borderCircle(vec2 uv, float borderSize, float circleSize, vec2 circlePos){
 
 float wavedCircle( 
     vec2 uv, 
-    float borderSize, 
     float circleSize, 
     vec2 circlePos, 
     float waveCount, 
     float waveHeight,
     float angle
 ){
+     //-------------------------------
+      //wavedCircle function returns float value for waved circle shape. 
+      //@param {vec2} uv : texture uv
+      //@param {float} circleSize: wavelength of wave
+      //@param {vec2} amplitude: amplitude of wave
+    //--------------------------------
     float dist = length(uv - circlePos) - circleSize;
     float radius =  sin(angle * PI * 2.0 * waveCount) * max(waveHeight, 0.01);
     float circle = dist / max(waveHeight, 0.01) + radius;

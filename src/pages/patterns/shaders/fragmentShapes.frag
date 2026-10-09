@@ -10,6 +10,7 @@ uniform float uCtrl5;
 uniform vec2 uResolution;
 
 varying vec2 vUv;
+#include ../../includes/functions.glsl
 #include ../../includes/variantFunctions.glsl
 
 void main(){
@@ -36,10 +37,20 @@ void main(){
 
      //*******pattern 1 (circle)
      uv = uv - 0.5;
-     float boxData = max(abs(uv.x),abs(uv.y));
-     float circleData = length(uv);
-     float strength = variantShape(circleData, 2, uCtrl1, 0.01, 11.0, 0.005);
-     gl_FragColor = vec4(mix(blackColor, color2, strength), 1.0);
+
+     float waveHeight = 0.05;
+     float waveCount = 10.0;
+     float angle = getOrignatedAngle(uv, vec2(0.0));
+     float radius =  sin(angle * PI * 2.0 * waveCount) * waveHeight;
+
+     float boxData = rectangleField(uv);
+     float circleData = circleField(uv);
+     float triangleData = triangleField(uv);
+
+     float circularWaved = wavedCircleField(uv, 10.0, 0.05, 0.0);
+  
+     float strength = variantShape(circularWaved, 2, uCtrl1, 0.01, 11.0, 0.005, uTime * -0.2);
+     gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
     
     #include <colorspace_fragment>
 }

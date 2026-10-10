@@ -34,23 +34,25 @@ void main(){
      vec3 color1 = vec3(1.0, 0.2, 0.4);
      vec3 color2 = vec3(0.4, 0.1, 1.0);
      vec3 uvColor = vec3(uv, 1.0);
+     vec3 uvColor1 = vec3(1.0, uv);
 
      //*******pattern 1 (circle)
      uv = uv - 0.5;
 
      float waveHeight = 0.05;
      float waveCount = 10.0;
-     float angle = getOrignatedAngle(uv, vec2(0.0));
+     float angle = getOrignatedAngle(uv, vec2(0.0))  ;
      float radius =  sin(angle * PI * 2.0 * waveCount) * waveHeight;
 
      float boxData = rectangleField(uv);
-     float circleData = circleField(uv);
+     float circleData = circleField(uv );
      float triangleData = triangleField(uv);
 
-     float circularWaved = wavedCircleField(uv, 10.0, 0.05, 0.0);
+     float circularWaved = wavedCircleField(uv, 10.0, 0.05,  uTime * 0.01);
   
-     float strength = variantShape(circularWaved, 2, uCtrl1, 0.01, 11.0, 0.005, uTime * -0.2);
-     gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
+     float strength = variantShape(circularWaved, 2, uCtrl1, 0.01, uCtrl5, 0.005,0.0);
+     strength *= variantShape(circleData, 2, uCtrl1, 0.01, 11.0, 0.005, uTime * 0.2);
+     gl_FragColor = vec4(mix(uvColor, uvColor1 * 0.4, strength), 1.0);
     
     #include <colorspace_fragment>
 }

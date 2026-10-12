@@ -12,8 +12,6 @@ uniform vec2 uResolution;
 varying vec2 vUv;
 #include ../../includes/functions.glsl
 #include ../../includes/shapesFunctions.glsl
-#include ../../includes/colorsFunctions.glsl
-#include ../../includes/easingFunctions.glsl
 
 void main(){
 
@@ -26,10 +24,6 @@ void main(){
         uv.y *= aspect;
      }
 
-     float progress = fract(uTime * 0.2);
-     float easedProgress = easeInOutCubic(progress);
-     float easeOutBackProgress = easeOutBack(progress);
-
      vec3 blackColor = vec3(0.0);
      vec3 whiteColor = vec3(1.0);
      vec3 redColor = vec3(1.0, 0.0, 0.0);
@@ -39,27 +33,24 @@ void main(){
 
      vec3 color1 = vec3(1.0, 0.2, 0.4);
      vec3 color2 = vec3(0.4, 0.1, 1.0);
-     vec3 color3 = hsb2rgb(vec3(abs(sin(uTime)), 0.5, 1.0));
      vec3 uvColor = vec3(uv, 1.0);
-     vec3 uvColor1 = vec3(1.0, uv);
 
      //*******pattern 1 (circle)
      uv = uv - 0.5;
 
      float waveHeight = 0.05;
      float waveCount = 10.0;
-     float angle = getOrignatedAngle(uv, vec2(0.0))  ;
+     float angle = getOrignatedAngle(uv, vec2(0.0));
      float radius =  sin(angle * PI * 2.0 * waveCount) * waveHeight;
 
      float boxData = rectangleField(uv);
-     float circleData = circleField(uv );
+     float circleData = circleField(uv);
      float triangleData = triangleField(uv);
 
-     float circularWaved = wavedCircleField(uv, 10.0, 0.05,  uTime * 0.01);
+     float circularWaved = wavedCircleField1(uv, 10.0, uCtrl2, uCtrl3, 0.0);
   
-     float strength = variantShape(circularWaved, 2, uCtrl1, 0.01, uCtrl5, 0.005,0.0);
-     strength *= variantShape(circleData, 2, uCtrl1, 0.01, 11.0, 0.005, easeOutBackProgress);
-     gl_FragColor = vec4(mix(uvColor, whiteColor , strength), 1.0);
+     float strength = variantShape(circularWaved,  uCtrl1 , 0.005);
+     gl_FragColor = vec4(mix(uvColor, color2, circularWaved), 1.0);
     
     #include <colorspace_fragment>
 }

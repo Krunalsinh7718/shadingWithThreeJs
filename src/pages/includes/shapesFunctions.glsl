@@ -188,3 +188,11 @@ float wavedCircleField(vec2 uv, float waveCount, float waveHeight, float adjust)
 
     return circleField(uv) + radius;
 }
+
+
+float wavedCircleField1(vec2 uv, float waveCount, float waveHeight, float innerRadius,float adjust) {
+    float angle = atan(uv.y, uv.x) + adjust;
+    float radius = floor(sin(angle * waveCount)) * waveHeight + innerRadius;
+
+    return 1.0 - step(radius,circleField(uv)) ;
+}

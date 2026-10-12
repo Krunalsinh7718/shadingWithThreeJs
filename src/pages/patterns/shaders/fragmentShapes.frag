@@ -11,7 +11,9 @@ uniform vec2 uResolution;
 
 varying vec2 vUv;
 #include ../../includes/functions.glsl
-#include ../../includes/variantFunctions.glsl
+#include ../../includes/shapesFunctions.glsl
+#include ../../includes/colorsFunctions.glsl
+#include ../../includes/easingFunctions.glsl
 
 void main(){
 
@@ -24,6 +26,10 @@ void main(){
         uv.y *= aspect;
      }
 
+     float progress = fract(uTime * 0.2);
+     float easedProgress = easeInOutCubic(progress);
+     float easeOutBackProgress = easeOutBack(progress);
+
      vec3 blackColor = vec3(0.0);
      vec3 whiteColor = vec3(1.0);
      vec3 redColor = vec3(1.0, 0.0, 0.0);
@@ -33,6 +39,7 @@ void main(){
 
      vec3 color1 = vec3(1.0, 0.2, 0.4);
      vec3 color2 = vec3(0.4, 0.1, 1.0);
+     vec3 color3 = hsb2rgb(vec3(abs(sin(uTime)), 0.5, 1.0));
      vec3 uvColor = vec3(uv, 1.0);
      vec3 uvColor1 = vec3(1.0, uv);
 
@@ -51,8 +58,8 @@ void main(){
      float circularWaved = wavedCircleField(uv, 10.0, 0.05,  uTime * 0.01);
   
      float strength = variantShape(circularWaved, 2, uCtrl1, 0.01, uCtrl5, 0.005,0.0);
-     strength *= variantShape(circleData, 2, uCtrl1, 0.01, 11.0, 0.005, uTime * 0.2);
-     gl_FragColor = vec4(mix(uvColor, uvColor1 * 0.4, strength), 1.0);
+     strength *= variantShape(circleData, 2, uCtrl1, 0.01, 11.0, 0.005, easeOutBackProgress);
+     gl_FragColor = vec4(mix(uvColor, whiteColor , strength), 1.0);
     
     #include <colorspace_fragment>
 }

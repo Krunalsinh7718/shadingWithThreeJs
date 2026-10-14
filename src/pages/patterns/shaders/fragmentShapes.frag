@@ -12,6 +12,8 @@ uniform vec2 uResolution;
 varying vec2 vUv;
 #include ../../includes/functions.glsl
 #include ../../includes/shapesFunctions.glsl
+#include ../../includes/transformFunction.glsl
+#include ../../includes/patternsFunction.glsl
 
 void main(){
 
@@ -36,21 +38,52 @@ void main(){
      vec3 uvColor = vec3(uv, 1.0);
 
      //*******pattern 1 (circle)
-     uv = uv - 0.5;
+     vec2 translate = vec2(cos(uTime),sin(uTime));
+     //uv = uv * rotate2d(uTime * 0.5);
 
      float waveHeight = 0.05;
      float waveCount = 10.0;
      float angle = getOrignatedAngle(uv, vec2(0.0));
      float radius =  sin(angle * PI * 2.0 * waveCount) * waveHeight;
 
-     float boxData = rectangleField(uv);
-     float circleData = circleField(uv);
-     float triangleData = triangleField(uv);
 
-     float circularWaved = wavedCircleField1(uv, uCtrl5, uCtrl2, uCtrl3, 0.0);
+      //1) different types of field functions *********************************
+      //   uv = translateUV(uv, vec2(-0.5));
+   //   float boxData = rectangleField(uv);
+   //   float circleData = circleField(uv);
+   //   float triangleData = triangleField(uv);
+   //   float poligoneData = poligoneField(uv, int(4), PI / 4.0);
+   //   float circularWaved = wavedCircleField(uv, 10.0, uCtrl2, 0.0);
+   //   float circularCog = cogCircleField(uv, 10.0, uCtrl2, uCtrl3, 0.0);
   
-     float strength = variantShape(circularWaved,  uCtrl1 , 0.005);
-     gl_FragColor = vec4(mix(blackColor, whiteColor, circularWaved), 1.0);
-    
+   //   float strength = variantShape(circularCog,  uCtrl1 , 0.005);
+   //   gl_FragColor = vec4(mix(blackColor, whiteColor, strength), 1.0);
+
+   //2) grid pattern *********************************
+   //    uv = uv * 5.0;
+   //    uv = fract(uv);
+   //    float box1 = poligoneField(uv - 0.5, int(4), PI / 4.0);
+   //    float box2 = poligoneField(uv - 0.5, int(4), 0.0);
+  
+   //   float strength =  variantShape(box1, 0, 0.48 + 0.09, 0.02, 5.0, 0.001, 0.0);
+   //   float strength1 =  variantShape(box2, 0, 0.48, 0.02, 5.0, 0.001, 0.0);
+   //   float finalStrength = 1.0 - (strength * strength1);
+   //   gl_FragColor = vec4(mix(uvColor, color2, finalStrength), 1.0);
+      
+   //3) animated dots *********************************
+   //    uv = brickTile(uv, 10.0, uTime);
+   //    uv = fract(uv);
+   //    float circle = cogCircleField(uv - 0.5, 6.0, 0.1, 0.5, uTime * 0.1);
+   //    float strength = variantShape(circle, 0, 0.2 , 0.02, 5.0, 0.001, 0.0);
+
+   //   gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
+
+
+   //4) tile pattern ***********************************
+   uv = uv * 2.0;
+   uv = fract(uv);
+   float strength = step(uv.x, uv.y);
+
+    gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
     #include <colorspace_fragment>
 }

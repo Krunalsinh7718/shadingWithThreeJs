@@ -190,11 +190,50 @@ float wavedCircleField(vec2 uv, float waveCount, float waveHeight, float adjust)
 }
 
 
-float wavedCircleField1(vec2 uv, float waveCount, float waveHeight, float innerRadius,float adjust) {
-    float a = atan(uv.y, uv.x) + adjust;
-    float r = (ShapesPI * 2.0) / waveCount;
-    float radius = 0.5 + a / r;
+/**
+ * Creates a cog-shaped circular distance field with evenly spaced teeth.
+ *
+ * @param uv         2D coordinate relative to the circle's center.
+ * @param teethCount Number of teeth distributed around the circle.
+ * @param teethHeight Height of the radial displacement for each tooth.
+ * @param adjust     Phase offset used to rotate the tooth pattern.
+ * @param teethWidth Controls the width of the teeth by setting the
+ *                   threshold applied to the sinusoidal pattern.
+ * @return           Modified radial distance that creates a cog shape.
+ */
+float cogCircleField(
+    vec2 uv,
+    float teethCount,
+    float teethHeight,
+    float teethWidth,
+    float adjust
+) {
+    float threshold = 1.0 - 2.0 * teethWidth;
+    float angle = getAngle(uv) + adjust;
+    float radius = step(
+        threshold,
+        sin(angle * PI * 2.0 * teethCount)
+    ) * teethHeight * -1.0;
 
-    // return 1.0 - step(radius,circleField(uv)) ;
-    return radius;
+    return circleField(uv) + radius;
 }
+
+/**
+ * Calculates a polygonal distance field with a configurable side count.
+ *
+ * @param uv     2D coordinate relative to the polygon's center.
+ * @param sides  Number of polygon sides.
+ * @param adjust Phase offset used to rotate the polygon.
+ * @return       Radial distance adjusted to create a regular polygon shape.
+ */
+float poligoneField(vec2 uv, int sides, float adjust) {
+    float d = 0.0;
+
+    float a = atan(uv.x, uv.y) + 3.14 + adjust;
+    float r = 3.14 * 2.0 / float(sides);
+
+    d = cos(floor(0.5 + a / r) * r - a) * length(uv);
+
+    return d;
+}
+

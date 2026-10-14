@@ -2,9 +2,14 @@ vec2 translateUV(vec2 uv, vec2 translate){
     return uv += translate;
 }
 
-mat2 rotate2d(float _angle){
-    return mat2(cos(_angle),-sin(_angle),
-                sin(_angle),cos(_angle));
+vec2 rotate2d(vec2 uv, float angle)
+{
+    uv -= 0.5;
+    float s = sin(angle);
+    float c = cos(angle);
+    uv = mat2(c, -s, s, c) * uv;
+    uv += 0.5;
+    return uv;
 }
 
 mat2 scale(vec2 _scale){

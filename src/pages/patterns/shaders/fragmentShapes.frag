@@ -80,10 +80,15 @@ void main(){
 
 
    //4) tile pattern ***********************************
-   uv = uv * 2.0;
-   uv = fract(uv);
-   float strength = step(uv.x, uv.y);
+   // float strength = tilePattern1(uv, uCtrl4);
 
-    gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
+
+   //5) truchetPattern pattern ***********************************
+   // float strength = truchetPatternMain(uv, uCtrl4, 1.0, uTime * 0.5);
+
+   //6) Noise pattern ***********************************
+   float strength = noiseMorganMcGuire(uv * 10.0);
+
+    gl_FragColor = vec4(mix(blackColor, whiteColor, strength), 1.0);
     #include <colorspace_fragment>
 }

@@ -99,6 +99,8 @@ float cnoise(vec2 P)
     return 2.3 * n_xy;
 }
 
+
+
 float plusShape( vec2 uv){
     //-------------------------------
       //plusShape function returns float values for plus shape. 
@@ -236,16 +238,28 @@ float wavedCircle(
 }
 
 
-vec2 rotate2D(vec2 value, float angle)
+vec2 rotate2D(vec2 uv, float angle)
 {
+    uv -= 0.5;
     float s = sin(angle);
     float c = cos(angle);
-    mat2 m = mat2(c, s, -s, c);
-    return m * value;
+    uv = mat2(c, -s, s, c) * uv;
+    uv += 0.5;
+    return uv;
 }
 
 float random2D(vec2 value){
     return fract(sin(dot(value.xy, vec2(12.9898,78.233))) * 43758.5453123);
+}
+
+float random (in vec2 _st) {
+    return fract(sin(dot(_st.xy,
+                         vec2(12.9898,78.233)))*
+        43758.5453123);
+}
+
+float rand(float value){
+  return fract(sin(value)*100000.0);
 }
 
 float remap(float value, float originMin, float originMax, float destinationMin, float destinationMax)
@@ -288,4 +302,26 @@ float stripedStrenth(float strength, float stripeSize, float stripeCount, float 
       //@param {float} adjuct: stripe adjuct value (may use for forward or backward animation)
     //--------------------------------
     return step(stripeSize,fract(strength * stripeCount + adjuct));
+}
+
+float noiseMorganMcGuire(in vec2 st) {
+    vec2 i = floor(st);
+    vec2 f = fract(st);
+
+    // Four corners in 2D of a tile
+    float a = random2D(i);
+    float b = random2D(i + vec2(1.0, 0.0));
+    float c = random2D(i + vec2(0.0, 1.0));
+    float d = random2D(i + vec2(1.0, 1.0));
+
+    // Smooth Interpolation
+
+    // Cubic Hermine Curve.  Same as SmoothStep()
+    vec2 u = f*f*(3.0-2.0*f);
+    // u = smoothstep(0.,1.,f);
+
+    // Mix 4 coorners percentages
+    return mix(a, b, u.x) +
+            (c - a)* u.y * (1.0 - u.x) +
+            (d - b) * u.x * u.y;
 }

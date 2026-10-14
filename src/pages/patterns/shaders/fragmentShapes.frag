@@ -47,10 +47,10 @@ void main(){
      float circleData = circleField(uv);
      float triangleData = triangleField(uv);
 
-     float circularWaved = wavedCircleField1(uv, 10.0, uCtrl2, uCtrl3, 0.0);
+     float circularWaved = wavedCircleField1(uv, uCtrl5, uCtrl2, uCtrl3, 0.0);
   
      float strength = variantShape(circularWaved,  uCtrl1 , 0.005);
-     gl_FragColor = vec4(mix(uvColor, color2, circularWaved), 1.0);
+     gl_FragColor = vec4(mix(blackColor, whiteColor, circularWaved), 1.0);
     
     #include <colorspace_fragment>
 }

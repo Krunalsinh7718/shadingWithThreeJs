@@ -1,4 +1,4 @@
-
+#define ShapesPI 3.14159265359
 /**
  * Creates an anti-aliased border around a distance-based shape.
  *
@@ -191,8 +191,10 @@ float wavedCircleField(vec2 uv, float waveCount, float waveHeight, float adjust)
 
 
 float wavedCircleField1(vec2 uv, float waveCount, float waveHeight, float innerRadius,float adjust) {
-    float angle = atan(uv.y, uv.x) + adjust;
-    float radius = floor(sin(angle * waveCount)) * waveHeight + innerRadius;
+    float a = atan(uv.y, uv.x) + adjust;
+    float r = (ShapesPI * 2.0) / waveCount;
+    float radius = 0.5 + a / r;
 
-    return 1.0 - step(radius,circleField(uv)) ;
+    // return 1.0 - step(radius,circleField(uv)) ;
+    return radius;
 }

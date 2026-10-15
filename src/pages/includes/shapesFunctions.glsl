@@ -196,9 +196,9 @@ float wavedCircleField(vec2 uv, float waveCount, float waveHeight, float adjust)
  * @param uv         2D coordinate relative to the circle's center.
  * @param teethCount Number of teeth distributed around the circle.
  * @param teethHeight Height of the radial displacement for each tooth.
- * @param adjust     Phase offset used to rotate the tooth pattern.
  * @param teethWidth Controls the width of the teeth by setting the
  *                   threshold applied to the sinusoidal pattern.
+ * @param adjust     Phase offset used to rotate the tooth pattern.
  * @return           Modified radial distance that creates a cog shape.
  */
 float cogCircleField(

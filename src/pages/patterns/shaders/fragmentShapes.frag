@@ -14,6 +14,8 @@ varying vec2 vUv;
 #include ../../includes/shapesFunctions.glsl
 #include ../../includes/transformFunction.glsl
 #include ../../includes/patternsFunction.glsl
+#include ../../includes/colorsFunctions.glsl
+#include ../../includes/simplexNoise2d.glsl
 
 void main(){
 
@@ -84,11 +86,15 @@ void main(){
 
 
    //5) truchetPattern pattern ***********************************
-   // float strength = truchetPatternMain(uv, uCtrl4, 1.0, uTime * 0.5);
+   // float strength = truchetPatternMain(uv, uCtrl4, 0.0, uTime * 0.5);
 
    //6) Noise pattern ***********************************
-   float strength = noiseMorganMcGuire(uv * 10.0);
+   float strength = 0.0;
+   strength = gradientNoise(uv * 10.0);
+   // strength = step(0.5, strength + sin(uTime * 2.0 + sin(uv.x ) ) * 0.5); // revel transition
+   vec2 pos = vec2(uv.x * 2.0 , uv.y * 3.0);
+   strength = lines(rotate2D( pos + sin(uTime * 0.2), gradientNoise(pos) + uTime * 0.2 ) ,0.5); // lines
 
-    gl_FragColor = vec4(mix(blackColor, whiteColor, strength), 1.0);
+    gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
     #include <colorspace_fragment>
 }

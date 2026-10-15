@@ -73,8 +73,9 @@ float truchetPatternMain(vec2 uv, float zoom, float type, float adjuct){
 
     vec2 ipos = floor(uv);  // integer
     vec2 fpos = fract(uv);  // fraction
+    float randIpos = random( ipos );
 
-    vec2 tile = truchetPattern(fpos, random( ipos ));
+    vec2 tile = truchetPattern(fpos, randIpos);
 
     float strength = 0.0;
     if(type == 0.0){
@@ -88,6 +89,7 @@ float truchetPatternMain(vec2 uv, float zoom, float type, float adjuct){
                  step(length(tile),0.4) ) +
                 (step(length(tile-vec2(1.)),0.6) -
                  step(length(tile-vec2(1.)),0.4) );
+        
     }
     if(type == 2.0){
         // Truchet (2 triangles)

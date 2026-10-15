@@ -8,6 +8,7 @@ uniform float uCtrl3;
 uniform float uCtrl4;
 uniform float uCtrl5;
 uniform vec2 uResolution;
+uniform vec2 uMouse;
 
 varying vec2 vUv;
 #include ../../includes/functions.glsl
@@ -20,12 +21,15 @@ varying vec2 vUv;
 void main(){
 
      vec2 uv = vUv;
+     vec2 mouse = uMouse;
      if(uResolution.x > uResolution.y){
      float aspect = uResolution.x / uResolution.y;
         uv.x *= aspect;
+        mouse.x *= aspect;
      }else{
         float aspect = uResolution.y / uResolution.x;
         uv.y *= aspect;
+        mouse.y *= aspect;
      }
 
      vec3 blackColor = vec3(0.0);
@@ -90,11 +94,79 @@ void main(){
 
    //6) Noise pattern ***********************************
    float strength = 0.0;
-   strength = gradientNoise(uv * 10.0);
-   // strength = step(0.5, strength + sin(uTime * 2.0 + sin(uv.x ) ) * 0.5); // revel transition
-   vec2 pos = vec2(uv.x * 2.0 , uv.y * 3.0);
-   strength = lines(rotate2D( pos + sin(uTime * 0.2), gradientNoise(pos) + uTime * 0.2 ) ,0.5); // lines
 
-    gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
+   //a) noise test
+   // strength = gradientNoise(uv * 10.0);
+
+   //b) noise transition
+   // strength = step(0.5, gradientNoise(uv * 10.0) + sin(uTime * 2.0 + sin(uv.x ) ) ); // revel transition
+
+   //c) lines
+   // vec2 pos = uv * 3.0;
+   // strength = lines(rotate2D( pos + sin(uTime * 0.2), gradientNoise(pos) + uTime * 0.2 ) ,0.5); // lines
+
+   //d) blobs
+   // float offset = sin(uTime + sin(uv.x));
+   // strength += smoothstep(offset + 0.1,offset + 0.2,gradientNoise(uv*10.));
+   // strength -= smoothstep(offset + 0.35, offset + 0.4,gradientNoise(uv*10.));
+
+   //e) random waved circle
+   // float circularWaved = wavedCircleField(uv - 0.5, 80.0, sin(gradientNoise( (uv + uTime * 0.1) / 0.1) * 0.1 ), 0.0);
+   // strength = variantShape(circularWaved,  0.5 , 0.005);
+   // strength = variantShape(circularWaved, 1, 0.4 , 0.02, 5.0, 0.001, 0.0);
+
+   //f) Cellular Noise
+   
+   //  float min_dist = 1.0;
+   //  vec2 point[6];
+   //  point[0] = vec2(0.5 + sin(uTime) * 0.1,0.5 + cos(uTime) * 0.1);
+   //  point[1] = vec2(0.60 + sin(uTime) * 0.2,0.07 + sin(uTime) * -0.1);
+   //  point[2] = vec2(0.28 + sin(uTime) * -0.3,0.64 + sin(uTime) * 0.01);
+   //  point[3] =  vec2(0.31 + sin(uTime) * -0.01,0.26 + sin(uTime) * -0.2);
+   //  point[4] =  vec2(0.41 + sin(uTime) * 0.2,0.53 + sin(uTime) * -0.3);
+   //  point[5] =  mouse;
+
+   // float m_dist = 0.5;  // minimum distance
+
+   // for (int i = 0; i < 6; i++) {
+   //    float dist = distance(uv,point[i]);
+   //    m_dist = min(m_dist, dist);
+   // }
+   // strength += variantShape(m_dist, 0, 0.2 , 0.02, 10.0, 0.4, 0.0);
+
+   //g) control Cellular Noise
+   uv = uv * 3.0;
+   float mouseDist = distance(uv / 3.0, mouse ) * 2.0;
+    
+    // Create an interactive mask (1.0 at mouse point, fading out to 0.0)
+    float mouseGlow = smoothstep(1.5, 0.0, mouseDist);
+
+   vec2 i_st = floor(uv);
+   vec2 f_st = fract(uv);
+
+   float m_dist = 1.;  // minimum distance
+
+   for (int y= -1; y <= 1; y++) {
+        for (int x= -1; x <= 1; x++) {
+            vec2 neighbor = vec2(float(x),float(y));
+
+            vec2 point = random2(i_st + neighbor);
+
+            point = sin(point * uTime + 6.2831) * 0.5 + 0.5;
+
+            vec2 diff = neighbor + point - f_st;
+
+            float dist = length(diff);
+
+             m_dist = min(m_dist, dist);
+        }
+   }
+
+
+
+strength += m_dist * mouseGlow  ;
+
+
+    gl_FragColor = vec4(mix(blackColor, whiteColor, strength), 1.0);
     #include <colorspace_fragment>
 }

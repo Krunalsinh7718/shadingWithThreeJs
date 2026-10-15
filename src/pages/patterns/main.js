@@ -11,6 +11,13 @@ const gui = new GUI();
 const textureLoader = new THREE.TextureLoader();
 const flagTexture = textureLoader.load("/images/flag/india-flag.png");
 
+
+//raycaster
+const raycaster = new THREE.Raycaster();
+
+//mouse
+const mouse = {x:0,y:0}
+
 //sizes
 const sizes = {
     width: window.innerWidth,
@@ -47,7 +54,10 @@ const material = new THREE.ShaderMaterial({
             planeSize.width,
             planeSize.height
         )),
-        
+        uMouse :  new THREE.Uniform(new THREE.Vector2(
+            0,
+            0
+        )),
         uCtrl1: { value: 0.4 },
         uCtrl2: { value: 0.8 },
         uCtrl3: { value: 0.2 },
@@ -79,6 +89,16 @@ function animate() {
 
     const elapsedTime = clock.getElapsedTime();
 
+    // Update the picking ray with the camera and mouse position
+    raycaster.setFromCamera(mouse, camera);
+
+    //Calculate objects intersecting the picking ray
+    const intersects = raycaster.intersectObjects([mesh]);
+
+    if (intersects.length > 0) {
+        material.uniforms.uMouse.value.copy(intersects[0].uv);
+    }
+     
     //update uniform
     material.uniforms.uTime.value = elapsedTime;
 
@@ -100,10 +120,14 @@ window.addEventListener('resize', () => {
     camera.aspect = sizes.width / sizes.height
     camera.updateProjectionMatrix()
 
-    
-    
-
     // Update renderer
     renderer.setSize(sizes.width, sizes.height)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+});
+
+
+//handle window resize
+window.addEventListener('mousemove', (e) => {
+    mouse.x = (e.clientX / sizes.width) * 2 - 1;
+    mouse.y = -(e.clientY / sizes.height) * 2 + 1;
 });

@@ -23,7 +23,7 @@ void main(){
      vec2 uv = vUv;
      vec2 mouse = uMouse;
      if(uResolution.x > uResolution.y){
-     float aspect = uResolution.x / uResolution.y;
+        float aspect = uResolution.x / uResolution.y;
         uv.x *= aspect;
         mouse.x *= aspect;
      }else{
@@ -53,8 +53,8 @@ void main(){
      float radius =  sin(angle * PI * 2.0 * waveCount) * waveHeight;
 
 
-      //1) different types of field functions *********************************
-      //   uv = translateUV(uv, vec2(-0.5));
+   //1) different types of field functions *********************************
+   //   uv = translateUV(uv, vec2(-0.5));
    //   float boxData = rectangleField(uv);
    //   float circleData = circleField(uv);
    //   float triangleData = triangleField(uv);
@@ -88,6 +88,7 @@ void main(){
    //5) truchetPattern pattern ***********************************
    // float strength = truchetPatternMain(uv, uCtrl4, 0.0, uTime * 0.5);
    //   gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
+
    //6) Noise pattern ***********************************
    float strength = 0.0;
 
@@ -112,47 +113,10 @@ void main(){
    // strength = variantShape(circularWaved, 1, 0.4 , 0.02, 5.0, 0.001, 0.0);
 
    //f) Cellular Noise
-      strength = cellarNoise(uv, mouse, uTime);
+      // strength = cellarNoiseFixedPoints(uv, mouse, uTime);
     
-
-
    //g) control Cellular Noise
-   // uv = uv * 3.0;
-   // float mouseDist = distance(uv / 3.0, mouse ) * 2.0;
-    
-   //  // Create an interactive mask (1.0 at mouse point, fading out to 0.0)
-   //  float mouseGlow = smoothstep(1.5, 0.0, mouseDist);
-
-   // vec2 i_st = floor(uv);
-   // vec2 f_st = fract(uv);
-
-   // float m_dist = 1.;  // minimum distance
-
-   // for (int y= -1; y <= 1; y++) {
-   //      for (int x= -1; x <= 1; x++) {
-   //          vec2 neighbor = vec2(float(x),float(y));
-
-   //          vec2 point = random2(i_st + neighbor);
-
-   //          point = sin(point * uTime + 6.2831) * 0.5 + 0.5;
-
-   //          vec2 diff = neighbor + point - f_st;
-
-   //          float dist = length(diff);
-
-   //           m_dist = min(m_dist, dist);
-   //      }
-   // }
-
-   // strength += m_dist;
-   // // draw stripes
-   // strength += sin(m_dist * 30.0 - uTime); 
-
-   // strength *= mouseGlow;
-
-   // strength += 1.0 - step(0.005, m_dist);
-
-   
+   strength = cellarNoiseGrid(uv, 5, 1.0, mouse, 0.8, 0.0, uTime);
 
    color = mix(blackColor, whiteColor, strength);
 

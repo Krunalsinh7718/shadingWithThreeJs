@@ -19,7 +19,7 @@ varying vec2 vUv;
 #include ../../includes/simplexNoise2d.glsl
 
 void main(){
-
+      vec3 color = vec3(0.0);
      vec2 uv = vUv;
      vec2 mouse = uMouse;
      if(uResolution.x > uResolution.y){
@@ -58,7 +58,7 @@ void main(){
    //   float boxData = rectangleField(uv);
    //   float circleData = circleField(uv);
    //   float triangleData = triangleField(uv);
-   //   float poligoneData = poligoneField(uv, int(4), PI / 4.0);
+   //   float polygonData = polygonField(uv, int(4), PI / 4.0);
    //   float circularWaved = wavedCircleField(uv, 10.0, uCtrl2, 0.0);
    //   float circularCog = cogCircleField(uv, 10.0, uCtrl2, uCtrl3, 0.0);
   
@@ -68,8 +68,8 @@ void main(){
    //2) grid pattern *********************************
    //    uv = uv * 5.0;
    //    uv = fract(uv);
-   //    float box1 = poligoneField(uv - 0.5, int(4), PI / 4.0);
-   //    float box2 = poligoneField(uv - 0.5, int(4), 0.0);
+   //    float box1 = polygonField(uv - 0.5, int(4), PI / 4.0);
+   //    float box2 = polygonField(uv - 0.5, int(4), 0.0);
   
    //   float strength =  variantShape(box1, 0, 0.48 + 0.09, 0.02, 5.0, 0.001, 0.0);
    //   float strength1 =  variantShape(box2, 0, 0.48, 0.02, 5.0, 0.001, 0.0);
@@ -117,56 +117,69 @@ void main(){
 
    //f) Cellular Noise
    
-   //  float min_dist = 1.0;
-   //  vec2 point[6];
-   //  point[0] = vec2(0.5 + sin(uTime) * 0.1,0.5 + cos(uTime) * 0.1);
-   //  point[1] = vec2(0.60 + sin(uTime) * 0.2,0.07 + sin(uTime) * -0.1);
-   //  point[2] = vec2(0.28 + sin(uTime) * -0.3,0.64 + sin(uTime) * 0.01);
-   //  point[3] =  vec2(0.31 + sin(uTime) * -0.01,0.26 + sin(uTime) * -0.2);
-   //  point[4] =  vec2(0.41 + sin(uTime) * 0.2,0.53 + sin(uTime) * -0.3);
-   //  point[5] =  mouse;
+    float min_dist = 1.0;
+    vec2 point[6];
+    point[0] = vec2(0.5 + sin(uTime) * 0.1,0.5 + cos(uTime) * 0.1);
+    point[1] = vec2(0.60 + sin(uTime) * 0.2,0.07 + sin(uTime) * -0.1);
+    point[2] = vec2(0.28 + sin(uTime) * -0.3,0.64 + sin(uTime) * 0.01);
+    point[3] =  vec2(0.31 + sin(uTime) * -0.01,0.26 + sin(uTime) * -0.2);
+    point[4] =  vec2(0.41 + sin(uTime) * 0.2,0.53 + sin(uTime) * -0.3);
+    point[5] =  mouse;
 
-   // float m_dist = 0.5;  // minimum distance
+   float m_dist = 0.5;  // minimum distance
 
-   // for (int i = 0; i < 6; i++) {
-   //    float dist = distance(uv,point[i]);
-   //    m_dist = min(m_dist, dist);
-   // }
-   // strength += variantShape(m_dist, 0, 0.2 , 0.02, 10.0, 0.4, 0.0);
+   for (int i = 0; i < 6; i++) {
+      float dist = distance(uv,point[i]);
+      m_dist = min(m_dist, dist);
+   }
+   strength += variantShape(m_dist, 0, 0.2 , 0.02, 10.0, 0.4, 0.0);
+
+   color = vec3(strength);
 
    //g) control Cellular Noise
-   uv = uv * 3.0;
-   float mouseDist = distance(uv / 3.0, mouse ) * 2.0;
+   // uv = uv * 3.0;
+   // float mouseDist = distance(uv / 3.0, mouse ) * 2.0;
     
-    // Create an interactive mask (1.0 at mouse point, fading out to 0.0)
-    float mouseGlow = smoothstep(1.5, 0.0, mouseDist);
+   //  // Create an interactive mask (1.0 at mouse point, fading out to 0.0)
+   //  float mouseGlow = smoothstep(1.5, 0.0, mouseDist);
 
-   vec2 i_st = floor(uv);
-   vec2 f_st = fract(uv);
+   // vec2 i_st = floor(uv);
+   // vec2 f_st = fract(uv);
 
-   float m_dist = 1.;  // minimum distance
+   // float m_dist = 1.;  // minimum distance
 
-   for (int y= -1; y <= 1; y++) {
-        for (int x= -1; x <= 1; x++) {
-            vec2 neighbor = vec2(float(x),float(y));
+   // for (int y= -1; y <= 1; y++) {
+   //      for (int x= -1; x <= 1; x++) {
+   //          vec2 neighbor = vec2(float(x),float(y));
 
-            vec2 point = random2(i_st + neighbor);
+   //          vec2 point = random2(i_st + neighbor);
 
-            point = sin(point * uTime + 6.2831) * 0.5 + 0.5;
+   //          point = sin(point * uTime + 6.2831) * 0.5 + 0.5;
 
-            vec2 diff = neighbor + point - f_st;
+   //          vec2 diff = neighbor + point - f_st;
 
-            float dist = length(diff);
+   //          float dist = length(diff);
 
-             m_dist = min(m_dist, dist);
-        }
-   }
+   //           m_dist = min(m_dist, dist);
+   //      }
+   // }
+
+   // strength += m_dist;
+   // // draw stripes
+   // strength += sin(m_dist * 30.0 - uTime); 
+
+   // strength *= mouseGlow;
+
+   // strength += 1.0 - step(0.005, m_dist);
+
+   
+
+   // color = mix(blackColor, whiteColor, strength);
+
+   //  // Draw grid
+   //  color.r += step(.98, f_st.x) + step(.98, f_st.y); 
 
 
-
-strength += m_dist * mouseGlow  ;
-
-
-    gl_FragColor = vec4(mix(blackColor, whiteColor, strength), 1.0);
+    gl_FragColor = vec4(color, 1.0);
     #include <colorspace_fragment>
 }

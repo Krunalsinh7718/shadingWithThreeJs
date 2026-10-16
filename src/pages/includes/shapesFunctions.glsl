@@ -226,7 +226,7 @@ float cogCircleField(
  * @param adjust Phase offset used to rotate the polygon.
  * @return       Radial distance adjusted to create a regular polygon shape.
  */
-float poligoneField(vec2 uv, int sides, float adjust) {
+float polygonField(vec2 uv, int sides, float adjust) {
     float d = 0.0;
 
     float a = atan(uv.x, uv.y) + 3.14 + adjust;

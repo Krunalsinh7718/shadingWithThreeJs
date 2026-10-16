@@ -66,15 +66,11 @@ void main(){
    //   gl_FragColor = vec4(mix(blackColor, whiteColor, strength), 1.0);
 
    //2) grid pattern *********************************
-   //    uv = uv * 5.0;
-   //    uv = fract(uv);
-   //    float box1 = polygonField(uv - 0.5, int(4), PI / 4.0);
-   //    float box2 = polygonField(uv - 0.5, int(4), 0.0);
-  
-   //   float strength =  variantShape(box1, 0, 0.48 + 0.09, 0.02, 5.0, 0.001, 0.0);
-   //   float strength1 =  variantShape(box2, 0, 0.48, 0.02, 5.0, 0.001, 0.0);
-   //   float finalStrength = 1.0 - (strength * strength1);
-   //   gl_FragColor = vec4(mix(uvColor, color2, finalStrength), 1.0);
+   
+   //   float strength = gridPattern(uv, 5.0);
+   //   gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
+
+
       
    //3) animated dots *********************************
    //    uv = brickTile(uv, 10.0, uTime);
@@ -87,11 +83,11 @@ void main(){
 
    //4) tile pattern ***********************************
    // float strength = tilePattern1(uv, uCtrl4);
-
+   //   gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
 
    //5) truchetPattern pattern ***********************************
    // float strength = truchetPatternMain(uv, uCtrl4, 0.0, uTime * 0.5);
-
+   //   gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
    //6) Noise pattern ***********************************
    float strength = 0.0;
 
@@ -116,25 +112,9 @@ void main(){
    // strength = variantShape(circularWaved, 1, 0.4 , 0.02, 5.0, 0.001, 0.0);
 
    //f) Cellular Noise
-   
-    float min_dist = 1.0;
-    vec2 point[6];
-    point[0] = vec2(0.5 + sin(uTime) * 0.1,0.5 + cos(uTime) * 0.1);
-    point[1] = vec2(0.60 + sin(uTime) * 0.2,0.07 + sin(uTime) * -0.1);
-    point[2] = vec2(0.28 + sin(uTime) * -0.3,0.64 + sin(uTime) * 0.01);
-    point[3] =  vec2(0.31 + sin(uTime) * -0.01,0.26 + sin(uTime) * -0.2);
-    point[4] =  vec2(0.41 + sin(uTime) * 0.2,0.53 + sin(uTime) * -0.3);
-    point[5] =  mouse;
+      strength = cellarNoise(uv, mouse, uTime);
+    
 
-   float m_dist = 0.5;  // minimum distance
-
-   for (int i = 0; i < 6; i++) {
-      float dist = distance(uv,point[i]);
-      m_dist = min(m_dist, dist);
-   }
-   strength += variantShape(m_dist, 0, 0.2 , 0.02, 10.0, 0.4, 0.0);
-
-   color = vec3(strength);
 
    //g) control Cellular Noise
    // uv = uv * 3.0;
@@ -174,12 +154,10 @@ void main(){
 
    
 
-   // color = mix(blackColor, whiteColor, strength);
+   color = mix(blackColor, whiteColor, strength);
 
    //  // Draw grid
    //  color.r += step(.98, f_st.x) + step(.98, f_st.y); 
-
-
     gl_FragColor = vec4(color, 1.0);
     #include <colorspace_fragment>
 }

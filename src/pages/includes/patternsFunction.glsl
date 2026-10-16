@@ -1,3 +1,6 @@
+#define patternsPI 3.1415926535897932384626433832795
+
+
 vec2 brickTile(vec2 uv, float zoom, float adjuct) {
     uv *= zoom;
 
@@ -99,4 +102,38 @@ float truchetPatternMain(vec2 uv, float zoom, float type, float adjuct){
 
 
     return strength;
+}
+
+
+float gridPattern(vec2 uv, float zoom){
+        uv = uv * zoom;
+      uv = fract(uv);
+      float box1 = polygonField(uv - 0.5, int(4), patternsPI / 4.0);
+      float box2 = polygonField(uv - 0.5, int(4), 0.0);
+  
+     float strength =  variantShape(box1, 0, 0.48 + 0.09, 0.02, 5.0, 0.001, 0.0);
+     float strength1 =  variantShape(box2, 0, 0.48, 0.02, 5.0, 0.001, 0.0);
+     float finalStrength = 1.0 - (strength * strength1);
+     return finalStrength;
+}
+
+float cellarNoise(vec2 uv, vec2 mouse, float adjust){
+    float min_dist = 1.0;
+    vec2 point[6];
+    point[0] = vec2(0.5 + sin(adjust) * 0.1,0.5 + cos(adjust) * 0.1);
+    point[1] = vec2(0.60 + sin(adjust) * 0.2,0.07 + sin(adjust) * -0.1);
+    point[2] = vec2(0.28 + sin(adjust) * -0.3,0.64 + sin(adjust) * 0.01);
+    point[3] =  vec2(0.31 + sin(adjust) * -0.01,0.26 + sin(adjust) * -0.2);
+    point[4] =  vec2(0.41 + sin(adjust) * 0.2,0.53 + sin(adjust) * -0.3);
+    point[5] =  mouse;
+
+   float m_dist = 0.5;  // minimum distance
+
+   for (int i = 0; i < 6; i++) {
+      float dist = distance(uv,point[i]);
+      m_dist = min(m_dist, dist);
+   }
+   float strength = variantShape(m_dist, 0, 0.2 , 0.02, 10.0, 0.4, 0.0);
+
+   return strength;
 }

@@ -136,7 +136,7 @@ float cellarNoiseFixedPoints(vec2 uv, vec2 mouse, float adjust){
 }
 
 
-float cellarNoiseGrid(vec2 uv, int zoom, float isMouseGlow, vec2 mouse, float mouseRadius, float isStriped, float adjust){
+float cellarNoiseGrid(vec2 uv, int zoom,  vec2 mouse, float mouseRadius, float stripe, float centerPointSize, float adjust){
     uv = uv * float(zoom);
 
    vec2 i_st = floor(uv);
@@ -147,20 +147,19 @@ float cellarNoiseGrid(vec2 uv, int zoom, float isMouseGlow, vec2 mouse, float mo
    int subGridMin = zoom / 2 * -1;
    int subGridMax = zoom / 2;
 
-
    for (int y = subGridMin; y <= subGridMax; y++) {
         for (int x = subGridMin; x <= subGridMax; x++) {
             vec2 neighbor = vec2(float(x),float(y));
 
             vec2 point = random2(i_st + neighbor);
 
-             point = sin(point * 6.2831 + adjust  ) * 0.5 + 0.5;
+            point = sin(point * 6.2831 + adjust  ) * 0.5 + 0.5;
 
-            vec2 diff = neighbor + point - f_st;
+            vec2 diff = neighbor + point - f_st ;
 
-            float dist = length(diff / 2.0 );
+            float dist = length( diff / 2.0);
 
-             m_dist = min(m_dist, dist);
+            m_dist = min(m_dist, dist * dist );
         }
    }
    float strength = 0.0;
@@ -168,13 +167,13 @@ float cellarNoiseGrid(vec2 uv, int zoom, float isMouseGlow, vec2 mouse, float mo
    strength += m_dist;
 
    // draw stripes
-   if(isStriped == 1.0){
-        strength += sin(m_dist * 30.0 - adjust); 
+   if(stripe > 0.0){
+        strength += sin(m_dist * stripe - adjust); 
    }else{
         strength += m_dist; 
    }
 
-   if(isMouseGlow == 1.0){
+   if(mouseRadius > 0.0){
         float mouseDist = distance(uv / float(zoom), mouse ) * 2.0;
     
         // Create an interactive mask (1.0 at mouse point, fading out to 0.0)
@@ -183,7 +182,45 @@ float cellarNoiseGrid(vec2 uv, int zoom, float isMouseGlow, vec2 mouse, float mo
         strength *= mouseGlow;
    }
 
-   strength += 1.0 - step(0.02, m_dist);
+   if(centerPointSize > 0.0){
+        strength += 1.0 - step(centerPointSize, m_dist);
+   }
+
+   return strength;
+}
+
+
+float cellarNoiseGrid(vec2 uv, int zoom,  float adjust){
+    uv = uv * float(zoom);
+
+   vec2 i_st = floor(uv);
+   vec2 f_st = fract(uv);
+
+   float m_dist = 1.0;  // minimum distance
+
+   int subGridMin = zoom / 2 * -1;
+   int subGridMax = zoom / 2;
+
+   for (int y = subGridMin; y <= subGridMax; y++) {
+        for (int x = subGridMin; x <= subGridMax; x++) {
+            vec2 neighbor = vec2(float(x),float(y));
+
+            vec2 point = random2(i_st + neighbor);
+
+            point = sin(point * 6.2831 + adjust  ) * 0.5 + 0.5;
+
+            vec2 diff = neighbor + point - f_st ;
+
+            float dist = length( diff );
+
+            m_dist = min(m_dist, m_dist * dist );
+        }
+   }
+   float strength = 0.0;
+
+   strength += step(0.06, m_dist);
+
+   
 
    return strength;
 }

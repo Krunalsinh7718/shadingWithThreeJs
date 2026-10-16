@@ -116,9 +116,21 @@ void main(){
       // strength = cellarNoiseFixedPoints(uv, mouse, uTime);
     
    //g) control Cellular Noise
-   strength = cellarNoiseGrid(uv, 5, 1.0, mouse, 0.8, 0.0, uTime);
+   // strength = cellarNoiseGrid(uv, 3, mouse, 0.0, 0.0,0.0, uTime);
 
-   color = mix(blackColor, whiteColor, strength);
+   //f) control Cellular Noise
+   // strength = cellarNoiseGrid(uv, 3, uTime);
+
+   //g) Cellular grid 2x2
+   uv = vec2(uv.x - 1.0, uv.y - 0.5);
+   vec2 cellular2x2 = cellular2x2(uv * 20.0);
+   float field = fract(length(uv) * 0.5 - uTime * 0.07);
+   float circularWaveField = abs(sin( field * 3.14 * 5.0));
+   strength = step(circularWaveField, cellular2x2.x * 2.0);
+
+   
+   
+   color = mix(blackColor, uvColor, strength);
 
    //  // Draw grid
    //  color.r += step(.98, f_st.x) + step(.98, f_st.y); 

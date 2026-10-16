@@ -377,3 +377,38 @@ float lines(in vec2 pos, float b){
                     .5+b*.5,
                     abs((sin(pos.x*3.1415)+b*2.0))*.5);
 }
+
+// Cellular noise ("Worley noise") in 2D in GLSL.
+// Cellular noise, returning F1 and F2 in a vec2.
+// Speeded up by using 2x2 search window instead of 3x3,
+// at the expense of some strong pattern artifacts.
+// F2 is often wrong and has sharp discontinuities.
+// If you need a smooth F2, use the slower 3x3 version.
+// F1 is sometimes wrong, too, but OK for most purposes.
+vec2 cellular2x2(vec2 P) {
+#define cell2x2K 0.142857142857 // 1/7
+#define cell2x2K2 0.0714285714285 // K/2
+#define jitter 0.8 // Reduced from 1.0 to prevent boundary artifacts
+
+    vec2 Pi = mod(floor(P), 289.0);
+    vec2 Pf = fract(P);
+    vec4 Pfx = Pf.x + vec4(-0.5, -1.5, -0.5, -1.5);
+    vec4 Pfy = Pf.y + vec4(-0.5, -0.5, -1.5, -1.5);
+    vec4 p = permute(Pi.x + vec4(0.0, 1.0, 0.0, 1.0));
+    p = permute(p + Pi.y + vec4(0.0, 0.0, 1.0, 1.0));
+    vec4 ox = mod(p, 7.0) * cell2x2K + cell2x2K2;
+    vec4 oy = mod(floor(p * cell2x2K), 7.0) * cell2x2K + cell2x2K2;
+    vec4 dx = Pfx + jitter * ox;
+    vec4 dy = Pfy + jitter * oy;
+    vec4 d = dx * dx + dy * dy;
+
+    // Portable sorting: avoids non-contiguous swizzle assignments
+    float min1 = min(min(d.x, d.y), min(d.z, d.w));
+    
+    // Find second smallest
+    float min2 = max(min(d.x, d.y), min(d.z, d.w));
+    min2 = min(min2, max(d.x, d.y));
+    min2 = min(min2, max(d.z, d.w));
+
+    return sqrt(vec2(min1, min2));
+}

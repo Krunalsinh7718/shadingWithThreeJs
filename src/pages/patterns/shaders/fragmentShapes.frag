@@ -90,8 +90,8 @@ void main(){
    //   gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
 
    //6) Noise pattern ***********************************
-   float strength = 0.0;
-
+   // float strength = 0.0;
+   
    //a) noise test
    // strength = gradientNoise(uv * 10.0);
 
@@ -112,28 +112,35 @@ void main(){
    // strength = variantShape(circularWaved,  0.5 , 0.005);
    // strength = variantShape(circularWaved, 1, 0.4 , 0.02, 5.0, 0.001, 0.0);
 
-   //f) Cellular Noise
-      // strength = cellarNoiseFixedPoints(uv, mouse, uTime);
+//   gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
+
+    //7) cellular noise ***********************************
+    float strength = 0.0;
+   
+   //a) Cellular Noise
+   // strength = cellularNoiseFixedPoints(uv, mouse, uTime);
+   strength = cellularNoiseFixedPoints1(uv, mouse, uTime);
     
-   //g) control Cellular Noise
-   // strength = cellarNoiseGrid(uv, 3, mouse, 0.0, 0.0,0.0, uTime);
+   //b) control Cellular Noise
+   // strength = cellularNoiseGrid(uv, 3, mouse, 0.0, 0.0,0.0, uTime);
 
-   //f) control Cellular Noise
-   // strength = cellarNoiseGrid(uv, 3, uTime);
+   //c) control Cellular Noise
+   // strength = cellularNoiseGrid(uv, 3, uTime);
 
-   //g) Cellular grid 2x2
-   uv = vec2(uv.x - 1.0, uv.y - 0.5);
-   vec2 cellular2x2 = cellular2x2(uv * 20.0);
-   float field = fract(length(uv) * 0.5 - uTime * 0.07);
-   float circularWaveField = abs(sin( field * 3.14 * 5.0));
-   strength = step(circularWaveField, cellular2x2.x * 2.0);
+   //d) Cellular grid 2x2
+   // uv = vec2(uv.x - 1.0, uv.y - 0.5);
+   // vec2 cellular2x2 = cellular2x2(uv * 20.0);
+   // float field = fract(length(uv) * 0.5 - uTime * 0.07);
+   // float circularWaveField = abs(sin( field * 3.14 * 5.0));
+   // strength = step(circularWaveField, cellular2x2.x * 2.0);
 
-   
-   
    color = mix(blackColor, uvColor, strength);
+    gl_FragColor = vec4(color, 1.0);
+
+    //8) Noise pattern ***********************************
+   
+   
 
    //  // Draw grid
-   //  color.r += step(.98, f_st.x) + step(.98, f_st.y); 
-    gl_FragColor = vec4(color, 1.0);
     #include <colorspace_fragment>
 }

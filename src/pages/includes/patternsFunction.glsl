@@ -115,7 +115,7 @@ float gridPattern(vec2 uv, float zoom){
      return finalStrength;
 }
 
-float cellarNoiseFixedPoints(vec2 uv, vec2 mouse, float adjust){
+float cellularNoiseFixedPoints(vec2 uv, vec2 mouse, float adjust){
     float min_dist = 1.0;
     vec2 point[6];
     point[0] = vec2(0.83,0.75);
@@ -135,8 +135,39 @@ float cellarNoiseFixedPoints(vec2 uv, vec2 mouse, float adjust){
    return strength;
 }
 
+float cellularNoiseFixedPoints1(vec2 uv, vec2 mouse, float adjust){
+    float min_dist = 1.0; // minimum distance
+     vec2 m_point;        // minimum position
 
-float cellarNoiseGrid(vec2 uv, int zoom,  vec2 mouse, float mouseRadius, float stripe, float centerPointSize, float adjust){
+    vec2 point[6];
+    point[0] = vec2(0.83,0.75);
+    point[1] = vec2(0.60,0.07);
+    point[2] = vec2(0.28,0.64);
+    point[3] = vec2(0.31,0.26);
+    point[4] = mouse;
+
+   float m_dist = 1.0;  // minimum distance
+
+   for (int i = 0; i < 5; i++) {
+      float dist = distance(uv,point[i]);
+       if ( dist < m_dist ) {
+            // Keep the closer distance
+            m_dist = dist;
+
+            // Kepp the position of the closer point
+            m_point = point[i];
+        }
+
+     
+   }
+//    color += dot(m_point,vec2(.3,.6));
+   float strength = dot(m_point,vec2(.3,.6));
+
+   return strength;
+}
+
+
+float cellularNoiseGrid(vec2 uv, int zoom,  vec2 mouse, float mouseRadius, float stripe, float centerPointSize, float adjust){
     uv = uv * float(zoom);
 
    vec2 i_st = floor(uv);
@@ -190,7 +221,7 @@ float cellarNoiseGrid(vec2 uv, int zoom,  vec2 mouse, float mouseRadius, float s
 }
 
 
-float cellarNoiseGrid(vec2 uv, int zoom,  float adjust){
+float cellularNoiseGrid(vec2 uv, int zoom,  float adjust){
     uv = uv * float(zoom);
 
    vec2 i_st = floor(uv);

@@ -118,28 +118,46 @@ void main(){
     float strength = 0.0;
    
    //a) Cellular Noise
-   // strength = cellularNoiseFixedPoints(uv, mouse, uTime);
-   strength = cellularNoiseFixedPoints1(uv, mouse, uTime);
+   // strength = cellularNoiseFixedPointsInigosQuilez(uv, mouse, uTime);
+   // strength = cellularNoiseFixedPointsVoronoi(uv, mouse, uTime);
     
    //b) control Cellular Noise
-   // strength = cellularNoiseGrid(uv, 3, mouse, 0.0, 0.0,0.0, uTime);
+   // Inigo's Quilez version
+   // strength = cellularNoiseGridInigosQuilez(uv, 3, mouse, 0.0, 0.0,0.0, uTime);
+   //Voronoi version 
+   // strength = cellularNoiseGridVoronoi(uv, 10, mouse, 0.0, 0.0, 0.0, uTime);
 
    //c) control Cellular Noise
    // strength = cellularNoiseGrid(uv, 3, uTime);
 
    //d) Cellular grid 2x2
    // uv = vec2(uv.x - 1.0, uv.y - 0.5);
-   // vec2 cellular2x2 = cellular2x2(uv * 20.0);
+   // vec2 cellular2x2 = cellular2x2(uv * 20.0 );
    // float field = fract(length(uv) * 0.5 - uTime * 0.07);
    // float circularWaveField = abs(sin( field * 3.14 * 5.0));
-   // strength = step(circularWaveField, cellular2x2.x * 2.0);
+   // strength = step(circularWaveField , cellular2x2.x * 2.0);
 
-   color = mix(blackColor, uvColor, strength);
+   //e) Cellular grid 2x2x2
+   // uv = vec2(uv.x - 1.0, uv.y - 0.5);
+   // vec2 cellular2x2x2 = cellular2x2x2( vec3(uv * 5.0 , uTime * 0.2) );
+   // float field = fract(length(uv) * 0.5 - uTime * 0.07);
+   // strength = smoothstep(0.4, 0.5, sin( fract(cellular2x2x2.x * 5.0)));
+
+   //e) Cellular bordered grid 2x2
+   // uv = vec2(uv.x - 1.0, uv.y - 0.5);
+   // vec3 cellular2x2Border = cellular2x2Border(uv * 4.0, uTime  );
+   // float field = fract(length(uv) * 0.5 - uTime * 0.07);
+   // strength =  smoothstep( 0.01, 0.02, cellular2x2Border.x); 
+   //striped border
+   // strength =  smoothstep( 0.01, 0.02, cellular2x2Border.x*(0.5 + 0.5*sin(30.0*cellular2x2Border.x)) );
+
+   // color = mix(uvColor, blackColor, strength);
+   //  gl_FragColor = vec4(color, 1.0);
+
+    //8) cractal Noise pattern ***********************************
+   strength = fbm(uv * 3.0 + uTime * 0.05);
+   color = mix(color1, whiteColor, strength);
     gl_FragColor = vec4(color, 1.0);
-
-    //8) Noise pattern ***********************************
-   
-   
 
    //  // Draw grid
     #include <colorspace_fragment>

@@ -412,3 +412,121 @@ vec2 cellular2x2(vec2 P) {
 
     return sqrt(vec2(min1, min2));
 }
+
+
+// Cellular noise, returning F1 and F2 in a vec2.
+// Speeded up by using 2x2x2 search window instead of 3x3x3,
+// at the expense of some pattern artifacts.
+// F2 is often wrong and has sharp discontinuities.
+// If you need a good F2, use the slower 3x3x3 version.
+vec2 cellular2x2x2(vec3 P) {
+	#define cellular2x2x2K 0.142857142857 // 1/7
+	#define cellular2x2x2Ko 0.428571428571 // 1/2-K/2
+	#define cellular2x2x2K2 0.020408163265306 // 1/(7*7)
+	#define cellular2x2x2Kz 0.166666666667 // 1/6
+	#define cellular2x2x2Kzo 0.416666666667 // 1/2-1/6*2
+	#define jitter 0.8 // smaller jitter gives less errors in F2
+	vec3 Pi = mod(floor(P), 289.0);
+ 	vec3 Pf = fract(P);
+	vec4 Pfx = Pf.x + vec4(0.0, -1.0, 0.0, -1.0);
+	vec4 Pfy = Pf.y + vec4(0.0, 0.0, -1.0, -1.0);
+	vec4 p = permute(Pi.x + vec4(0.0, 1.0, 0.0, 1.0));
+	p = permute(p + Pi.y + vec4(0.0, 0.0, 1.0, 1.0));
+	vec4 p1 = permute(p + Pi.z); // z+0
+	vec4 p2 = permute(p + Pi.z + vec4(1.0)); // z+1
+	vec4 ox1 = fract(p1*cellular2x2x2K) - cellular2x2x2Ko;
+	vec4 oy1 = mod(floor(p1*cellular2x2x2K), 7.0)*cellular2x2x2K - cellular2x2x2Ko;
+	vec4 oz1 = floor(p1*cellular2x2x2K2)*cellular2x2x2Kz - cellular2x2x2Kzo; // p1 < 289 guaranteed
+	vec4 ox2 = fract(p2*cellular2x2x2K) - cellular2x2x2Ko;
+	vec4 oy2 = mod(floor(p2*cellular2x2x2K), 7.0)*cellular2x2x2K - cellular2x2x2Ko;
+	vec4 oz2 = floor(p2*cellular2x2x2K2)*cellular2x2x2Kz - cellular2x2x2Kzo;
+	vec4 dx1 = Pfx + jitter*ox1;
+	vec4 dy1 = Pfy + jitter*oy1;
+	vec4 dz1 = Pf.z + jitter*oz1;
+	vec4 dx2 = Pfx + jitter*ox2;
+	vec4 dy2 = Pfy + jitter*oy2;
+	vec4 dz2 = Pf.z - 1.0 + jitter*oz2;
+	vec4 d1 = dx1 * dx1 + dy1 * dy1 + dz1 * dz1; // z+0
+	vec4 d2 = dx2 * dx2 + dy2 * dy2 + dz2 * dz2; // z+1
+
+	// Sort out the two smallest distances (F1, F2)
+#if 0
+	// Cheat and sort out only F1
+	d1 = min(d1, d2);
+	d1.xy = min(d1.xy, d1.wz);
+	d1.x = min(d1.x, d1.y);
+	return sqrt(d1.xx);
+#else
+	// Do it right and sort out both F1 and F2
+	vec4 d = min(d1,d2); // F1 is now in d
+	d2 = max(d1,d2); // Make sure we keep all candidates for F2
+	d.xy = (d.x < d.y) ? d.xy : d.yx; // Swap smallest to d.x
+	d.xz = (d.x < d.z) ? d.xz : d.zx;
+	d.xw = (d.x < d.w) ? d.xw : d.wx; // F1 is now in d.x
+	d.yzw = min(d.yzw, d2.yzw); // F2 now not in d2.yzw
+	d.y = min(d.y, d.z); // nor in d.z
+	d.y = min(d.y, d.w); // nor in d.w
+	d.y = min(d.y, d2.x); // F2 is now in d.y
+	return sqrt(d.xy); // F1 and F2
+#endif
+}
+
+
+vec3 cellular2x2Border( in vec2 x, float adjuct ) {
+    vec2 n = floor(x);
+    vec2 f = fract(x);
+
+    // first pass: regular voronoi
+    vec2 mg, mr;
+    float md = 8.0;
+    for (int j= -1; j <= 1; j++) {
+        for (int i= -1; i <= 1; i++) {
+            vec2 g = vec2(float(i),float(j));
+            vec2 o = random2( n + g );
+            o = 0.5 + 0.5*sin( adjuct + 6.2831*o );
+
+            vec2 r = g + o - f;
+            float d = dot(r,r);
+
+            if( d<md ) {
+                md = d;
+                mr = r;
+                mg = g;
+            }
+        }
+    }
+
+    // second pass: distance to borders
+    md = 8.0;
+    for (int j= -2; j <= 2; j++) {
+        for (int i= -2; i <= 2; i++) {
+            vec2 g = mg + vec2(float(i),float(j));
+            vec2 o = random2( n + g );
+            o = 0.5 + 0.5*sin( adjuct + 6.2831*o );
+
+            vec2 r = g + o - f;
+
+            if ( dot(mr-r,mr-r)>0.00001 ) {
+                md = min(md, dot( 0.5*(mr+r), normalize(r-mr) ));
+            }
+        }
+    }
+    return vec3(md, mr);
+}
+
+
+#define FRACTAL_NOICE_OCTAVES 6
+float fbm (in vec2 st) {
+    // Initial values
+    float value = 0.0;
+    float amplitude = 0.5;
+    float frequency = 0.0;
+    //
+    // Loop of octaves
+    for (int i = 0; i < FRACTAL_NOICE_OCTAVES; i++) {
+        value += amplitude * noiseMorganMcGuire(st);
+        st *= 2.0;
+        amplitude *= 0.5;
+    }
+    return value;
+}

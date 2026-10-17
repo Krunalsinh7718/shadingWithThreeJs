@@ -115,7 +115,7 @@ float gridPattern(vec2 uv, float zoom){
      return finalStrength;
 }
 
-float cellularNoiseFixedPoints(vec2 uv, vec2 mouse, float adjust){
+float cellularNoiseFixedPointsInigosQuilez(vec2 uv, vec2 mouse, float adjust){
     float min_dist = 1.0;
     vec2 point[6];
     point[0] = vec2(0.83,0.75);
@@ -135,7 +135,7 @@ float cellularNoiseFixedPoints(vec2 uv, vec2 mouse, float adjust){
    return strength;
 }
 
-float cellularNoiseFixedPoints1(vec2 uv, vec2 mouse, float adjust){
+float cellularNoiseFixedPointsVoronoi(vec2 uv, vec2 mouse, float adjust){
     float min_dist = 1.0; // minimum distance
      vec2 m_point;        // minimum position
 
@@ -146,13 +146,11 @@ float cellularNoiseFixedPoints1(vec2 uv, vec2 mouse, float adjust){
     point[3] = vec2(0.31,0.26);
     point[4] = mouse;
 
-   float m_dist = 1.0;  // minimum distance
-
    for (int i = 0; i < 5; i++) {
       float dist = distance(uv,point[i]);
-       if ( dist < m_dist ) {
+       if ( dist < min_dist ) {
             // Keep the closer distance
-            m_dist = dist;
+            min_dist = dist;
 
             // Kepp the position of the closer point
             m_point = point[i];
@@ -220,8 +218,8 @@ float cellularNoiseGrid(vec2 uv, int zoom,  vec2 mouse, float mouseRadius, float
    return strength;
 }
 
-
-float cellularNoiseGrid(vec2 uv, int zoom,  float adjust){
+// Inigo's Quilez version
+float cellularNoiseGridInigosQuilez(vec2 uv, int zoom,  float adjust){
     uv = uv * float(zoom);
 
    vec2 i_st = floor(uv);
@@ -251,7 +249,63 @@ float cellularNoiseGrid(vec2 uv, int zoom,  float adjust){
 
    strength += step(0.06, m_dist);
 
-   
+   return strength;
+}
+//Voronoi version 
+float cellularNoiseGridVoronoi(vec2 uv, int zoom,  vec2 mouse, float mouseRadius, float stripe, float centerPointSize, float adjust){
+     float m_dist = 10.;  // minimum distance
+    vec2 m_point;        // minimum point
+
+    uv = uv * float(zoom);
+
+   vec2 i_st = floor(uv);
+   vec2 f_st = fract(uv);
+
+
+   int subGridMin = zoom / 2 * -1;
+   int subGridMax = zoom / 2;
+
+   for (int y = subGridMin; y <= subGridMax; y++) {
+        for (int x = subGridMin; x <= subGridMax; x++) {
+            vec2 neighbor = vec2(float(x),float(y));
+
+            vec2 point = random2(i_st + neighbor);
+
+            point = sin(point * 6.2831 + adjust  ) * 0.5 + 0.5;
+
+            vec2 diff = neighbor + point - f_st ;
+
+            float dist = length( diff / 2.0);
+
+            if( dist < m_dist ) {
+                m_dist = dist;
+                m_point = point;
+            }
+        }
+   }
+   float strength = 0.0;
+
+   strength += dot(m_point,vec2(.3,.6));
+
+   // draw stripes
+   if(stripe > 0.0){
+        strength += sin(m_dist * stripe - adjust); 
+   }else{
+        strength += m_dist; 
+   }
+
+   if(mouseRadius > 0.0){
+        float mouseDist = distance(uv / float(zoom), mouse ) * 2.0;
+    
+        // Create an interactive mask (1.0 at mouse point, fading out to 0.0)
+        float mouseGlow = smoothstep(mouseRadius, 0.0, mouseDist);
+    
+        strength *= mouseGlow;
+   }
+
+   if(centerPointSize > 0.0){
+        strength += 1.0 - step(centerPointSize, m_dist);
+   }
 
    return strength;
 }

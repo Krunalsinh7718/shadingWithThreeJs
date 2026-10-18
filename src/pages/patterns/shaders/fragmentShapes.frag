@@ -155,8 +155,25 @@ void main(){
    //  gl_FragColor = vec4(color, 1.0);
 
     //8) cractal Noise pattern ***********************************
-   strength = fbm(uv * 3.0 + uTime * 0.05);
-   color = mix(color1, whiteColor, strength);
+    //a) single
+   // strength = fractalNoise(uv * 3.0 + uTime * 0.05);
+   // color = mix(uvColor, blackColor, strength);
+   //b)multiple
+    vec2 q = vec2(0.);
+    q.x = fractalNoise( uv - 0.00 * uTime);
+    q.y = fractalNoise( uv + vec2(1.0));
+
+    vec2 r = vec2(0.);
+    r.x = fractalNoise( uv + 1.0 * q + vec2(1.7,9.2)- 0.15 * uTime );
+    r.y = fractalNoise( uv + 1.0 * q + vec2(8.3,2.8)- 0.126 * uTime);
+
+    strength = fractalNoise(uv - vec2(1.0, 0.12) + r);
+
+   color = mix(
+      vec3(0.001961,0.619608,0.166667) * blackColor, 
+      vec3(0.666667,0.66667,0.198039) * uvColor, 
+      clamp((strength * strength) * 4.0, 0.0, 1.0) 
+   );
     gl_FragColor = vec4(color, 1.0);
 
    //  // Draw grid

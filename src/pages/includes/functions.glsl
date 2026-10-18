@@ -516,7 +516,7 @@ vec3 cellular2x2Border( in vec2 x, float adjuct ) {
 
 
 #define FRACTAL_NOICE_OCTAVES 6
-float fbm (in vec2 st) {
+float fractalNoise (in vec2 st) {
     // Initial values
     float value = 0.0;
     float amplitude = 0.5;

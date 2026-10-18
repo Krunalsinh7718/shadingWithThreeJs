@@ -32,6 +32,10 @@ void main(){
         mouse.y *= aspect;
      }
 
+     vec2 colorCenter = vec2(0.5)-uv;
+     float colorAngle = atan(colorCenter.y,colorCenter.x);
+     float colorRadius = length(colorCenter)*2.0;
+
      vec3 blackColor = vec3(0.0);
      vec3 whiteColor = vec3(1.0);
      vec3 redColor = vec3(1.0, 0.0, 0.0);
@@ -42,6 +46,9 @@ void main(){
      vec3 color1 = vec3(1.0, 0.2, 0.4);
      vec3 color2 = vec3(0.4, 0.1, 1.0);
      vec3 uvColor = vec3(uv, 1.0);
+     vec3 allColorX = hsb2rgb(vec3(uv.x,1.0,uv.y));
+     vec3 allColorY = hsb2rgb(vec3(uv.y,1.0,uv.x));
+     vec3 circularAllColor = hsb2rgb(vec3((colorAngle/PI*2.0)+0.5,colorRadius,1.0));
 
      //*******pattern 1 (circle)
      vec2 translate = vec2(cos(uTime),sin(uTime));
@@ -54,16 +61,16 @@ void main(){
 
 
    //1) different types of field functions *********************************
-   //   uv = translateUV(uv, vec2(-0.5));
-   //   float boxData = rectangleField(uv);
+     uv = translateUV(uv, vec2(-0.5));
+     float boxData = rectangleField(uv);
    //   float circleData = circleField(uv);
    //   float triangleData = triangleField(uv);
    //   float polygonData = polygonField(uv, int(4), PI / 4.0);
    //   float circularWaved = wavedCircleField(uv, 10.0, uCtrl2, 0.0);
    //   float circularCog = cogCircleField(uv, 10.0, uCtrl2, uCtrl3, 0.0);
   
-   //   float strength = variantShape(circularCog,  uCtrl1 , 0.005);
-   //   gl_FragColor = vec4(mix(blackColor, whiteColor, strength), 1.0);
+     float strength = variantShape(boxData,  uCtrl1 , 0.005);
+     gl_FragColor = vec4(mix(circularAllColor, whiteColor, strength), 1.0);
 
    //2) grid pattern *********************************
    
@@ -115,7 +122,7 @@ void main(){
 //   gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
 
     //7) cellular noise ***********************************
-    float strength = 0.0;
+   //  float strength = 0.0;
    
    //a) Cellular Noise
    // strength = cellularNoiseFixedPointsInigosQuilez(uv, mouse, uTime);
@@ -155,26 +162,28 @@ void main(){
    //  gl_FragColor = vec4(color, 1.0);
 
     //8) cractal Noise pattern ***********************************
+    
     //a) single
    // strength = fractalNoise(uv * 3.0 + uTime * 0.05);
    // color = mix(uvColor, blackColor, strength);
+
    //b)multiple
-    vec2 q = vec2(0.);
-    q.x = fractalNoise( uv - 0.00 * uTime);
-    q.y = fractalNoise( uv + vec2(1.0));
+   //  vec2 q = vec2(0.);
+   //  q.x = fractalNoise( uv - 0.00 * uTime);
+   //  q.y = fractalNoise( uv + vec2(1.0));
 
-    vec2 r = vec2(0.);
-    r.x = fractalNoise( uv + 1.0 * q + vec2(1.7,9.2)- 0.15 * uTime );
-    r.y = fractalNoise( uv + 1.0 * q + vec2(8.3,2.8)- 0.126 * uTime);
+   //  vec2 r = vec2(0.);
+   //  r.x = fractalNoise( uv + 1.0 * q + vec2(1.7,9.2)- 0.15 * uTime );
+   //  r.y = fractalNoise( uv + 1.0 * q + vec2(8.3,2.8)- 0.126 * uTime);
 
-    strength = fractalNoise(uv - vec2(1.0, 0.12) + r);
+   //  strength = fractalNoise(uv - vec2(1.0, 0.12) + r);
 
-   color = mix(
-      vec3(0.001961,0.619608,0.166667) * blackColor, 
-      vec3(0.666667,0.66667,0.198039) * uvColor, 
-      clamp((strength * strength) * 4.0, 0.0, 1.0) 
-   );
-    gl_FragColor = vec4(color, 1.0);
+   // color = mix(
+   //    vec3(0.001961,0.619608,0.166667) * blackColor, 
+   //    vec3(0.666667,0.66667,0.198039) * uvColor, 
+   //    clamp((strength * strength) * 4.0, 0.0, 1.0) 
+   // );
+   //  gl_FragColor = vec4(color, 1.0);
 
    //  // Draw grid
     #include <colorspace_fragment>

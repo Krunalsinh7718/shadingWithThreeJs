@@ -12,8 +12,8 @@ void main(){
     //glitch
     float glitchStrength = sin(uTime - modelPosition.y);
     glitchStrength *= 0.25;
-    modelPosition.x += (random2D(modelPosition.xz + uTime) - 0.5) * glitchStrength;
-    modelPosition.x += (random2D(modelPosition.xz + uTime) - 0.5) * glitchStrength;
+    modelPosition.x += (randomFloat2D(modelPosition.xz + uTime) - 0.5) * glitchStrength;
+    modelPosition.x += (randomFloat2D(modelPosition.xz + uTime) - 0.5) * glitchStrength;
 
     //final position
 

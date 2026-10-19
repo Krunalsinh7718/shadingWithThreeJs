@@ -45,7 +45,7 @@ for (let i = 0; i < count; i++) {
     randoms3[i] = Math.random();
 }
 geometry.setAttribute('aRandom1', new THREE.BufferAttribute(randoms1, 1))
-geometry.setAttribute('aRandom2', new THREE.BufferAttribute(randoms2, 1))
+geometry.setAttribute('arandomVec2', new THREE.BufferAttribute(randoms2, 1))
 geometry.setAttribute('aRandom3', new THREE.BufferAttribute(randoms3, 1))
 // console.log(geometry);
 

@@ -111,10 +111,10 @@ void main(){
 
      //********pattern 23
     //-------------------------------
-      //randomUV function returns float values for dark light noise. 
+      //randomFloat2D function returns float values for dark light noise. 
       //@param {vec2} uv : texture uv
     //--------------------------------
-    // float strength = randomUV(
+    // float strength = randomFloat2D(
     //     uv //{vec2} uv : texture uv
     // );
     // gl_FragColor = vec4(mix(blackColor, color2, strength), 1.0);
@@ -228,7 +228,7 @@ void main(){
     //   vec2(uCtrl1,uCtrl2),  //{vec2} centerPoint : stripe origin X Y
     //   uCtrl4,               //{float} stripCount : stripe Count  
     //   uCtrl3,               //{float} stripeSize : stripe Width
-    //   uTime * -0.1          //{float} adjuct : adjuct stripe position
+    //   uTime * -0.1          //{float} adjust : adjust stripe position
     // );
     // float mixStrength = strength * strength1 ;
     //  gl_FragColor = vec4(mix(blackColor,color2, mixStrength), 1.0);
@@ -257,7 +257,7 @@ void main(){
     //   circle,     //{float} strength : strength of any shape
     //   0.5,        //{float} stripeSize: stripe size
     //   1.0,        //{float} stripeCount: amount of stripes
-    //   uTime * 0.1 //{float} adjuct: stripe adjuct value (may use for forward or backward animation)
+    //   uTime * 0.1 //{float} adjust: stripe adjust value (may use for forward or backward animation)
     // );
    
     // gl_FragColor = vec4(vec3(strength2), 1.0);

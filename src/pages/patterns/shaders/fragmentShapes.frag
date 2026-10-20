@@ -50,8 +50,7 @@ void main(){
      vec3 allColorY = hsb2rgb(vec3(uv.y,1.0,uv.x));
      vec3 circularAllColor = hsb2rgb(vec3((colorAngle/PI*2.0)+0.5,colorRadius,1.0));
 
-     //*******pattern 1 (circle)
-     vec2 translate = vec2(cos(uTime),sin(uTime));
+     //*******pattern 1 (different shapes according to their field data)
      //uv = uv * rotate2d(uTime * 0.5);
 
      float waveHeight = 0.05;
@@ -61,21 +60,27 @@ void main(){
 
 
    //1) different types of field functions *********************************
-     uv = translateUV(uv, vec2(-0.5));
-     float boxData = rectangleField(uv);
-   //   float circleData = circleField(uv);
-   //   float triangleData = triangleField(uv);
-   //   float polygonData = polygonField(uv, int(4), PI / 4.0);
-   //   float circularWaved = wavedCircleField(uv, 10.0, uCtrl2, 0.0);
-   //   float circularCog = cogCircleField(uv, 10.0, uCtrl2, uCtrl3, 0.0);
+    //  uv = translateUV(uv, vec2(-0.5));
+    //  float boxData = rectangleField(uv);
+    //  float circleData = circleField(uv);
+    //  float triangleData = triangleField(uv);
+    //  float polygonData = polygonField(uv, int(5), PI / 4.0);
+    //  float circularWaved = wavedCircleField(uv, 10.0, 0.05, 0.0);
+    //  float circularCog = cogCircleField(uv, 10.0, 0.05, 0.57, 0.0);
   
-     float strength = variantShape(boxData,  uCtrl1 , 0.005);
-     gl_FragColor = vec4(mix(circularAllColor, whiteColor, strength), 1.0);
+    //  float strength = variantShape(circularCog,  uCtrl1 , 0.005);
+    //  gl_FragColor = vec4(mix(blackColor, uvColor, strength), 1.0);
 
    //2) grid pattern *********************************
-   
-   //   float strength = gridPattern(uv, 5.0);
-   //   gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
+      //a) simple grid
+      uv = uv * 10.0;
+      float borderSize = 0.1;
+      float stripeX = sin(step(borderSize + sin(uv.y * 3.0) * 0.1, fract(uv.x)) );
+      float stripeY = step(borderSize + cos(uv.x * 3.0) * 0.1, fract(uv.y));
+      float strength = stripeX * stripeY;
+      //b)cornered grid
+    //  float strength = gridPattern(uv, 5.0);
+     gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
 
 
       

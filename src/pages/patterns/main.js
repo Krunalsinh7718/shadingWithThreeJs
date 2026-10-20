@@ -59,6 +59,7 @@ const material = new THREE.ShaderMaterial({
             0
         )),
         uCtrl1: { value: 0.4 },
+        uCtrl1A: { value: 0.0 },
         uCtrl2: { value: 0.8 },
         uCtrl3: { value: 0.2 },
         uCtrl4: { value: 5 },
@@ -68,6 +69,7 @@ const material = new THREE.ShaderMaterial({
 });
 
 gui.add(material.uniforms.uCtrl1, "value").min(0).max(1).step(0.01).name("ctrl1");
+gui.add(material.uniforms.uCtrl1A, "value").min(-5).max(5).step(0.01).name("uCtrl1A");
 gui.add(material.uniforms.uCtrl2, "value").min(0).max(1).step(0.01).name("ctrl2");
 gui.add(material.uniforms.uCtrl3, "value").min(0).max(1).step(0.01).name("ctrl3");
 gui.add(material.uniforms.uCtrl4, "value").min(0).max(10).step(0.1).name("ctrl4");

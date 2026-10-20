@@ -3,6 +3,7 @@
 
 uniform float uTime;
 uniform float uCtrl1;
+uniform float uCtrl1A;
 uniform float uCtrl2;
 uniform float uCtrl3;
 uniform float uCtrl4;
@@ -82,13 +83,13 @@ void main(){
 
 
       
-   //3) animated dots *********************************
-      uv = brickTile(uv, 10.0, uTime);
-      uv = fract(uv);
-      float circle = cogCircleField(uv - 0.5, 6.0, 0.1, 0.5, uTime * 0.1);
-      float strength = variantShape(circle, 0, 0.2 , 0.02, 5.0, 0.001, 0.0);
+   //3) animated tile shapes *********************************
+   //    uv = brickTile(uv, 10.0, uTime);
+   //    uv = fract(uv);
+   //    float shape = polygonField(uv - 0.5, int(3), PI / 4.0 + uTime) ;
+   //    float strength = variantShape(shape, 0, 0.2 , 0.02, 5.0, 0.001, 0.0);
 
-     gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
+   //   gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
 
 
    //4) tile pattern ***********************************
@@ -96,14 +97,14 @@ void main(){
    //   gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
 
    //5) truchetPattern pattern ***********************************
-   // float strength = truchetPatternMain(uv, uCtrl4, 0.0, uTime * 0.5);
+   // float strength = truchetPatternMain(uv, 20.0, 0.0, uTime * 0.5);
    //   gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
 
    //6) Noise pattern ***********************************
    // float strength = 0.0;
    
    //a) noise test
-   // strength = gradientNoise(uv * 10.0);
+   // strength = gradientNoise(uv * 30.0);
 
    //b) noise transition
    // strength = step(0.5, gradientNoise(uv * 10.0) + sin(uTime * 2.0 + sin(uv.x ) ) ); // revel transition
@@ -133,12 +134,12 @@ void main(){
     
    //b) control Cellular Noise
    // Inigo's Quilez version
-   // strength = cellularNoiseGridInigosQuilez(uv, 3, mouse, 0.0, 0.0,0.0, uTime);
+   // strength = cellularNoiseGridInigosQuilez(uv, 3,  mouse, 1.0, 100.0, 0.0001, uTime);
    //Voronoi version 
-   // strength = cellularNoiseGridVoronoi(uv, 10, mouse, 0.0, 0.0, 0.0, uTime);
+   // strength = cellularNoiseGridVoronoi(uv, 10, mouse, 1.0, 0.0, 0.0, uTime);
 
    //c) control Cellular Noise
-   // strength = cellularNoiseGrid(uv, 3, uTime);
+   // strength = cellularNoiseBlob(uv, 3, uTime);
 
    //d) Cellular grid 2x2
    // uv = vec2(uv.x - 1.0, uv.y - 0.5);
@@ -161,32 +162,33 @@ void main(){
    //striped border
    // strength =  smoothstep( 0.01, 0.02, cellular2x2Border.x*(0.5 + 0.5*sin(30.0*cellular2x2Border.x)) );
 
-   // color = mix(uvColor, blackColor, strength);
+   // color = mix(blackColor, uvColor, strength);
    //  gl_FragColor = vec4(color, 1.0);
 
-    //8) cractal Noise pattern ***********************************
-    
+    //8) fractal Noise pattern ***********************************
+     float strength = 0.0;
+
     //a) single
    // strength = fractalNoise(uv * 3.0 + uTime * 0.05);
    // color = mix(uvColor, blackColor, strength);
 
    //b)multiple
-   //  vec2 q = vec2(0.);
-   //  q.x = fractalNoise( uv - 0.00 * uTime);
-   //  q.y = fractalNoise( uv + vec2(1.0));
+    vec2 q = vec2(0.);
+    q.x = fractalNoise( uv - 0.00 * uTime);
+    q.y = fractalNoise( uv + vec2(1.0));
 
-   //  vec2 r = vec2(0.);
-   //  r.x = fractalNoise( uv + 1.0 * q + vec2(1.7,9.2)- 0.15 * uTime );
-   //  r.y = fractalNoise( uv + 1.0 * q + vec2(8.3,2.8)- 0.126 * uTime);
+    vec2 r = vec2(0.);
+    r.x = fractalNoise( uv + 1.0 * q + vec2(1.7,9.2)- 0.15 * uTime );
+    r.y = fractalNoise( uv + 1.0 * q + vec2(8.3,2.8)- 0.126 * uTime);
 
-   //  strength = fractalNoise(uv - vec2(1.0, 0.12) + r);
+    strength = fractalNoise(uv - vec2(1.0, 0.12) + r);
 
-   // color = mix(
-   //    vec3(0.001961,0.619608,0.166667) * blackColor, 
-   //    vec3(0.666667,0.66667,0.198039) * uvColor, 
-   //    clamp((strength * strength) * 4.0, 0.0, 1.0) 
-   // );
-   //  gl_FragColor = vec4(color, 1.0);
+   color = mix(
+      vec3(0.001961,0.619608,0.166667) * blackColor, 
+      vec3(0.666667,0.66667,0.198039) * uvColor, 
+      clamp((strength * strength) * 4.0, 0.0, 1.0) 
+   );
+    gl_FragColor = vec4(color, 1.0);
 
    //  // Draw grid
     #include <colorspace_fragment>

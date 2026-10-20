@@ -50,7 +50,7 @@ float tilePattern1(vec2 uv, float zoom) {
 
     float index = 0.0;
     index += step(1.0, mod(uv.x, 2.0));
-    index += step(1.0, mod(uv.y, 2.0));
+    index += step(1.0, mod(uv.y, 2.0)) * 2.0;
 
     uv = fract(uv);
 
@@ -267,7 +267,7 @@ float cellularNoiseFixedPointsVoronoi(
  *                        and stripe animation.
  * @return                Combined cellular pattern intensity.
  */
-float cellularNoiseGrid(
+float cellularNoiseGridInigosQuilez(
     vec2 uv,
     int zoom,
     vec2 mouse,
@@ -336,7 +336,7 @@ float cellularNoiseGrid(
  * @return       Binary-like mask produced by thresholding the
  *               calculated cellular distance.
  */
-float cellularNoiseGridInigosQuilez(vec2 uv, int zoom, float adjust) {
+float cellularNoiseBlob(vec2 uv, int zoom, float adjust) {
     uv *= float(zoom);
 
     vec2 i_st = floor(uv);
@@ -362,7 +362,7 @@ float cellularNoiseGridInigosQuilez(vec2 uv, int zoom, float adjust) {
     }
 
     float strength = 0.0;
-    strength += step(0.06, m_dist);
+    strength += smoothstep(0.057,0.06, m_dist);
 
     return strength;
 }

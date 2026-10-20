@@ -72,26 +72,23 @@ void main(){
     //  float strength = variantShape(circularCog,  uCtrl1 , 0.005);
     //  gl_FragColor = vec4(mix(blackColor, uvColor, strength), 1.0);
 
-   //2) grid pattern *********************************
+    //2) grid pattern *********************************
       //a) simple grid
-      uv = uv * 10.0;
-      float borderSize = 0.1;
-      float stripeX = sin(step(borderSize + sin(uv.y * 3.0) * 0.1, fract(uv.x)) );
-      float stripeY = step(borderSize + cos(uv.x * 3.0) * 0.1, fract(uv.y));
-      float strength = stripeX * stripeY;
+      
+      // float strength = wavedGridPattern(uv * 10.0, 0.04, 0.04, 0.08, 5.0, uTime  );
       //b)cornered grid
-    //  float strength = gridPattern(uv, 5.0);
-     gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
+   //   float strength = gridPattern(uv, 5.0);
+   //   gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
 
 
       
    //3) animated dots *********************************
-   //    uv = brickTile(uv, 10.0, uTime);
-   //    uv = fract(uv);
-   //    float circle = cogCircleField(uv - 0.5, 6.0, 0.1, 0.5, uTime * 0.1);
-   //    float strength = variantShape(circle, 0, 0.2 , 0.02, 5.0, 0.001, 0.0);
+      uv = brickTile(uv, 10.0, uTime);
+      uv = fract(uv);
+      float circle = cogCircleField(uv - 0.5, 6.0, 0.1, 0.5, uTime * 0.1);
+      float strength = variantShape(circle, 0, 0.2 , 0.02, 5.0, 0.001, 0.0);
 
-   //   gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
+     gl_FragColor = vec4(mix(uvColor, color2, strength), 1.0);
 
 
    //4) tile pattern ***********************************

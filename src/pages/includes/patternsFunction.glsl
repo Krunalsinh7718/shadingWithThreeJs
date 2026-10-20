@@ -158,6 +158,29 @@ float gridPattern(vec2 uv, float zoom) {
 }
 
 /**
+ * Creates a repeating waved grid pattern.
+ *
+ * @param uv            2D texture coordinates.
+ * @param borderSize    border width.
+ * @param borderSmooth  amount of border blur.
+ * @param amplitude     wave height.
+ * @param frequency     amount of wave.
+ * @param adjust        forward or backward wave movement.
+ * @return              Combined waved grid mask.
+ */
+float wavedGridPattern(vec2 uv, float borderSize, float borderSmooth, float amplitude, float frequency, float adjust ){
+
+    float waveX =  0.5 + sin(uv.y * frequency + adjust) * amplitude;
+      float stripeX = smoothstep(waveX, waveX + borderSmooth, fract(uv.x)) - smoothstep(borderSize + waveX, borderSize + waveX + borderSmooth, fract(uv.x));
+      float waveY = 0.5 + cos(uv.x * frequency + adjust) * amplitude;
+      float stripeY = smoothstep(waveY, waveY + borderSmooth, fract(uv.y)) - smoothstep(borderSize + waveY, borderSize + waveY + borderSmooth, fract(uv.y));
+
+      float strength = stripeX + stripeY;
+
+      return strength;
+}
+
+/**
  * Calculates the distance to the nearest point in a fixed-point pattern.
  *
  * @param uv     2D coordinate at which to evaluate the pattern.

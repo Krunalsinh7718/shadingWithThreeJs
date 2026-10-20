@@ -1,5 +1,5 @@
 attribute float aRandom1;
-attribute float aRandom2;
+attribute float arandomVec2;
 attribute float aRandom3;
 
 varying vec3 vRandom;
@@ -15,7 +15,7 @@ uniform float uTime;
 void main(){
     vec4 modelPosition = modelMatrix * vec4(position, 1.0);
     // modelPosition.z += aRandom * 0.1;
-    modelPosition.y += sin(modelPosition.x * wavelengthX + uTime) * vCtrl1 + (aRandom2 * vCtrl2 );
+    modelPosition.y += sin(modelPosition.x * wavelengthX + uTime) * vCtrl1 + (arandomVec2 * vCtrl2 );
     modelPosition.y += cos(modelPosition.z * wavelengthY + uTime) * vCtrl1 + (aRandom3 * vCtrl3 );
 
     vec4 viewPosition = viewMatrix * modelPosition;
@@ -23,7 +23,7 @@ void main(){
 
     gl_Position = projectedPosition;
 
-    vRandom = vec3(aRandom1, aRandom2, aRandom3);
+    vRandom = vec3(aRandom1, arandomVec2, aRandom3);
    
 
 }

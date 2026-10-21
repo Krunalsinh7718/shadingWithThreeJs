@@ -9,6 +9,7 @@ uniform float uSmallWaveSpeed;
 uniform float uSmallWaveIteration;
 
 varying float vElevation;
+varying vec2 vUv;
 
 #include ../../includes/perlinnoise3d.glsl
 
@@ -29,6 +30,7 @@ void main(){
     gl_Position = projectedPosition;
 
     vElevation = elevation;
+    vUv = uv;
 
    
 

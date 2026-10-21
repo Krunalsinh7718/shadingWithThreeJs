@@ -20,7 +20,7 @@ varying vec3 vColor;
             modelPosition.z = cos(angle) * distFromCenter;
 
             //randomness
-            modelPosition.xyz += randomness;
+            modelPosition.xyz += randomness ;
 
             vec4 viewPosition = viewMatrix * modelPosition;
             vec4 projectionPosition = projectionMatrix * viewPosition;

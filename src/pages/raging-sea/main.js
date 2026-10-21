@@ -30,8 +30,7 @@ document.body.appendChild(renderer.domElement);
 
 //mesh setup
 // Geometry
-const geometry = new THREE.PlaneGeometry(2, 2, 512, 512);
-
+const geometry = new THREE.PlaneGeometry(5, 5, 512, 512);
 // Material
 debugObject.depthColor = "#186691";
 debugObject.surfaceColor = "#9bd8ff";
@@ -45,7 +44,7 @@ const waterMaterial = new THREE.ShaderMaterial({
         uTime: {value : 0},
 
         uBigWaveElevation : { value : 0.2},
-        uBigWaveFrequency : { value : new THREE.Vector2(4, 1.5)},
+        uBigWaveFrequency : { value : new THREE.Vector2(2.15    , 1.5)},
         uBigWaveSpeed: {value: 0.75},
 
         uSmallWaveElevation: {value : 0.15},
@@ -55,7 +54,7 @@ const waterMaterial = new THREE.ShaderMaterial({
 
         uDepthColor: {value: new THREE.Color(debugObject.depthColor)},
         uSurfaceColor: {value: new THREE.Color(debugObject.surfaceColor)},
-        uColorOffset: {value: 0.08},
+        uColorOffset: {value: 0.21},
         uColorMultiplier: {value: 5},
     }
     

@@ -14,10 +14,10 @@ uniform vec2 uMouse;
 varying vec2 vUv;
 #include ../../includes/functions.glsl
 #include ../../includes/noise.glsl
-#include ../../includes/shapesFunctions.glsl
-#include ../../includes/transformFunction.glsl
-#include ../../includes/patternsFunction.glsl
 #include ../../includes/colorsFunctions.glsl
+#include ../../includes/transformFunction.glsl
+#include ../../includes/shapesFunctions.glsl
+#include ../../includes/patternsFunction.glsl
 #include ../../includes/simplexNoise2d.glsl
 
 void main(){

@@ -15,11 +15,11 @@ void main(){
     vec4 modelPosition = modelMatrix * vec4(position, 1.0);
     
     //elevation
-    float elevation = sin(modelPosition.x * uFrequency.x + uTime) * 0.1;
-    elevation += cos(modelPosition.y * uFrequency.y + uTime) * 0.1;
+    float elevation = sin(modelPosition.x * uFrequency.x - uTime) * 0.1;
+    elevation += cos(modelPosition.y * uFrequency.y - uTime) * 0.1;
 
     // modelPosition.z += aRandom * 0.1;
-    modelPosition.z += elevation ;
+    modelPosition.z +=  elevation  ;
 
 
     vec4 viewPosition = viewMatrix * modelPosition;

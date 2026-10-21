@@ -19,7 +19,7 @@ void main(){
     elevation += cos(modelPosition.y * uFrequency.y - uTime) * 0.1;
 
     // modelPosition.z += aRandom * 0.1;
-    modelPosition.z +=  elevation  ;
+    modelPosition.z +=  elevation * 2.0 * uv.x ;
 
 
     vec4 viewPosition = viewMatrix * modelPosition;

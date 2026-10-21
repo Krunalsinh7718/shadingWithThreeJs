@@ -77,6 +77,29 @@ const mesh = new THREE.Mesh(geometry, material);
 mesh.scale.y = 2 / 3;
 scene.add(mesh);
 
+
+//pole
+const pole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.02, 0.02, 1),
+    new THREE.MeshBasicMaterial({
+        color: "silver"
+    })
+)
+pole.position.set(-0.5,-0.6,0);
+pole.scale.y = 2
+scene.add(pole)
+
+//base
+const base = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.3, 0.3, 1),
+    new THREE.MeshBasicMaterial({
+        color: "gray"
+    })
+)
+base.position.set(-0.5,-1.6,0);
+base.scale.y = 0.1
+scene.add(base)
+
 //controls setup
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;

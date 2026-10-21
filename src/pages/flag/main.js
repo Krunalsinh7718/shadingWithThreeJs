@@ -55,15 +55,13 @@ geometry.setAttribute('aRandom3', new THREE.BufferAttribute(randoms3, 1))
 const material = new THREE.ShaderMaterial({
     vertexShader: testVertexShader,
     fragmentShader: testFragmentShader,
-     transparent: true,
-     uniforms : {
+    uniforms : {
         uFrequency : {value : new THREE.Vector2(10,5)},
-       
-        
         uTime : {value: 0},
         uColor: {value: new THREE.Color('orange')},
         uTexture : {value : flagTexture}
-     }
+    },
+    side: THREE.DoubleSide
 });
 // console.log(material);
 

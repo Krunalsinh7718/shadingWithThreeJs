@@ -7,6 +7,12 @@ import testFragmentShader from './shaders/fragment.frag'
 //gui
 const gui = new GUI();
 
+//raycaster
+const raycaster = new THREE.Raycaster();
+
+//mouse
+const mouse = { x: 0, y: 0 };
+
 //sizes
 const sizes = {
     width: window.innerWidth,
@@ -29,7 +35,8 @@ document.body.appendChild(renderer.domElement);
 
 //mesh setup
 // Geometry
-const geometry = new THREE.PlaneGeometry(1, 1, 132, 132);
+const planeSize = { width: 2, height: 1 };
+const geometry = new THREE.PlaneGeometry(planeSize.width, planeSize.height, 600, 600);
 const count = geometry.attributes.position.count;
 const randoms1 = new Float32Array(count);
 const randoms2 = new Float32Array(count);
@@ -51,15 +58,23 @@ geometry.setAttribute('aRandom3', new THREE.BufferAttribute(randoms3, 1))
 const material = new THREE.ShaderMaterial({
     vertexShader: testVertexShader,
     fragmentShader: testFragmentShader,
-     transparent: true,
-     uniforms : {
-        wavelengthX : {value : 30},
-        wavelengthY : {value : 30},
-        vCtrl1: {value: 0.05},
-        vCtrl2: {value: 0.018},
-        vCtrl3: {value: 0.034},
-        uTime : {value: 0}
-     }
+    transparent: true,
+    uniforms: {
+        uResolution: new THREE.Uniform(new THREE.Vector2(
+            planeSize.width,
+            planeSize.height
+        )),
+        uMouse: new THREE.Uniform(new THREE.Vector2(
+            0,
+            0
+        )),
+        wavelengthX: { value: 30 },
+        wavelengthY: { value: 30 },
+        vCtrl1: { value: 0.05 },
+        vCtrl2: { value: 0.018 },
+        vCtrl3: { value: 0.034 },
+        uTime: { value: 0 }
+    }
 });
 // console.log(material);
 
@@ -88,6 +103,16 @@ function animate() {
 
     const elapsedTime = clock.getElapsedTime();
 
+    // Update the picking ray with the camera and mouse position
+    raycaster.setFromCamera(mouse, camera);
+
+    //Calculate objects intersecting the picking ray
+    const intersects = raycaster.intersectObjects([mesh]);
+
+    if (intersects.length > 0) {
+        material.uniforms.uMouse.value.copy(intersects[0].uv);
+    }
+    
     //update uniform
     material.uniforms.uTime.value = elapsedTime;
 
@@ -112,4 +137,11 @@ window.addEventListener('resize', () => {
     // Update renderer
     renderer.setSize(sizes.width, sizes.height)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+});
+
+
+//handle window resize
+window.addEventListener('mousemove', (e) => {
+    mouse.x = (e.clientX / sizes.width) * 2 - 1;
+    mouse.y = -(e.clientY / sizes.height) * 2 + 1;
 });

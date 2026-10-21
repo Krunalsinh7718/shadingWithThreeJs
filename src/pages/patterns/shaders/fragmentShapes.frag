@@ -62,16 +62,17 @@ void main(){
 
 
    //1) different types of field functions *********************************
-    //  uv = translateUV(uv, vec2(-0.5));
+     uv = translateUV(uv, vec2( -1.0, -0.5));
     //  float boxData = rectangleField(uv);
     //  float circleData = circleField(uv);
+     float vortexData = vortexField(uv, 1.0, uTime);
     //  float triangleData = triangleField(uv);
     //  float polygonData = polygonField(uv, int(5), PI / 4.0);
     //  float circularWaved = wavedCircleField(uv, 10.0, 0.05, 0.0);
     //  float circularCog = cogCircleField(uv, 10.0, 0.05, 0.57, 0.0);
   
-    //  float strength = variantShape(circularCog,  uCtrl1 , 0.005);
-    //  gl_FragColor = vec4(mix(blackColor, uvColor, strength), 1.0);
+     float strength = variantShape(vortexData, 1, 0.005 , 0.02, 1.0, 0.001, 0.0);
+     gl_FragColor = vec4(mix(color1, uvColor, strength), 1.0);
 
     //2) grid pattern *********************************
       //a) simple grid
@@ -166,29 +167,29 @@ void main(){
    //  gl_FragColor = vec4(color, 1.0);
 
     //8) fractal Noise pattern ***********************************
-     float strength = 0.0;
+   //   float strength = 0.0;
 
     //a) single
    // strength = fractalNoise(uv * 3.0 + uTime * 0.05);
    // color = mix(uvColor, blackColor, strength);
 
    //b)multiple
-    vec2 q = vec2(0.);
-    q.x = fractalNoise( uv - 0.00 * uTime);
-    q.y = fractalNoise( uv + vec2(1.0));
+   //  vec2 q = vec2(0.);
+   //  q.x = fractalNoise( uv - 0.00 * uTime);
+   //  q.y = fractalNoise( uv + vec2(1.0));
 
-    vec2 r = vec2(0.);
-    r.x = fractalNoise( uv + 1.0 * q + vec2(1.7,9.2)- 0.15 * uTime );
-    r.y = fractalNoise( uv + 1.0 * q + vec2(8.3,2.8)- 0.126 * uTime);
+   //  vec2 r = vec2(0.);
+   //  r.x = fractalNoise( uv + 1.0 * q + vec2(1.7,9.2)- 0.15 * uTime );
+   //  r.y = fractalNoise( uv + 1.0 * q + vec2(8.3,2.8)- 0.126 * uTime);
 
-    strength = fractalNoise(uv - vec2(1.0, 0.12) + r);
+   //  strength = fractalNoise(uv - vec2(1.0, 0.12) + r);
 
-   color = mix(
-      vec3(0.001961,0.619608,0.166667) * blackColor, 
-      vec3(0.666667,0.66667,0.198039) * uvColor, 
-      clamp((strength * strength) * 4.0, 0.0, 1.0) 
-   );
-    gl_FragColor = vec4(color, 1.0);
+   // color = mix(
+   //    vec3(0.001961,0.619608,0.166667) * blackColor, 
+   //    vec3(0.666667,0.66667,0.198039) * uvColor, 
+   //    clamp((strength * strength) * 4.0, 0.0, 1.0) 
+   // );
+   //  gl_FragColor = vec4(color, 1.0);
 
    //  // Draw grid
     #include <colorspace_fragment>

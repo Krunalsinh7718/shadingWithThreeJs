@@ -161,7 +161,22 @@ float triangleField(vec2 uv) {
 float circleField(vec2 uv) {
     return length(uv);
 }
+/**
+ * Calculates the radial distance from the origin.
+ *
+ * @param uv 2D coordinate relative to the circle's center.
+ * @return   Euclidean distance from the origin.
+ */
+float vortexField(vec2 uv, float strength, float adjust) {
+    float distance = length(uv);
+    float angle = atan(uv.y, uv.x) + adjust;
+    angle += (1.0 / distance) * strength;
 
+    // The vortex data is driven by adding the distance into the angle calculation
+    float vortexField = sin(angle) * (distance * 0.1);
+    
+    return vortexField ;
+}
 /**
  * Calculates a square distance field using the maximum
  * absolute coordinate.

@@ -3,6 +3,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import GUI from 'lil-gui'
 import testVertexShader from './shaders/vertex.vert?raw'
 import testFragmentShader from './shaders/fragment.frag?raw'
+import appBackgroundVertex from './shaders/backgroundVertex.vert'
+import appBackgroundFragment from './shaders/backgroundFragment.frag'
 
 //gui
 const gui = new GUI();
@@ -98,6 +100,54 @@ base.position.set(-0.5,-1.6,0);
 base.scale.y = 0.1
 scene.add(base)
 
+
+// Large sphere surrounding the camera.
+const geometryBg = new THREE.SphereGeometry(
+    50,
+    64,
+    48
+);
+
+const materialBg = new THREE.ShaderMaterial({
+    vertexShader: appBackgroundVertex,
+    fragmentShader: appBackgroundFragment,
+
+    uniforms: {
+        uTime: { value: 0 },
+
+        uTopColor: {
+            value: new THREE.Color('#173B70')
+        },
+        uHorizonColor: {
+            value: new THREE.Color('#F5A77B')
+        },
+        uSunColor: {
+            value: new THREE.Color('#FFD6A0')
+        },
+        uMountainFarColor: {
+            value: new THREE.Color('#596B91')
+        },
+        uMountainNearColor: {
+            value: new THREE.Color('#263957')
+        },
+        uCloudColor: {
+            value: new THREE.Color('#E8D9D4')
+        }
+    },
+
+    side: THREE.BackSide,
+    depthWrite: false,
+    depthTest: false
+});
+
+const environment = new THREE.Mesh(
+    geometryBg,
+    materialBg
+);
+
+environment.renderOrder = -1000;
+scene.add(environment);
+
 //controls setup
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -113,7 +163,12 @@ function animate() {
     //update uniform
     material.uniforms.uTime.value = elapsedTime;
 
-    // mesh.position.x += elapsedTime * 0.0001;
+    // Animate procedural clouds.
+    materialBg.uniforms.uTime.value = elapsedTime;
+
+    // Keep the sky centered on the camera.
+    environment.position.copy(camera.position);
+
 
     //update controls
     controls.update();

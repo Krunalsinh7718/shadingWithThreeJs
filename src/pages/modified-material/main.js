@@ -84,25 +84,38 @@ const customUniforms = {
 material.onBeforeCompile = (shader) => {
     // console.log(shader)
     shader.uniforms.uTime = customUniforms.uTime;
-    shader.vertexShader = shader.vertexShader.replace("#include <common>", `
+    shader.vertexShader = shader.vertexShader.replace("#include <common>", /*glsl*/`
         #include <common>
 
         uniform float uTime;
 
         mat2 get2dRotateMatrix(float _angle){
                 return mat2(cos(_angle), - sin(_angle), sin(_angle), cos(_angle));
-        }   
+        } 
+        mat2 getScaledMatrix(vec2 _scale) {
+            return mat2(
+                _scale.x, 0.0,
+                0.0, _scale.y
+            );
+        }  
     `);
 
     shader.vertexShader = shader.vertexShader.replace(
         '#include <begin_vertex>',
-        `
+        /*glsl*/`
         #include <begin_vertex>
 
-        float angle = (sin(position.y + uTime)) * 1.0;
-        mat2 rotateMatrix = get2dRotateMatrix(angle);
-        transformed.xz = rotateMatrix * transformed.xz;
+        float angle = abs(sin(position.y + uTime) ) + 0.8;
+        //rotate xz
+        // mat2 rotateMatrix = get2dRotateMatrix(angle);
+        // transformed.xz = rotateMatrix * transformed.xz;
 
+        //scale xz
+        mat2 scaleMatrix = getScaledMatrix(vec2(angle)) * 1.0;
+        transformed.xz = scaleMatrix * transformed.xz;
+        // transformed.y += abs(sin(sin(position.y + uTime) * 2.0 + cos(uTime))) * 0.2;
+
+        //wave XZ
         // transformed.xz = vec2(
         //     transformed.x +  (sin(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4) , 
         //     transformed.z +  (cos(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4)
@@ -122,21 +135,34 @@ depthMaterial.onBeforeCompile = (shader) => {
 
         mat2 get2dRotateMatrix(float _angle){
                 return mat2(cos(_angle), - sin(_angle), sin(_angle), cos(_angle));
-        }   
+        } 
+        mat2 getScaledMatrix(vec2 _scale) {
+            return mat2(
+                _scale.x, 0.0,
+                0.0, _scale.y
+            );
+        }  
     `);
     shader.vertexShader = shader.vertexShader.replace(
         '#include <beginnormal_vertex>',
         `
             #include <beginnormal_vertex>
 
-            float angle = (sin(position.y + uTime)) * 1.0;
-            mat2 rotateMatrix = get2dRotateMatrix(angle);
-            objectNormal.xz = rotateMatrix * objectNormal.xz;
+            float angle = abs(sin(position.y + uTime) ) + 0.8;
+        //rotate xz
+        // mat2 rotateMatrix = get2dRotateMatrix(angle);
+        // transformed.xz = rotateMatrix * transformed.xz;
 
-            // objectNormal.xz = vec2(
-            //     objectNormal.x +  (sin(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4) , 
-            //     objectNormal.z +  (cos(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4)
-            // );
+        //scale xz
+        mat2 scaleMatrix = getScaledMatrix(vec2(angle)) * 1.0;
+        transformed.xz = scaleMatrix * transformed.xz;
+        // transformed.y += abs(sin(sin(position.y + uTime) * 2.0 + cos(uTime))) * 0.2;
+
+        //wave XZ
+        // transformed.xz = vec2(
+        //     transformed.x +  (sin(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4) , 
+        //     transformed.z +  (cos(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4)
+        // );
         `
     )
     shader.vertexShader = shader.vertexShader.replace(
@@ -144,13 +170,20 @@ depthMaterial.onBeforeCompile = (shader) => {
         `
         #include <begin_vertex>
 
-        float angle = (sin(position.y + uTime)) * 1.0;
-        mat2 rotateMatrix = get2dRotateMatrix(angle);
-        transformed.xz = rotateMatrix * transformed.xz;
+        float angle = abs(sin(position.y + uTime) ) + 0.8;
+        //rotate xz
+        // mat2 rotateMatrix = get2dRotateMatrix(angle);
+        // transformed.xz = rotateMatrix * transformed.xz;
 
+        //scale xz
+        mat2 scaleMatrix = getScaledMatrix(vec2(angle)) * 1.0;
+        transformed.xz = scaleMatrix * transformed.xz;
+        // transformed.y += abs(sin(sin(position.y + uTime) * 2.0 + cos(uTime))) * 0.2;
+
+        //wave XZ
         // transformed.xz = vec2(
-        //     transformed.x + sin(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4,
-        //     transformed.z + cos(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4
+        //     transformed.x +  (sin(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4) , 
+        //     transformed.z +  (cos(position.y + uTime * 4.0) * (position.y + 1.0) * 0.4)
         // );
         `
     )

@@ -20,14 +20,11 @@ uniform int uLightPattern;
 varying vec3 vNormal;
 varying vec3 vPosition;
 
-#include "../../includes/lights.glsl"
 #include ../../includes/functions.glsl
+#include "../../includes/noise.glsl"
+#include "../../includes/lights.glsl"
+#include ../../includes/shapesFunctions.glsl
 #include ../../includes/halftones.glsl
-
-
-
-
-
 
 void main(){
     vec3 viewDirection = normalize(vPosition - cameraPosition);

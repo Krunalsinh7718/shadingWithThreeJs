@@ -1,3 +1,4 @@
+
 vec3 halftone(
     vec3 color,
     float repetitions,
@@ -32,7 +33,7 @@ vec3 halftone1(
     intensity = smoothstep(low, high, intensity);
 
     vec2 uv = gl_FragCoord.xy / uResolution.y;
-    float strenth = randomShades(0.0, uv * intensity , 0.0);
+    float strenth = randomShades(uv * intensity, repetitions, 0.0);
 
     return mix(color, pointColor, strenth);
 
@@ -53,12 +54,12 @@ vec3 halftone2(
     
 
     vec2 uv = gl_FragCoord.xy / uResolution.y;
-    vec2 rotatedUv = rotate(uv, PI * 0.4, vec2(0.5));
+    vec2 rotatedUv = rotateUV(uv, PI * 0.4, vec2(0.5));
 
     rotatedUv *= repetitions;
     rotatedUv = mod(rotatedUv, 1.0);
 
-    float strength =  starShape(0.3 * intensity, rotatedUv, vec2(0.5), 5.0, 1.0);
+    float strength =  starShape(rotatedUv, 0.3 * intensity, vec2(0.5), 5.0, 1.0);
     return mix(color, pointColor, strength);
 }
 

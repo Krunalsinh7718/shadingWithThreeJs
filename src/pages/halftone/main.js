@@ -4,6 +4,7 @@ import GUI from 'lil-gui'
 import testVertexShader from './shaders/vertex.vert'
 import testFragmentShader from './shaders/fragment.frag'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 
 import { getMeshesByName, applyMaterialByMeshName, applyMaterialByMaterialName, logSceneStructure } from "../../common-utility/common-functions.js";
 
@@ -13,7 +14,11 @@ const parameters = {};
 
 //loaders
 const textureLoader = new THREE.TextureLoader();
-const gltfLoader = new GLTFLoader();
+const dracoLoader = new DRACOLoader()
+dracoLoader.setDecoderPath('/models/draco/')
+const gltfLoader = new GLTFLoader()
+gltfLoader.setDRACOLoader(dracoLoader)
+
 
 //sizes
 const sizes = {
@@ -154,6 +159,7 @@ gltfLoader.load("/models/suzanne/suzanne.glb", gltf => {
         if (child.isMesh)
             child.material = material
     })
+    model.scale.set(0.3,0.3,0.3);
     scene.add(model);
 })
 

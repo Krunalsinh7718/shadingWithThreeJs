@@ -42,32 +42,68 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 
 //spherical
-const circularPath = new THREE.Spherical(2,0,0);
+const circularPath = new THREE.Spherical(2.25, 1.4, 5.91);
 
-gui.add(circularPath, 'radius', 0, 4, 0.01).name('Radius');
+gui.add(circularPath, 'radius', 1.16, 4, 0.01).name('Radius').onChange(e => {
+    targetMat.uniforms.uLightIntensity.value = calculateLightIntensity(circularPath.radius);
+});
 gui.add(circularPath, 'phi', 0, Math.PI, 0.01).name('Phi');
 gui.add(circularPath, 'theta', 0, Math.PI * 2, 0.01).name('theta');
 
-//target point
-const lightMesh= new THREE.Mesh(new THREE.SphereGeometry(0.2,10,10), new THREE.MeshBasicMaterial({color: "#b40c0c"}));
+//light
+function calculateLightIntensity(input) {
+    if (input <= 1.5) {
+        return 1;
+    }
+    if (input >= 5){
+        return 0;
+    }    
+    return 2 - (input - 2) / 2;
+}
+const lightProps = {color: "#fff"}  
+const lightMesh= new THREE.Mesh(new THREE.SphereGeometry(0.2,10,10), new THREE.MeshBasicMaterial({color: lightProps.color}));
 scene.add(lightMesh);
+gui.addColor(lightProps,'color').onChange(e => {
+    lightMesh.material.color.set(lightProps.color)
+    targetMat.uniforms.uLightColor.value.set(lightProps.color)
+});
 
-//ball
+
+//target 
+const earthDayTexture = textureLoader.load("/images/earth/2k_earth_daymap.jpg");
+earthDayTexture.colorSpace = THREE.SRGBColorSpace;
+
+const earthNightTexture = textureLoader.load("/images/earth/2k_earth_nightmap.jpg");
+earthNightTexture.colorSpace = THREE.SRGBColorSpace;
+
+const earthSpecularCloudsTexture = textureLoader.load("/images/earth/specularClouds.jpg");
+earthSpecularCloudsTexture.wrapS = THREE.RepeatWrapping;
+earthSpecularCloudsTexture.wrapT = THREE.RepeatWrapping;
+
+const earthCloudsTexture = textureLoader.load("/images/earth/2k_earth_clouds.jpg");
+earthCloudsTexture.wrapS = THREE.RepeatWrapping;
+earthCloudsTexture.wrapT = THREE.RepeatWrapping;
+
+
 const targetGeo = new THREE.SphereGeometry(1, 64, 64);
 const targetMat = new THREE.ShaderMaterial({
     vertexShader: appVertexShader,
     fragmentShader: appFragmentShader,
     uniforms: {
-        lightPosition: new THREE.Uniform(lightMesh.position)
+        uTime: new THREE.Uniform(0),
+        uLightPosition: new THREE.Uniform(lightMesh.position),
+        uLightColor : new THREE.Uniform(lightMesh.material.color),
+        uAtmosphereDayColor : new THREE.Uniform(new THREE.Color("#309af1")),
+        uAtmosphereTwilightColor : new THREE.Uniform(new THREE.Color("#e4505c")),
+        uLightIntensity: new THREE.Uniform(calculateLightIntensity(circularPath.radius)),
+        uDayTexture : new  THREE.Uniform(earthDayTexture),
+        uNightTexture : new  THREE.Uniform(earthNightTexture),
+        uSpecularCloudsTexture : new THREE.Uniform(earthSpecularCloudsTexture),
+        uCloudsTexture: new THREE.Uniform(earthCloudsTexture),
     }
 })
 const targetMesh = new THREE.Mesh(targetGeo, targetMat);
 scene.add(targetMesh);
-
-
-
-
-
 
 //animation loop
 const clock = new THREE.Clock();
@@ -75,9 +111,16 @@ function animate() {
     
     const elapsedTime = clock.getElapsedTime();
 
+    //update uTime
+    targetMat.uniforms.uTime.value = elapsedTime * 0.1;
+
     //update light position
     lightMesh.position.setFromSpherical(circularPath);
-    targetMat.uniforms.lightPosition.value.set(...lightMesh.position);
+    targetMat.uniforms.uLightPosition.value.set(...lightMesh.position);
+
+    //target rotation
+    targetMesh.rotation.set(elapsedTime * 0.1, 0, 0);
+    
 
     //update controls
     controls.update();

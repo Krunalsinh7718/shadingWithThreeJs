@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
 import { Sky } from 'three/addons/objects/Sky.js'
 import GUI from 'lil-gui';
 import appVertexShader from './shaders/vertex.vert';
@@ -85,7 +86,7 @@ earthCloudsTexture.wrapS = THREE.RepeatWrapping;
 earthCloudsTexture.wrapT = THREE.RepeatWrapping;
 
 
-const targetGeo = new THREE.SphereGeometry(1, 64, 64);
+const targetGeo = new THREE.SphereGeometry(1, 25, 25);
 const targetMat = new THREE.ShaderMaterial({
     vertexShader: appVertexShader,
     fragmentShader: appFragmentShader,
@@ -105,6 +106,15 @@ const targetMat = new THREE.ShaderMaterial({
 const targetMesh = new THREE.Mesh(targetGeo, targetMat);
 scene.add(targetMesh);
 
+// Draw the normals as red lines.
+const normalHelper = new VertexNormalsHelper(
+    targetMesh,
+    0.3,
+    0xff0000
+);
+
+scene.add(normalHelper);
+
 //animation loop
 const clock = new THREE.Clock();
 function animate() {
@@ -120,6 +130,10 @@ function animate() {
 
     //target rotation
     targetMesh.rotation.set(elapsedTime * 0.1, 0, 0);
+
+    //target move
+    targetMesh.position.set(Math.sin(elapsedTime * 0.5) * 3, 0, Math.cos(elapsedTime * 0.5) * 3);
+    normalHelper.update();
     
 
     //update controls

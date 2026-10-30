@@ -15,6 +15,7 @@ uniform sampler2D uSpecularCloudsTexture;
 uniform sampler2D uCloudsTexture;
 
 void main(){
+     vec3 normalColor = normalize(vNormal) * 0.5 + 0.5;
      vec3 normal = normalize(vNormal);
      vec3 color = vec3(0.0);
 
@@ -64,7 +65,7 @@ void main(){
      color *= uLightColor * uLightIntensity;
 
      //test
-     // color = vec3(dot(viewDirection, normal));
+     // color = normalColor;
      
 
      gl_FragColor = vec4(color, 1.0);

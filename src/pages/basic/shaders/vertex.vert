@@ -34,20 +34,20 @@ void main(){
 
 
     //a) wave xy (uv controled)
-    // float waveXY = sin(modelPosition.x * wavelengthX - uTime) * min(shapeUV.x * 0.1, 0.1) + 
-    //                cos(modelPosition.z * wavelengthY + uTime) * min(shapeUV.x * 0.1, 0.1);
+    float waveXY = sin(modelPosition.x * wavelengthX - uTime) * min(shapeUV.x * 0.1, 0.1) + 
+                   cos(modelPosition.z * wavelengthY + uTime) * min(shapeUV.x * 0.1, 0.1);
 
     //b) accelerated wave 1 (circle shape)
-    // float dist1 = length(shapeUV - 0.5);
-    // float amplitude1 = max(0.0, pow(0.5 - dist1, 2.0)) * 0.3;
-    // float waveCircular1 = fract(abs( sin(dist1 * 30.0 - uTime)  * amplitude1 )) ;
+    float dist1 = length(shapeUV - 0.5);
+    float amplitude1 = max(0.0, pow(0.5 - dist1, 2.0)) * 0.3;
+    float waveCircular1 = fract(abs( sin(dist1 * 30.0 - uTime)  * amplitude1 )) ;
 
     //c) accelerated wave 2 (circle shape)
-    // float dist2 = length(shapeUV - mouse);
-    // float acceleratedDist2 = pow(dist2, 0.5) * 40.0;
-    // float wave2 = sin(acceleratedDist2 - uTime * 5.0);
-    // float amplitude2 = exp(-dist2 * 4.0) * 0.03;
-    // float waveCircular2 = wave2 * amplitude2;
+    float dist2 = length(shapeUV - mouse);
+    float acceleratedDist2 = pow(dist2, 0.5) * 40.0;
+    float wave2 = sin(acceleratedDist2 - uTime * 5.0);
+    float amplitude2 = exp(-dist2 * 4.0) * 0.03;
+    float waveCircular2 = wave2 * amplitude2;
 
     //d) accelerated wave 3 (poligone shape)
     float dist3 = polygonField(shapeUV - mouse, int(5), PI / 4.0);

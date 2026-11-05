@@ -27,7 +27,7 @@ void main(){
 
 
 
-    vec3 color = mix(  blackColor, uvColor, vPosY + 0.4 );
+    vec3 color = mix(  blackColor, whiteColor, vPosY + 0.1 );
     gl_FragColor = vec4(color, 1.0);
     #include <colorspace_fragment>
 }

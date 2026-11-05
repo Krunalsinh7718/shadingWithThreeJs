@@ -170,7 +170,8 @@ float circleField(vec2 uv) {
 float vortexField(vec2 uv, float strength, float adjust) {
     float distance = length(uv);
     float angle = atan(uv.y, uv.x) + adjust;
-    angle += (1.0 / distance) * strength;
+    // angle += (1.0 / distance) * strength;
+    angle +=  pow(distance,-0.1) * 100.0;
 
     // The vortex data is driven by adding the distance into the angle calculation
     float vortexField = sin(angle) * (distance * 0.1);

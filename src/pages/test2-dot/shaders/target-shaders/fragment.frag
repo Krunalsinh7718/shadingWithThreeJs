@@ -68,17 +68,15 @@ void main(){
      //light
      color *= uLightColor * uLightIntensity;
 
-     //test
-     float alignment = dot(
-          normalize(normal),
-          normalize(testDirection)
-     );
+     //direction test
+     // float alignment = dot(
+     //      normalize(normal),
+     //      normalize(uTestDirection)
+     // );
 
-     color = vec3(
-          1.0 - smoothstep(-0.1, 0.1, alignment),
-          smoothstep(-0.1, 0.1, alignment),
-          0.0
-     );
+     // color = vec3(
+     //     alignment
+     // );
 
 
      

@@ -100,7 +100,7 @@ earthCloudsTexture.wrapS = THREE.RepeatWrapping;
 earthCloudsTexture.wrapT = THREE.RepeatWrapping;
 
 
-const targetGeo = new THREE.SphereGeometry(1, 25, 25);
+const targetGeo = new THREE.SphereGeometry(1, 64, 64);
 const targetMat = new THREE.ShaderMaterial({
     vertexShader: appVertexShader,
     fragmentShader: appFragmentShader,
@@ -122,13 +122,13 @@ const targetMesh = new THREE.Mesh(targetGeo, targetMat);
 scene.add(targetMesh);
 
 // Draw the normals as red lines.
-const normalHelper = new VertexNormalsHelper(
-    targetMesh,
-    0.3,
-    0xff0000
-);
+// const normalHelper = new VertexNormalsHelper(
+//     targetMesh,
+//     0.3,
+//     0xff0000
+// );
 
-scene.add(normalHelper);
+// scene.add(normalHelper);
 
 
 
@@ -151,7 +151,7 @@ function animate() {
 
     //target move
     targetMesh.position.set(Math.sin(elapsedTime * 0.5) * 3, 0, Math.cos(elapsedTime * 0.5) * 3);
-    normalHelper.update();
+    // normalHelper.update();
 
     //direction arrow
     const timeX = Math.abs(Math.sin(elapsedTime * 0.5) * 3);

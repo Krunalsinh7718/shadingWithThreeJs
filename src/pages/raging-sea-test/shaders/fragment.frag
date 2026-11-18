@@ -14,7 +14,7 @@ void main(){
     float mixStrength = (vElevation + uColorOffset) * uColorMultiplier;
     // color = mix(uDepthColor,uSurfaceColor,mixStrength);
 
-    vec3 colorFinal = mix(nature_PineGreen, nature_SpringGreen, vElevation);
+    vec3 colorFinal = mix(ocean_OceanBlue, ocean_Aqua, vElevation);
     
 
     gl_FragColor = vec4(colorFinal, 1.0);

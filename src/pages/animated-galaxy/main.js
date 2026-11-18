@@ -105,8 +105,6 @@ const generateGalaxy = () => {
             uSize : {value : 30 * renderer.getPixelRatio() },
             uTime : {value: 0 }
         }
-        
-        
     })
 
     points = new THREE.Points(pointGeometry, pointMaterial);

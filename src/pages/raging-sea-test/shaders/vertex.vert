@@ -1,10 +1,13 @@
-uniform float uBigWaveElevation;
-uniform vec2 uBigWaveFrequency;
-uniform float uBigWaveSpeed;
+
+
 uniform float uTime;
 
-uniform float uSmallWaveElevation;
-uniform float uSmallWaveFrequency;
+uniform float uBigWaveAmplitude;
+uniform float uBigWaveFrequancy;
+uniform float uBigWaveSpeed;
+
+uniform float uSmallWaveAmplitude;
+uniform float uSmallWaveFrequancy;
 uniform float uSmallWaveSpeed;
 uniform float uSmallWaveIteration;
 
@@ -15,34 +18,24 @@ varying vec2 vUv;
 
 
 void main(){
-    float bigWaveAmplitude = 0.3;
-    float bigWaveFrequancy = 2.0;
-    float bigWaveSpeed = 0.8;
-
-    float smallWaveAmplitude = 0.1;
-    float smallWaveFrequancy = 3.0;
-    float smallWaveSpeed = 0.2;
-
-   vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-   float elevation = sin( modelPosition.x * bigWaveFrequancy + uTime * bigWaveSpeed) * 
-                     cos( modelPosition.z * bigWaveFrequancy + uTime * bigWaveSpeed) *
-                     bigWaveAmplitude;
-
-    for(float i = 0.0; i < 3.0; i++){
-        elevation -= abs(perlinClass3D(vec3(modelPosition.xz * smallWaveFrequancy  * i, uTime * smallWaveSpeed * i))) * smallWaveAmplitude;
-    }
-
-  modelPosition.y += elevation;
-
-   vec4 viewPosition = viewMatrix * modelPosition;
-   vec4 projectedPosition = projectionMatrix * viewPosition;
-
-   gl_Position = projectedPosition;
-    vElevation = modelPosition.y;
-
-
    
 
+    vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+    float elevation = sin( modelPosition.x * uBigWaveFrequancy + uTime * uBigWaveSpeed) * 
+                     cos( modelPosition.z * uBigWaveFrequancy + uTime * uBigWaveSpeed) *
+                     uBigWaveAmplitude;
+
+    for(float i = 0.0; i < uSmallWaveIteration; i++){
+        elevation -= abs(perlinClass3D(vec3(modelPosition.xz * uSmallWaveFrequancy  * i , uTime * uSmallWaveSpeed * i ))) * uSmallWaveAmplitude;
+    }
+
+    modelPosition.y += elevation;
+
+    vec4 viewPosition = viewMatrix * modelPosition;
+    vec4 projectedPosition = projectionMatrix * viewPosition;
+
+    gl_Position = projectedPosition;
+    vElevation = modelPosition.y;
 }
 
 
